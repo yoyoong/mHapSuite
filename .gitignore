@@ -21,3 +21,24 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+.idea/
+logs/
+target/
+.out*/
+
+#常用input/output文件
+*.gz
+*.tar
+*.txt
+*.tbi
+*.mhap
+*.bed
+*.bedGraph
+*.wig
+*.bigwig
+
+#常用文件格式
+*.pdf
+*.jpg
+*.png

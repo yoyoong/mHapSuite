@@ -10,8 +10,6 @@ public class MHapInfo implements Serializable {
     public Integer cnt;
     public String strand;
 
-    public String barcode;
-
     public String getChrom() {
         return chrom;
     }
@@ -60,20 +58,12 @@ public class MHapInfo implements Serializable {
         this.strand = strand;
     }
 
-    public String getBarcode() {
-        return barcode;
-    }
-
-    public void setBarcode(String barcode) {
-        this.barcode = barcode;
-    }
-
     public String indexByPos() {
         return this.chrom + this.start;
     }
 
     public String indexByRead() {
-        return this.chrom + this.start+ this.end + this.cpg + this.getBarcode();
+        return this.chrom + this.start+ this.end + this.cpg;
     }
 
     public String print() {

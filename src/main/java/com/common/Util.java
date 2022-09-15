@@ -119,24 +119,21 @@ public class Util {
     }
 
     public List<Integer> getcpgPosListInRegion(List<Integer> cpgPosList, Region region) throws Exception {
-        Integer cpgStartPos = region.getStart() > cpgPosList.get(0) ? region.getStart() : cpgPosList.get(0);
-        Integer cpgEndPos = region.getEnd() > cpgPosList.get(cpgPosList.size() - 1) ? cpgPosList.get(cpgPosList.size() - 1) : region.getEnd();
+        Integer cpgStartPos = 0;
+        Integer cpgEndPos = cpgPosList.size() - 1;
         for (int i = 0; i < cpgPosList.size(); i++) {
-            if (cpgPosList.get(i) <= cpgStartPos && cpgPosList.get(i + 1) >= cpgStartPos) {
+            if (cpgPosList.get(i) < region.getStart() && cpgPosList.get(i + 1) >= region.getStart()) {
                 cpgStartPos = i + 1;
                 break;
             }
         }
         for (int i = 0; i < cpgPosList.size(); i++) {
-            if (cpgPosList.get(i) > cpgEndPos) {
+            if (cpgPosList.get(i) >= region.getEnd()) {
                 cpgEndPos = i;
-                break;
-            } else if (cpgPosList.get(i).equals(cpgEndPos)) {
-                cpgEndPos = i + 1;
                 break;
             }
         }
-        List<Integer> cpgPosListInRegion = cpgPosList.subList(cpgStartPos, cpgEndPos);
+        List<Integer> cpgPosListInRegion = cpgPosList.subList(cpgStartPos, cpgEndPos + 1);
 
         return cpgPosListInRegion;
     }
@@ -180,28 +177,27 @@ public class Util {
         return mHapInfoList;
     }
 
-    public Integer[][] getCpgHpMat(Integer rowNum, List<MHapInfo> mHapInfoList, List<Integer> cpgPosList) {
-        Integer[][] cpgHpMatInRegion = new Integer[rowNum][cpgPosList.size()];
+    public Integer[][] getCpgHpMat(List<MHapInfo> mHapInfoList, List<Integer> cpgPosList, List<Integer> cpgPosListInRegion) {
+        Integer[][] cpgHpMatInRegion = new Integer[mHapInfoList.size()][cpgPosListInRegion.size()];
 
-        for (int i = 0; i < cpgPosList.size(); i++) {
+        for (int i = 0; i < cpgPosListInRegion.size(); i++) {
             for (int j = 0; j < mHapInfoList.size(); j++) {
                 MHapInfo mHapInfo = mHapInfoList.get(j);
-                if (cpgPosList.get(i) >= mHapInfo.getStart() && cpgPosList.get(i) <= mHapInfo.getEnd()) {
+                if (cpgPosListInRegion.get(i) >= mHapInfo.getStart() && cpgPosListInRegion.get(i) <= mHapInfo.getEnd()) {
                     // 获取某个在区域内的位点在mhap的cpg中的相对位置
-                    Integer pos = cpgPosList.indexOf(cpgPosList.get(i)) - cpgPosList.indexOf(mHapInfo.getStart());
+                    Integer pos = cpgPosList.indexOf(cpgPosListInRegion.get(i)) - cpgPosList.indexOf(mHapInfo.getStart());
                     for (int k = pos; k < mHapInfo.getCpg().length(); k++) {
-                        if (i + k - pos < cpgPosList.size()) {
+                        if (i + k - pos < cpgPosListInRegion.size()) {
                             if (mHapInfo.getCpg().charAt(k) == '0') {
-                                cpgHpMatInRegion[i][i + k - pos] = -1;
+                                cpgHpMatInRegion[j][i + k - pos] = 0;
                             } else {
-                                cpgHpMatInRegion[i][i + k - pos] = 1;
+                                cpgHpMatInRegion[j][i + k - pos] = 1;
                             }
                         }
                     }
                 }
             }
         }
-
         return cpgHpMatInRegion;
     }
 

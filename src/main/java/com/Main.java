@@ -5,6 +5,7 @@ import org.apache.commons.cli.*;
 
 public class Main {
     static Tanghulu tanghulu = new Tanghulu();
+    static MHapView mHapView = new MHapView();
 
     public static void main(String[] args) throws Exception {
         System.setProperty("java.awt.headless", "true");
@@ -13,6 +14,9 @@ public class Main {
             if (args[0].equals("tanghulu")) {
                 TanghuluArgs tanghuluArgs = parseTanghulu(args);
                 tanghulu.tanghulu(tanghuluArgs);
+            } else if (args[0].equals("mHapView")) {
+                MHapViewArgs mHapViewArgs = parseMHapView(args);
+                mHapView.mHapView(mHapViewArgs);
             } else {
                 System.out.println("unrecognized command:" + args[0]);
             }
@@ -77,5 +81,47 @@ public class Main {
         }
 
         return tanghuluArgs;
+    }
+
+    private static MHapViewArgs parseMHapView(String[] args) throws ParseException {
+        Options options = new Options();
+        Option option1 = OptionBuilder.withArgName("com/args").withLongOpt("mhapPath").isRequired().hasArg().withDescription("mhapPath").create("mhapPath");
+        Option option2 = OptionBuilder.withArgName("com/args").withLongOpt("cpgPath").isRequired().hasArg().withDescription("cpgPath").create("cpgPath");
+        Option option3 = OptionBuilder.withArgName("com/args").withLongOpt("region").isRequired().hasArg().withDescription("region").create("region");
+        Option option4 = OptionBuilder.withArgName("com/args").withLongOpt("bed").hasArg().withDescription("bed").create("bed");
+        Option option5 = OptionBuilder.withArgName("com/args").withLongOpt("outputFile").isRequired().hasArg().withDescription("outputFile").create("outputFile");
+        Option option6 = OptionBuilder.withArgName("com/args").withLongOpt("outFormat").hasArg().withDescription("outFormat").create("outFormat");
+        Option option7 = OptionBuilder.withArgName("com/args").withLongOpt("strand").hasArg().withDescription("strand").create("strand");
+        options.addOption(option1).addOption(option2).addOption(option3).addOption(option4).addOption(option5).
+                addOption(option6).addOption(option7);
+
+        BasicParser parser = new BasicParser();
+        MHapViewArgs mHapViewArgs = new MHapViewArgs();
+
+        CommandLine commandLine = parser.parse(options, args);
+        if (commandLine.getOptions().length > 0) {
+            if (commandLine.hasOption('h')) {
+                HelpFormatter hf = new HelpFormatter();
+                hf.printHelp("Options", options);
+            } else {
+                mHapViewArgs.setMhapPath(commandLine.getOptionValue("mhapPath"));
+                mHapViewArgs.setCpgPath(commandLine.getOptionValue("cpgPath"));
+                mHapViewArgs.setRegion(commandLine.getOptionValue("region"));
+                if (commandLine.hasOption("bed")) {
+                    mHapViewArgs.setBed(commandLine.getOptionValue("bed"));
+                }
+                mHapViewArgs.setOutputFile(commandLine.getOptionValue("outputFile"));
+                if (commandLine.hasOption("outFormat")) {
+                    mHapViewArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
+                }
+                if (commandLine.hasOption("strand")) {
+                    mHapViewArgs.setStrand(commandLine.getOptionValue("strand"));
+                }
+            }
+        } else {
+            System.out.println("The paramter is null");
+        }
+
+        return mHapViewArgs;
     }
 }

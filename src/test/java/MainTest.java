@@ -24,13 +24,19 @@ public class MainTest extends TestCase {
         String arg14 = "1000";
         String arg15 = "-maxLength";
         String arg16 = "2000";
-        //String arg17 = "-merge";
+        String arg17 = "-merge";
         String arg18 = "-simulation";
         String arg19 = "-cutReads";
         // String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17};
-        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg18};
+        // String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg18};
         // String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18};
-        // String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19};
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19};
+
+        String argsStr = "";
+        for (int i = 0; i < args.length; i++) {
+            argsStr += args[i] + " ";
+        }
+        System.out.println(argsStr);
 
         main.main(args);
     }

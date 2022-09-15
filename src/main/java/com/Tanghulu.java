@@ -5,6 +5,7 @@ import com.bean.MHapInfo;
 import com.bean.Region;
 import com.common.Util;
 import com.rewrite.CustomXYLineAndShapeRenderer;
+import com.rewrite.CustomXYLineAndShapeRenderer2;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -16,7 +17,7 @@ import org.jfree.chart.labels.StandardXYItemLabelGenerator;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
-import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.TextAnchor;
 import org.jfree.data.Range;
 import org.jfree.data.xy.XYSeries;
@@ -27,8 +28,8 @@ import org.slf4j.LoggerFactory;
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.text.DecimalFormat;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 import static java.lang.Math.random;
 
@@ -37,18 +38,13 @@ public class Tanghulu {
 
     TanghuluArgs args = new TanghuluArgs();
     Util util = new Util();
-    Region region = new Region();
-    Integer[][] cpgHpMatInRegion;
-    List<Double[][]> toLeftList = new ArrayList<>();
-    List<Double[][]> toRightList = new ArrayList<>();
-    Integer[][] cpgHpMatSample;
 
     public void tanghulu(TanghuluArgs tanghuluArgs) throws Exception {
         log.info("Tanghulu start!");
         args = tanghuluArgs;
 
         // parse the region
-        region = util.parseRegion(args.getRegion());
+        Region region = util.parseRegion(args.getRegion());
         if (region.getEnd() - region.getStart() > args.getMaxLength()) {
             log.info("The region is larger than " + args.getMaxLength()
                     + ", it's not recommanded to do tanghulu plotting and we will cut the superfluous region.");
@@ -73,7 +69,7 @@ public class Tanghulu {
         // parse the cpg file
         List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
 
-        boolean tanghuluResult = paintTanghulu(mHapInfoList, cpgPosList);
+        boolean tanghuluResult = paintTanghulu(mHapInfoList, cpgPosList, region);
         if (!tanghuluResult) {
             log.error("tanghulu fail, please check the command.");
             return;
@@ -82,7 +78,7 @@ public class Tanghulu {
         if (args.getSimulation()) {
             mHapInfoList = util.parseMhapFile(args.getMhapPath(), region, args.getStrand(), false);
 
-            boolean simulationResult = simulation(mHapInfoList, cpgPosList);
+            boolean simulationResult = simulation(mHapInfoList, cpgPosList, region);
             if (!simulationResult) {
                 log.error("simulation fail, please check the command.");
                 return;
@@ -106,7 +102,7 @@ public class Tanghulu {
         return true;
     }
 
-    private boolean paintTanghulu(List<MHapInfo> mHapInfoList, List<Integer> cpgPosList) throws Exception {
+    private boolean paintTanghulu(List<MHapInfo> mHapInfoList, List<Integer> cpgPosList, Region region) throws Exception {
         // create the dataset
         XYSeriesCollection dataset = new XYSeriesCollection();
         Integer startPos = Integer.MAX_VALUE; // 最近的甲基化位点
@@ -290,7 +286,7 @@ public class Tanghulu {
         return true;
     }
 
-    private boolean simulation(List<MHapInfo> mHapInfoList, List<Integer> cpgPosList) throws Exception {
+    private boolean simulation(List<MHapInfo> mHapInfoList, List<Integer> cpgPosList, Region region) throws Exception {
         // 提取查询区域内的甲基化位点列表
         List<Integer> cpgPosListInRegion = util.getcpgPosListInRegion(cpgPosList, region);
         if (cpgPosListInRegion.size() > 20) {
@@ -298,48 +294,25 @@ public class Tanghulu {
             return false;
         }
 
-        // 给甲基化位点标上序号
-        Map<Integer, Integer> cpgIdMap = new HashMap<>();
-        for (int i = 0; i < cpgPosList.size(); i++) {
-            cpgIdMap.put(cpgPosList.get(i), i);
-        }
-
-        // TODO
-        Integer[][] cpgHpMat = new Integer[mHapInfoList.size()][cpgPosList.size()];
-        for (int i = 0; i < mHapInfoList.size(); i++) {
-            for (int j = 0; j < cpgPosList.size(); j++) {
-                cpgHpMat[i][j] = 0;
-            }
-        }
-        for (int i = 0; i < mHapInfoList.size(); i++) {
-            if (cpgIdMap.containsKey(mHapInfoList.get(i).getStart())) {
-                Integer index = cpgIdMap.get(mHapInfoList.get(i).getStart());
-                String cpgString = mHapInfoList.get(i).getCpg();
-                for (int j = 0; j < cpgString.length(); j++) {
-                    if (cpgString.charAt(j) == '0') {
-                        cpgHpMat[i][index + j] = -1;
-                    } else if (cpgString.charAt(j) == '1') {
-                        cpgHpMat[i][index + j] = 1;
-                    }
-                }
-            } else {
-                log.info("cpg" + mHapInfoList.get(i).getStart() + "not in dic");
-            }
-        }
-
         // 取区域内的甲基化状态列表
-        cpgHpMatInRegion = new Integer[mHapInfoList.size()][cpgPosListInRegion.size()];
+        Integer[][] cpgHpMatInRegion = new Integer[mHapInfoList.size()][cpgPosListInRegion.size()];
         for (int i = 0; i < mHapInfoList.size(); i++) {
             for (int j = 0; j < cpgPosListInRegion.size(); j++) {
                 cpgHpMatInRegion[i][j] = 0;
             }
         }
-        for (int i = 0; i < cpgHpMat.length; i++) {
-            Integer[] cpgHpMatRow = new Integer[cpgPosListInRegion.size()];
-            for (int j = cpgPosList.indexOf(region.getStart()); j < cpgPosList.indexOf(region.getEnd()) + 1; j++) {
-                cpgHpMatRow[j - cpgPosList.indexOf(region.getStart())] = cpgHpMat[i][j];
+        for (int i = 0; i < mHapInfoList.size(); i++) {
+            MHapInfo mHapInfo = mHapInfoList.get(i);
+            Integer pos = cpgPosList.indexOf(cpgPosListInRegion.get(0)) - cpgPosList.indexOf(mHapInfo.getStart());
+            for (int k = pos > 0 ? pos : 0; k < mHapInfo.getCpg().length(); k++) {
+                if (k - pos < cpgPosListInRegion.size()) {
+                    if (mHapInfo.getCpg().charAt(k) == '0') {
+                        cpgHpMatInRegion[i][k - pos] = -1;
+                    } else {
+                        cpgHpMatInRegion[i][k - pos] = 1;
+                    }
+                }
             }
-            cpgHpMatInRegion[i] = cpgHpMatRow;
         }
 
         // 求每个甲基化位点的甲基化比率和平均甲基化率
@@ -377,6 +350,8 @@ public class Tanghulu {
         sumCpgRate = sumCpgCnt / sumAllCnt;
 
         // TODO
+        List<Double[][]> toLeftList = new ArrayList<>();
+        List<Double[][]> toRightList = new ArrayList<>();
         for (int i = 0; i < cpgPosListInRegion.size(); i++) {
             Double[][] toLeft = new Double[2][2];
             Double toLeft_1Not0 = 0.0;
@@ -454,7 +429,7 @@ public class Tanghulu {
         // TODO
         for (int i = 0; i < mHapInfoList.size(); i++) {
             for (int j = 0; j < cpgPosListInRegion.size(); j++) {
-                dfs(i, j, cpgPosListInRegion);
+                dfs(i, j, cpgHpMatInRegion, toLeftList, toRightList, cpgPosListInRegion);
             }
         }
 
@@ -467,7 +442,7 @@ public class Tanghulu {
 
         // 取10个样本
         Random random =new Random();
-        cpgHpMatSample = new Integer[10][cpgPosList.size()];
+        Integer[][] cpgHpMatSample = new Integer[10][cpgPosList.size()];
         for (int i = 0; i < 10; i++) {
             Integer randomNum = random.nextInt(mHapInfoList.size());
             cpgHpMatSample[i] = cpgHpMatInRegion[randomNum];
@@ -547,6 +522,10 @@ public class Tanghulu {
             }
         });
 
+        // 画布大小设置
+        Integer width = cpgPosListInRegion.size() * 100;
+        Integer height = width / (2 * cpgPosListInRegion.size() + 1) * 40;
+
         // 创建数据集
         XYSeriesCollection dataset = new XYSeriesCollection();
         for (int i = 0; i < cpgHpMatSample.length; i++) {
@@ -554,11 +533,12 @@ public class Tanghulu {
             XYSeries cpgSeries = new XYSeries("cpg" + i + String.valueOf(cpgHpMatSample));
             XYSeries unCpgSeries = new XYSeries("unCpg" + i + String.valueOf(cpgHpMatSample));
             for (int j = 0; j < cpgHpMatSample[i].length; j++) {
-                allSeries.add(cpgPosListInRegion.get(j), Integer.valueOf(cpgHpMatSample.length - i));
+                Integer xPos = width / (cpgPosListInRegion.size() + 1) * (j + 1);
+                allSeries.add(xPos, Integer.valueOf(cpgHpMatSample.length - i));
                 if (cpgHpMatSample[i][j] == 1) {
-                    cpgSeries.add(cpgPosListInRegion.get(j), Integer.valueOf(cpgHpMatSample.length - i));
+                    cpgSeries.add(xPos, Integer.valueOf(cpgHpMatSample.length - i));
                 } else {
-                    unCpgSeries.add(cpgPosListInRegion.get(j), Integer.valueOf(cpgHpMatSample.length - i));
+                    unCpgSeries.add(xPos, Integer.valueOf(cpgHpMatSample.length - i));
                 }
             }
             // 全部节点和甲基化节点交替加入
@@ -568,13 +548,14 @@ public class Tanghulu {
         }
         XYSeries alignSeries = new XYSeries("Align series");
         for (Integer i = 0; i < cpgPosListInRegion.size(); i++) {
-            alignSeries.add(cpgPosListInRegion.get(i), Integer.valueOf(0));
+            Integer xPos = width / (cpgPosListInRegion.size() + 1) * (i + 1);
+            alignSeries.add(xPos, Integer.valueOf(0));
         }
         dataset.addSeries(alignSeries);
 
         // 绘制折线图
-        String head = "Average methylation:" + String.format("%1.8f" , sumCpgRate);
-        JFreeChart jfreechart = ChartFactory.createXYLineChart(head, // 标题
+        String title = "Average methylation:" + String.format("%1.8f" , sumCpgRate);
+        JFreeChart jfreechart = ChartFactory.createXYLineChart(title, // 标题
                 "Genomic position", // categoryAxisLabel （category轴，横轴，X轴标签）
                 "", // valueAxisLabel（value轴，纵轴，Y轴的标签）
                 dataset, // dataset
@@ -583,19 +564,18 @@ public class Tanghulu {
                 false, // tooltips
                 false); // URLs
 
+        jfreechart.setTitle(new TextTitle(title, new Font("", 0, width / (2 * cpgPosListInRegion.size() + 1))));
         XYPlot xyPlot = jfreechart.getXYPlot( );
         xyPlot.setBackgroundPaint(Color.WHITE); // 背景色
         xyPlot.setDomainGridlinesVisible(false); // 不显示X轴网格线
         xyPlot.setRangeGridlinesVisible(false); // 不显示Y轴网格线
         xyPlot.setOutlineVisible(true); // 显示数据区的边界线条
 
-        // 画布大小设置
-        Integer width = cpgHpMatSample[0].length * 100;
-        Integer height = width * 3 / 2;
+        CustomXYLineAndShapeRenderer2 xyLineAndShapeRenderer = new CustomXYLineAndShapeRenderer2();
+        xyLineAndShapeRenderer.setLabelList(cpgPosListInRegion);
 
-        XYLineAndShapeRenderer xyLineAndShapeRenderer = new CustomXYLineAndShapeRenderer();
         // 普通糖葫芦格式设置
-        Double circleSize = 15.0;  // 糖葫芦大小
+        Double circleSize = (double) width / (2 * cpgPosListInRegion.size() + 1);  // 糖葫芦大小
         Shape circle = new Ellipse2D.Double(-circleSize / 2, -circleSize / 2, circleSize, circleSize);
         for (int i = 0; i < dataset.getSeriesCount() - 1; i++) { // 糖葫芦样式设置
             if (i % 3 == 0) { // 全部节点画空心圆
@@ -616,13 +596,14 @@ public class Tanghulu {
             }
         }
         // cpg位点刻度形状设置
-        xyLineAndShapeRenderer.setSeriesShape(dataset.getSeriesCount() - 1, circle);
-        xyLineAndShapeRenderer.setSeriesShapesFilled(dataset.getSeriesCount() - 1, true);
-        xyLineAndShapeRenderer.setSeriesLinesVisible(dataset.getSeriesCount() - 1, true);
-        xyLineAndShapeRenderer.setSeriesPaint(dataset.getSeriesCount() - 1, Color.GRAY);
+//        xyLineAndShapeRenderer.setSeriesShape(dataset.getSeriesCount() - 1, circle);
+//        xyLineAndShapeRenderer.setSeriesShapesFilled(dataset.getSeriesCount() - 1, true);
+        xyLineAndShapeRenderer.setSeriesLinesVisible(dataset.getSeriesCount() - 1, false);
+//        xyLineAndShapeRenderer.setSeriesPaint(dataset.getSeriesCount() - 1, Color.GRAY);
+//        xyLineAndShapeRenderer.setDefaultLegendShape(circle);
+        xyLineAndShapeRenderer.setSeriesShapesVisible(dataset.getSeriesCount() - 1, false);
         xyLineAndShapeRenderer.setSeriesItemLabelsVisible(dataset.getSeriesCount() - 1, true);
-        xyLineAndShapeRenderer.setDefaultLegendShape(circle);
-        xyLineAndShapeRenderer.setSeriesItemLabelsVisible(dataset.getSeriesCount() - 1, true);
+
 
         xyPlot.setRenderer(xyLineAndShapeRenderer);
 
@@ -632,15 +613,17 @@ public class Tanghulu {
         xyItemRenderer.setDefaultItemLabelGenerator(new StandardXYItemLabelGenerator("{1}",
                 decimalformat, decimalformat)); // 显示X轴的值（cpg位点位置）
         ItemLabelPosition itemLabelPosition = new ItemLabelPosition(ItemLabelAnchor.OUTSIDE6,
-                TextAnchor.TOP_CENTER, TextAnchor.CENTER, -0.5D); // 显示数据值的位置
+                TextAnchor.TOP_CENTER, TextAnchor.CENTER, -0.8D); // 显示数据值的位置
         xyItemRenderer.setSeriesPositiveItemLabelPosition(dataset.getSeriesCount() - 1, itemLabelPosition);
         xyItemRenderer.setSeriesItemLabelPaint(dataset.getSeriesCount() - 1, Color.GRAY);
-        xyItemRenderer.setSeriesItemLabelFont(dataset.getSeriesCount() - 1, new Font("", Font.PLAIN, 10));
+        xyItemRenderer.setSeriesItemLabelFont(dataset.getSeriesCount() - 1, new Font("", Font.PLAIN, circleSize.intValue() / 2));
 
         xyPlot.setRenderer(xyItemRenderer);
 
         // X轴设置
         ValueAxis domainAxis = xyPlot.getDomainAxis();
+        domainAxis.setLowerMargin(0.1);
+        domainAxis.setUpperMargin(0.1);
         domainAxis.setVisible(false);
 
         // Y轴设置
@@ -662,7 +645,8 @@ public class Tanghulu {
         return true;
     }
 
-    private void dfs(Integer x, Integer y, List<Integer> cpgPosListInRegion) {
+    private void dfs(Integer x, Integer y, Integer[][] cpgHpMatInRegion, List<Double[][]> toLeftList,
+                     List<Double[][]> toRightList, List<Integer> cpgPosListInRegion) {
         if (y < 0 || y >= cpgPosListInRegion.size()) {
             return;
         }
@@ -676,7 +660,7 @@ public class Tanghulu {
             } else {
                 cpgHpMatInRegion[x][y] = 1;
             }
-            dfs(x, y + 1, cpgPosListInRegion);
+            dfs(x, y + 1, cpgHpMatInRegion, toLeftList, toRightList, cpgPosListInRegion);
         }
         if (y + 1 < cpgPosListInRegion.size() && cpgHpMatInRegion[x][y + 1] != 0) {
             Integer check = cpgHpMatInRegion[x][y + 1] == -1 ? 0 : 1;
@@ -685,7 +669,7 @@ public class Tanghulu {
             } else {
                 cpgHpMatInRegion[x][y] = 1;
             }
-            dfs(x, y - 1, cpgPosListInRegion);
+            dfs(x, y - 1, cpgHpMatInRegion, toLeftList, toRightList, cpgPosListInRegion);
         }
     }
 }

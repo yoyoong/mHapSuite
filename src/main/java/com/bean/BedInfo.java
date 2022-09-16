@@ -6,7 +6,6 @@ public class BedInfo implements Serializable {
     public String chrom;
     public Integer start;
     public Integer end;
-    public String barCode;
 
     public String getChrom() {
         return chrom;
@@ -30,13 +29,5 @@ public class BedInfo implements Serializable {
 
     public void setEnd(Integer end) {
         this.end = end;
-    }
-
-    public String getBarCode() {
-        return barCode;
-    }
-
-    public void setBarCode(String barCode) {
-        this.barCode = barCode;
     }
 }

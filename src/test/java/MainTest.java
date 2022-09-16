@@ -13,7 +13,7 @@ public class MainTest extends TestCase {
         String arg3 = "-cpgPath";
         String arg4 = "hg19_CpG.gz";
         String arg5 = "-region";
-        String arg6 = "chr1:2121159-2121449";
+        String arg6 = "chr1:3229375-3230473";
         String arg7 = "-outputFile";
         String arg8 = "esophagus_T";
         String arg9 = "-strand";
@@ -50,16 +50,22 @@ public class MainTest extends TestCase {
         String arg3 = "-cpgPath";
         String arg4 = "hg19_CpG.gz";
         String arg5 = "-region";
-        String arg6 = "chr1:2121159-2121449";
+        String arg6 = "chr1:3229375-3230473";
         String arg7 = "-bed";
         String arg8 = "CRC_sc_bulk.bed";
         String arg9 = "-outputFile";
         String arg10 = "test";
         String arg11 = "-outFormat";
-        String arg12 = "pdf";
+        String arg12 = "png";
         String arg13 = "-strand";
         String arg14 = "both";
         String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14};
+
+        String argsStr = "";
+        for (int i = 0; i < args.length; i++) {
+            argsStr += args[i] + " ";
+        }
+        System.out.println(argsStr);
 
         main.main(args);
     }

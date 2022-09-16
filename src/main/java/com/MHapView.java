@@ -15,6 +15,7 @@ import com.itextpdf.text.pdf.PdfTemplate;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.rewrite.CustomXYBlockRenderer;
 import com.rewrite.CustomXYBlockRenderer2;
+import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.CategoryAxis;
@@ -35,8 +36,11 @@ import org.jfree.data.xy.DefaultXYZDataset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
 import java.io.*;
 import java.util.List;
 import java.util.*;
@@ -118,8 +122,14 @@ public class MHapView {
         heightList.add(cpgHpMatInRegion[0].length * 15);
 
         // 输出到文件
-        String outputPath = args.getOutputFile() + "_" + region.toFileString() + ".mHapView.pdf";
-        saveAsFile(plotList, outputPath, width, heightList, cpgPosListInRegion);
+        String outputPath = "";
+        if (args.getOutFormat().equals("pdf")) {
+            outputPath = args.getOutputFile() + "_" + region.toFileString() + ".mHapView.pdf";
+            saveAsPdf(plotList, outputPath, width, heightList, cpgPosListInRegion);
+        } else if (args.getOutFormat().equals("png")) {
+            outputPath = args.getOutputFile() + "_" + region.toFileString() + ".mHapView.png";
+            saveAsPng(plotList, outputPath, width, heightList, cpgPosListInRegion);
+        }
 
         return true;
     }
@@ -300,27 +310,21 @@ public class MHapView {
     private XYPlot createBedRegionPlot(List<Integer> cpgPosListInRegion) throws Exception {
 
         // parse the bed file
-        Map<String, List<BedInfo>> bedInfoListMap = util.parseBedFile(args.getBed());
+        List<BedInfo> bedInfoList = util.parseBedFile(args.getBed(), region);
 
         // 创建数据集
         DefaultXYZDataset dataset = new DefaultXYZDataset();
-        double x[] = new double[cpgPosListInRegion.size() * (bedInfoListMap.size() * 2 + 1)];
-        double y[] = new double[cpgPosListInRegion.size() * (bedInfoListMap.size() * 2 + 1)];
-        double z[] = new double[cpgPosListInRegion.size() * (bedInfoListMap.size() * 2 + 1)];
-        List<String> labelList = new ArrayList<>();
+        double x[] = new double[cpgPosListInRegion.size() * (bedInfoList.size() * 2 + 1)];
+        double y[] = new double[cpgPosListInRegion.size() * (bedInfoList.size() * 2 + 1)];
+        double z[] = new double[cpgPosListInRegion.size() * (bedInfoList.size() * 2 + 1)];
         for (int i = 0; i < cpgPosListInRegion.size(); i++) {
-            Iterator<String> iterator = bedInfoListMap.keySet().iterator();
             Integer cnt = 2;
-            while (iterator.hasNext()) {
-                List<BedInfo> bedInfoList = bedInfoListMap.get(iterator.next());
-                for (int j = 0; j < bedInfoList.size(); j++) {
-                    BedInfo bedInfo = bedInfoList.get(j);
-                    if (bedInfo.getStart() <= cpgPosListInRegion.get(i) && cpgPosListInRegion.get(i) <= bedInfo.getEnd()) {
-                        x[cpgPosListInRegion.size() * cnt + i] = i;
-                        y[cpgPosListInRegion.size() * cnt + i] = cnt;
-                        z[cpgPosListInRegion.size() * cnt + i] = 1;
-                        labelList.add(bedInfo.getBarCode());
-                    }
+            for (int j = 0; j < bedInfoList.size(); j++) {
+                BedInfo bedInfo = bedInfoList.get(j);
+                if (bedInfo.getStart() <= cpgPosListInRegion.get(i) && cpgPosListInRegion.get(i) <= bedInfo.getEnd()) {
+                    x[cpgPosListInRegion.size() * cnt + i] = i;
+                    y[cpgPosListInRegion.size() * cnt + i] = cnt;
+                    z[cpgPosListInRegion.size() * cnt + i] = 1;
                 }
                 cnt += 2;
             }
@@ -337,8 +341,8 @@ public class MHapView {
         xAxis.setVisible(false);
 
         NumberAxis yAxis = new NumberAxis();
-        yAxis.setTickUnit(new NumberTickUnit(bedInfoListMap.size() * 3));
-        yAxis.setRange(new Range(1, bedInfoListMap.size() * 2 + 1));
+        yAxis.setTickUnit(new NumberTickUnit(bedInfoList.size() * 3));
+        yAxis.setRange(new Range(0, bedInfoList.size() * 2 + 1));
         yAxis.setVisible(true);
         yAxis.setLabel("bed file");
         yAxis.setLabelFont(new Font("", Font.PLAIN, cpgPosListInRegion.size() / 2));
@@ -354,12 +358,11 @@ public class MHapView {
         xyBlockRenderer.setBlockHeight(0.5f);
         xyBlockRenderer.setBlockWidth(1.0f);
         xyBlockRenderer.setxBlockNum(cpgPosListInRegion.size());
-        xyBlockRenderer.setyBlockNum(bedInfoListMap.size() * 2 + 1);
+        xyBlockRenderer.setyBlockNum(bedInfoList.size() * 2 + 1);
         xyBlockRenderer.setSeriesItemLabelsVisible(0, true);
         xyBlockRenderer.setSeriesItemLabelFont(0, new Font("", Font.PLAIN,
-                cpgPosListInRegion.size() * 3 / (bedInfoListMap.size() * 2 + 1)));
+                cpgPosListInRegion.size() * 3 / (bedInfoList.size() * 2 + 1)));
         xyBlockRenderer.setSeriesItemLabelPaint(0, Color.BLACK);
-        xyBlockRenderer.setLabelList(labelList);
         xyPlot.setRenderer(xyBlockRenderer);
         xyPlot.setDomainGridlinesVisible(false); // 不显示X轴网格线
         xyPlot.setRangeGridlinesVisible(false); // 不显示Y轴网格线
@@ -378,9 +381,6 @@ public class MHapView {
                     r2Info.setStart(cpgPosListInRegion.get(i));
                     r2Info.setEnd(cpgPosListInRegion.get(j));
                     r2List.add(r2Info);
-                    log.info(region.getChrom() + "\t" + cpgPosListInRegion.get(i) + "\t" + cpgPosListInRegion.get(j) + "\t"
-                        + r2Info.getN00() + "\t" + r2Info.getN01() + "\t" + r2Info.getN10() + "\t"  + r2Info.getN11() + "\t"
-                        + String.format("%1.8f" , r2Info.getR2()) + "\t" + r2Info.getPvalue());
                 }
 
             }
@@ -454,7 +454,7 @@ public class MHapView {
     }
 
     // 保存为文件
-    public void saveAsFile(List<Plot> plotList, String outputPath, Integer width, List<Integer> heightList,
+    public void saveAsPdf(List<Plot> plotList, String outputPath, Integer width, List<Integer> heightList,
                            List<Integer> cpgPosListInRegion) throws FileNotFoundException, DocumentException {
         width = width > 14400 ? 14400 : width;
         Integer sumHeight = 0;
@@ -515,5 +515,50 @@ public class MHapView {
         // 关闭文档，才能输出
         document.close();
         pdfWriter.close();
+    }
+
+    public void saveAsPng(List<Plot> plotList, String outputPath, Integer width, List<Integer> heightList,
+                          List<Integer> cpgPosListInRegion) throws IOException {
+        File outFile = new File(outputPath);
+        Integer sumHeight = 0;
+        for (int i = 0; i < heightList.size(); i++) {
+            sumHeight += heightList.get(i);
+        }
+        BufferedImage bufferedImage = new BufferedImage(width, sumHeight, BufferedImage.TYPE_INT_RGB);
+
+        Integer nextHeight = 0;
+        for (int i = 0; i < plotList.size(); i++) {
+            Graphics2D graphics2D = bufferedImage.createGraphics();
+
+            JFreeChart jFreeChart = new JFreeChart("", null, plotList.get(i), false);
+            if (i == 0) {
+                jFreeChart = new JFreeChart(region.toHeadString(), new Font("", Font.PLAIN, sumHeight / 30), plotList.get(i), false);
+            } else if (i == plotList.size() - 1) {
+                // 颜色定义
+                LookupPaintScale paintScale = new LookupPaintScale(-1, 1, Color.black);
+                for (double j = -1; j < 0; j += 0.01) {
+                    paintScale.add(j, new Color((int) (255 + j * 255), (int) (255 + j * 255), 255));
+                }
+                for (double j = 0; j < 1; j += 0.01) {
+                    paintScale.add(j, new Color(255, (int) (255 - j * 255), (int) (255 - j * 255)));
+                }
+
+                // 颜色示意图
+                PaintScaleLegend paintScaleLegend = new PaintScaleLegend(paintScale, new NumberAxis());
+                paintScaleLegend.setStripWidth(width / cpgPosListInRegion.size() / 5);
+                paintScaleLegend.setPosition(RectangleEdge.RIGHT);
+                paintScaleLegend.setAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
+                paintScaleLegend.setMargin(heightList.get(i) * 1 / 3, 0, heightList.get(i) * 1 / 3, 0);
+                jFreeChart.addSubtitle(paintScaleLegend);
+            }
+            jFreeChart.setBackgroundPaint(Color.WHITE);
+            Rectangle2D rectangle2D0 = new Rectangle2D.Double(0, nextHeight, width, heightList.get(i));
+            jFreeChart.draw(graphics2D, rectangle2D0);
+            nextHeight += heightList.get(i);
+            graphics2D.dispose();
+        }
+
+        RenderedImage rendImage = bufferedImage;
+        ImageIO.write(rendImage, "png", outFile);
     }
 }

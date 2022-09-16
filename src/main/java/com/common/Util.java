@@ -64,29 +64,28 @@ public class Util {
         return cpgPosList;
     }
 
-    public Map<String, List<BedInfo>> parseBedFile(String bedFile) throws Exception {
+    public List<BedInfo> parseBedFile(String bedFile, Region region) throws Exception {
         BufferedReader bufferedReader = new BufferedReader(new FileReader(new File(bedFile)));
         String bedLine = "";
-        Map<String, List<BedInfo>> bedInfoListMap = new HashMap<>();
+        List<BedInfo> bedInfoList = new ArrayList<>();
         while ((bedLine = bufferedReader.readLine()) != null) {
             BedInfo bedInfo = new BedInfo();
-            if (bedLine.split("\t").length >= 4) {
+            if (bedLine.split("\t").length >= 3) {
                 bedInfo.setChrom(bedLine.split("\t")[0]);
                 bedInfo.setStart(Integer.valueOf(bedLine.split("\t")[1]));
                 bedInfo.setEnd(Integer.valueOf(bedLine.split("\t")[2]));
-                bedInfo.setBarCode(bedLine.split("\t")[3]);
-
-                if (bedInfoListMap.containsKey(bedInfo.getBarCode())) {
-                    List<BedInfo> bedInfoList = bedInfoListMap.get(bedInfo.getBarCode());
+                if (bedInfo.getEnd() >= region.getStart() && bedInfo.getStart() <= region.getEnd()) {
+                    if (bedInfo.getEnd() >= region.getStart() && bedInfo.getStart() <= region.getStart()) {
+                        bedInfo.setStart(region.getStart());
+                    }
+                    if (bedInfo.getEnd() >= region.getEnd() && bedInfo.getStart() <= region.getEnd()) {
+                        bedInfo.setEnd(region.getEnd());
+                    }
                     bedInfoList.add(bedInfo);
-                } else {
-                    List<BedInfo> bedInfoList = new ArrayList<>();
-                    bedInfoList.add(bedInfo);
-                    bedInfoListMap.put(bedInfo.getBarCode(), bedInfoList);
                 }
             }
         }
-        return bedInfoListMap;
+        return bedInfoList;
     }
 
     public BufferedWriter createOutputFile(String directory, String fileName) throws IOException {

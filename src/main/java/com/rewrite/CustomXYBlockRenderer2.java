@@ -30,7 +30,6 @@ public class CustomXYBlockRenderer2 extends XYBlockRenderer {
     private PaintScale paintScale;
     private Integer xBlockNum;
     private Integer yBlockNum;
-    private List<String> labelList;
 
     public PaintScale getPaintScale() {
         return this.paintScale;
@@ -58,14 +57,6 @@ public class CustomXYBlockRenderer2 extends XYBlockRenderer {
         this.yBlockNum = yBlockNum;
     }
 
-    public List getLabelList() {
-        return labelList;
-    }
-
-    public void setLabelList(List labelList) {
-        this.labelList = labelList;
-    }
-
     // 自定义图例
     @Override
     public void drawItem(Graphics2D g2, XYItemRendererState state, Rectangle2D dataArea, PlotRenderingInfo info, XYPlot plot, ValueAxis domainAxis, ValueAxis rangeAxis, XYDataset dataset, int series, int item, CrosshairState crosshairState, int pass) {
@@ -87,19 +78,6 @@ public class CustomXYBlockRenderer2 extends XYBlockRenderer {
             g2.drawPolygon(xPos, yPos, 4);
             g2.setPaint(new Color(70, 130, 180));
             g2.fillPolygon(xPos, yPos, 4);
-
-            PlotOrientation orientation = plot.getOrientation();
-            if (this.isItemLabelVisible(series, item)) {
-                double labelXPos = dataArea.getWidth() * 0.1;
-                double labelYPos = dataArea.getY() + dataArea.getHeight() / this.yBlockNum * (this.yBlockNum - y + 0.5);
-                ItemLabelPosition position = new ItemLabelPosition(ItemLabelAnchor.INSIDE1,
-                        TextAnchor.CENTER, TextAnchor.CENTER, 0D); // 显示数据值的位置
-                Point2D anchorPoint = this.calculateLabelAnchorPoint(position.getItemLabelAnchor(), labelXPos, labelYPos, orientation);
-                Font labelFont = this.getItemLabelFont(series, item);
-                g2.setFont(labelFont);
-                TextUtils.drawRotatedString(this.labelList.get((int) (y - 1) / 2), g2, (float)anchorPoint.getX(), (float)anchorPoint.getY(),
-                        position.getTextAnchor(), position.getAngle(), position.getRotationAnchor());
-            }
         }
     }
 }

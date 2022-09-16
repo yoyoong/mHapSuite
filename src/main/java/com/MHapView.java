@@ -46,7 +46,6 @@ public class MHapView {
     public static final Logger log = LoggerFactory.getLogger(MHapView.class);
 
     Util util = new Util();
-    Sort sort = new Sort();
     MHapViewArgs args = new MHapViewArgs();
     Region region = new Region();
 
@@ -92,13 +91,13 @@ public class MHapView {
         // 甲基化状态矩阵 0-未甲基化 1-甲基化
         Integer[][] cpgHpMatInRegion = util.getCpgHpMat(mHapList, cpgPosList, cpgPosListInRegion);
 
-//        // 按甲基化比率递减排序
-//        Arrays.sort(cpgHpMatInRegion, sort.sortByCpgRate);
-
         CategoryPlot cellCntPlot = createReadCntPlot(mHapList, cpgPosListInRegion);
         CategoryPlot mmPlot = createMMPlot(cpgPosListInRegion, cpgHpMatInRegion);
         XYPlot whiteBlackPlot = createWhiteBlackPlot(cpgHpMatInRegion);
-        XYPlot bedRegionPlot = createBedRegionPlot(cpgPosListInRegion);
+        XYPlot bedRegionPlot = new XYPlot();
+        if (args.getBed() != null && !args.getBed().equals("")) {
+            bedRegionPlot = createBedRegionPlot(cpgPosListInRegion);
+        }
         XYPlot MHapViewHeatMapPlot = createHeatMapPlot(cpgHpMatInRegion, cpgPosListInRegion);
 
         // 画布大小设置
@@ -111,8 +110,10 @@ public class MHapView {
         heightList.add(cpgHpMatInRegion[0].length * 5);
         plotList.add(whiteBlackPlot);
         heightList.add(cpgHpMatInRegion[0].length * 20);
-        plotList.add(bedRegionPlot);
-        heightList.add(cpgHpMatInRegion[0].length * 3);
+        if (args.getBed() != null && !args.getBed().equals("")) {
+            plotList.add(bedRegionPlot);
+            heightList.add(cpgHpMatInRegion[0].length * 3);
+        }
         plotList.add(MHapViewHeatMapPlot);
         heightList.add(cpgHpMatInRegion[0].length * 15);
 
@@ -164,7 +165,7 @@ public class MHapView {
         barRenderer.setBarPainter(new StandardBarPainter()); // 设置柱子为平面图不是立体的
         barRenderer.setShadowVisible(false);
         barRenderer.setDrawBarOutline(false);
-        barRenderer.setMaximumBarWidth(0.02);
+        barRenderer.setMaximumBarWidth(0.015);
         barRenderer.setDefaultItemLabelsVisible(true);
         for (int i = 0; i < dataset.getRowCount(); i++) {
             barRenderer.setSeriesPaint(i, new Color(70, 130, 180));
@@ -224,7 +225,7 @@ public class MHapView {
         barRenderer.setBarPainter(new StandardBarPainter()); // 设置柱子为平面图不是立体的
         barRenderer.setShadowVisible(false);
         barRenderer.setDrawBarOutline(false);
-        barRenderer.setMaximumBarWidth(0.02);
+        barRenderer.setMaximumBarWidth(0.015);
         barRenderer.setDefaultItemLabelsVisible(true);
         for (int i = 0; i < dataset.getRowCount(); i++) {
             barRenderer.setSeriesPaint(i, new Color(70, 130, 180));
@@ -407,6 +408,12 @@ public class MHapView {
                 x[next + j] = i;
                 y[next + j] = j;
                 z[next + j] = 255 + r2Info.getR2() * 255;
+                if (z[next + j] < 0) {
+                    z[next + j] = 0;
+                }
+                if (z[next + j] > 510) {
+                    z[next + j] = 510;
+                }
             }
             next += r2InfoList.size();
         }
@@ -448,8 +455,7 @@ public class MHapView {
 
     // 保存为文件
     public void saveAsFile(List<Plot> plotList, String outputPath, Integer width, List<Integer> heightList,
-                           List<Integer> cpgPosListInRegion)
-            throws FileNotFoundException, DocumentException {
+                           List<Integer> cpgPosListInRegion) throws FileNotFoundException, DocumentException {
         width = width > 14400 ? 14400 : width;
         Integer sumHeight = 0;
         for (int i = 0; i < heightList.size(); i++) {

@@ -69,18 +69,17 @@ public class Tanghulu {
         // parse the cpg file
         List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
 
-        boolean tanghuluResult = paintTanghulu(mHapInfoList, cpgPosList, region);
-        if (!tanghuluResult) {
-            log.error("tanghulu fail, please check the command.");
-            return;
-        }
-
         if (args.getSimulation()) {
             mHapInfoList = util.parseMhapFile(args.getMhapPath(), region, args.getStrand(), false);
-
             boolean simulationResult = simulation(mHapInfoList, cpgPosList, region);
             if (!simulationResult) {
                 log.error("simulation fail, please check the command.");
+                return;
+            }
+        } else {
+            boolean tanghuluResult = paintTanghulu(mHapInfoList, cpgPosList, region);
+            if (!tanghuluResult) {
+                log.error("tanghulu fail, please check the command.");
                 return;
             }
         }

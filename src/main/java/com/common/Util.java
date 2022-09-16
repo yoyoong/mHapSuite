@@ -89,7 +89,7 @@ public class Util {
         return bedInfoListMap;
     }
 
-        public BufferedWriter createOutputFile(String directory, String fileName) throws IOException {
+    public BufferedWriter createOutputFile(String directory, String fileName) throws IOException {
         // create the output directory
         File outputDir = new File(directory);
         if (!outputDir.exists()){

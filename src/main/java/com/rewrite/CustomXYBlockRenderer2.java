@@ -76,7 +76,7 @@ public class CustomXYBlockRenderer2 extends XYBlockRenderer {
             int [] xPos = {xa, xb, xc, xd};
             int [] yPos = {ya, yb, yc, yd};
             g2.drawPolygon(xPos, yPos, 4);
-            g2.setPaint(new Color(70, 130, 180));
+            g2.setPaint(new Color(0, 136, 0));
             g2.fillPolygon(xPos, yPos, 4);
         }
     }

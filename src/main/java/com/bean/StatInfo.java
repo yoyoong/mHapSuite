@@ -14,6 +14,8 @@ public class StatInfo implements Serializable {
     public Integer K4plus = 0; // 长度大于等于K个位点的read个数
     public Integer nDR = 0; // 长度大于等于K个位点且同时含有甲基化和未甲基化位点的read个数
     public Integer nMR = 0; // 长度大于等于K个位点且含有甲基化位点的read个数
+    public Integer nCPG = 0; // 甲基化位点个数
+    public Integer nPairs = 0; // 可计算r2的pair个数
     public Double MM = 0.0; // MM=mBase\tBase
     public Double CHALM = 0.0; // CHALM=nMR/K4plus
     public Double PDR = 0.0; // PDR=nDR/K4plus
@@ -21,9 +23,6 @@ public class StatInfo implements Serializable {
     public Double MBS = 0.0; //
     public Double MCR = 0.0; // MCR=cBase\tBase
     public Double Entropy = 0.0; //
-    // R2
-    public Integer nCPG = 0; // 甲基化位点个数
-    public Integer nPairs = 0; // 可计算r2的pair个数
     public Double R2 = 0.0; //
 
     public String getChr() {
@@ -106,6 +105,22 @@ public class StatInfo implements Serializable {
         this.nMR = nMR;
     }
 
+    public Integer getnCPG() {
+        return nCPG;
+    }
+
+    public void setnCPG(Integer nCPG) {
+        this.nCPG = nCPG;
+    }
+
+    public Integer getnPairs() {
+        return nPairs;
+    }
+
+    public void setnPairs(Integer nPairs) {
+        this.nPairs = nPairs;
+    }
+
     public Double getMM() {
         return MM;
     }
@@ -162,22 +177,6 @@ public class StatInfo implements Serializable {
         this.Entropy = entropy;
     }
 
-    public Integer getnCPG() {
-        return nCPG;
-    }
-
-    public void setnCPG(Integer nCPG) {
-        this.nCPG = nCPG;
-    }
-
-    public Integer getnPairs() {
-        return nPairs;
-    }
-
-    public void setnPairs(Integer nPairs) {
-        this.nPairs = nPairs;
-    }
-
     public Double getR2() {
         return R2;
     }
@@ -188,8 +187,8 @@ public class StatInfo implements Serializable {
 
 
     public String print(List<String> metricsList) {
-        String line = this.chr + "\t" + this.start + "\t" + this.end + "\t" + this.nReads + "\t" + this.mBase + "\t" +
-                this.cBase + "\t" + this.tBase + "\t" + this.K4plus + "\t" + this.nDR + "\t" + this.nMR;
+        String line = this.chr + "\t" + this.start + "\t" + this.end + "\t" + this.nReads + "\t" + this.mBase + "\t" + this.cBase + "\t"
+                + this.tBase + "\t" + this.K4plus + "\t" + this.nDR + "\t" + this.nMR + "\t" + this.nCPG + "\t" + this.nPairs;
         for (int i = 0; i < metricsList.size(); i++) {
             if (metricsList.get(i).equals("MM")) {
                 line += "\t" + String.format("%.8f", this.MM);
@@ -206,7 +205,7 @@ public class StatInfo implements Serializable {
             } else if (metricsList.get(i).equals("Entropy")) {
                 line += "\t" + String.format("%.8f", this.Entropy);
             } else if (metricsList.get(i).equals("R2")) {
-                line += "\t" + this.nCPG + "\t" + this.nPairs + "\t" + String.format("%.8f", this.R2);
+                line += "\t" + String.format("%.8f", this.R2);
             }
         }
         line += "\n";

@@ -90,8 +90,8 @@ public class Stat {
     }
 
     public String printHead(List<String> metricsList) {
-        String line = "chr" + "\t" + "start" + "\t" + "end" + "\t" + "nReads" + "\t" + "mBase" + "\t" +
-                "cBase" + "\t" + "tBase" + "\t" + "K4plus" + "\t" + "nDR" + "\t" + "nMR";
+        String line = "chr" + "\t" + "start" + "\t" + "end" + "\t" + "nReads" + "\t" + "mBase" + "\t" + "cBase" + "\t"
+                + "tBase" + "\t" + "K4plus" + "\t" + "nDR" + "\t" + "nMR" + "\t" + "nCPG" + "\t" + "nPairs";
         for (int i = 0; i < metricsList.size(); i++) {
             if (metricsList.get(i).equals("MM")) {
                 line += "\t" + "MM";
@@ -108,7 +108,7 @@ public class Stat {
             } else if (metricsList.get(i).equals("Entropy")) {
                 line += "\t" + "Entropy";
             } else if (metricsList.get(i).equals("R2")) {
-                line += "\t" + "nCPG" + "\t" + "nPairs" + "\t" + "R2";
+                line += "\t" + "R2";
             }
         }
         line += "\n";
@@ -177,6 +177,9 @@ public class Stat {
         statInfo.setK4plus(K4plus);
         statInfo.setnDR(nDR);
         statInfo.setnMR(nMR);
+        statInfo.setnCPG(cpgPosListInRegion.size());
+        Double[] nPairsAndR2 = calculateNPairsAndR2(mHapInfoList, cpgPosList, cpgPosListInRegion);
+        statInfo.setnPairs(nPairsAndR2[0].intValue());
         for (int i = 0; i < metricsList.size(); i++) {
             if (metricsList.get(i).equals("MM")) {
                 statInfo.setMM(mBase.doubleValue() / tBase.doubleValue());
@@ -193,9 +196,7 @@ public class Stat {
             } else if (metricsList.get(i).equals("Entropy")) {
                 statInfo.setEntropy(calculateEntropy(mHapInfoListMerged));
             } else if (metricsList.get(i).equals("R2")) {
-                statInfo.setnCPG(cpgPosListInRegion.size());
-                statInfo.setnPairs(calculateNPairsAndR2(mHapInfoList, cpgPosList, cpgPosListInRegion)[0].intValue());
-                statInfo.setR2(calculateNPairsAndR2(mHapInfoList, cpgPosList, cpgPosListInRegion)[1]);
+                statInfo.setR2(nPairsAndR2[1]);
             }
         }
 

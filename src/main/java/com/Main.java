@@ -6,6 +6,7 @@ import org.apache.commons.cli.*;
 public class Main {
     static Tanghulu tanghulu = new Tanghulu();
     static MHapView mHapView = new MHapView();
+    static Stat stat = new Stat();
 
     public static void main(String[] args) throws Exception {
         System.setProperty("java.awt.headless", "true");
@@ -17,7 +18,10 @@ public class Main {
             } else if (args[0].equals("mHapView")) {
                 MHapViewArgs mHapViewArgs = parseMHapView(args);
                 mHapView.mHapView(mHapViewArgs);
-            } else {
+            } else if (args[0].equals("stat")) {
+                StatArgs statArgs = parseStat(args);
+                stat.stat(statArgs);
+            } else{
                 System.out.println("unrecognized command:" + args[0]);
             }
         } else { // show the help message
@@ -123,5 +127,65 @@ public class Main {
         }
 
         return mHapViewArgs;
+    }
+
+    private static StatArgs parseStat(String[] args) throws ParseException {
+        Options options = new Options();
+        Option option1 = OptionBuilder.withArgName("com/args").withLongOpt("metrics").hasArg().withDescription("metrics").create("metrics");
+        Option option2 = OptionBuilder.withArgName("com/args").withLongOpt("mhapPath").isRequired().hasArg().withDescription("mhapPath").create("mhapPath");
+        Option option3 = OptionBuilder.withArgName("com/args").withLongOpt("cpgPath").isRequired().hasArg().withDescription("cpgPath").create("cpgPath");
+        Option option4 = OptionBuilder.withArgName("com/args").withLongOpt("region").hasArg().withDescription("region").create("region");
+        Option option5 = OptionBuilder.withArgName("com/args").withLongOpt("bedPath").hasArg().withDescription("bedPath").create("bedPath");
+        Option option6 = OptionBuilder.withArgName("com/args").withLongOpt("outputFile").isRequired().hasArg().withDescription("outputFile").create("outputFile");
+        Option option7 = OptionBuilder.withArgName("com/args").withLongOpt("minK").hasArg().withDescription("minK").create("minK");
+        Option option8 = OptionBuilder.withArgName("com/args").withLongOpt("maxK").hasArg().withDescription("maxK").create("maxK");
+        Option option9 = OptionBuilder.withArgName("com/args").withLongOpt("K").hasArg().withDescription("K").create("K");
+        Option option10 = OptionBuilder.withArgName("com/args").withLongOpt("strand").hasArg().withDescription("strand").create("strand");
+        Option option11 = OptionBuilder.withArgName("com/args").withLongOpt("cutReads").withDescription("cutReads").create("cutReads");
+        options.addOption(option1).addOption(option2).addOption(option3).addOption(option4).addOption(option5).addOption(option6).addOption(option7)
+                .addOption(option8).addOption(option9).addOption(option10).addOption(option11);
+
+        BasicParser parser = new BasicParser();
+        StatArgs statArgs = new StatArgs();
+
+        CommandLine commandLine = parser.parse(options, args);
+        if (commandLine.getOptions().length > 0) {
+            if (commandLine.hasOption('h')) {
+                HelpFormatter hf = new HelpFormatter();
+                hf.printHelp("Options", options);
+            } else {
+                if (commandLine.hasOption("metrics")) {
+                    statArgs.setMetrics(commandLine.getOptionValue("metrics"));
+                }
+                statArgs.setMhapPath(commandLine.getOptionValue("mhapPath"));
+                statArgs.setCpgPath(commandLine.getOptionValue("cpgPath"));
+                if (commandLine.hasOption("region")) {
+                    statArgs.setRegion(commandLine.getOptionValue("region"));
+                }
+                if (commandLine.hasOption("bedPath")) {
+                    statArgs.setBedPath(commandLine.getOptionValue("bedPath"));
+                }
+                statArgs.setOutputFile(commandLine.getOptionValue("outputFile"));
+                if (commandLine.hasOption("minK")) {
+                    statArgs.setMinK(Integer.valueOf(commandLine.getOptionValue("minK")));
+                }
+                if (commandLine.hasOption("maxK")) {
+                    statArgs.setMaxK(Integer.valueOf(commandLine.getOptionValue("maxK")));
+                }
+                if (commandLine.hasOption("K")) {
+                    statArgs.setK(Integer.valueOf(commandLine.getOptionValue("K")));
+                }
+                if (commandLine.hasOption("strand")) {
+                    statArgs.setStrand(commandLine.getOptionValue("strand"));
+                }
+                if (commandLine.hasOption("cutReads")) {
+                    statArgs.setCutReads(true);
+                }
+            }
+        } else {
+            System.out.println("The paramter is null");
+        }
+
+        return statArgs;
     }
 }

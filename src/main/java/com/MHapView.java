@@ -90,7 +90,7 @@ public class MHapView {
     private boolean getMhapView(List<MHapInfo> mHapList, List<Integer> cpgPosList) throws Exception {
 
         // 提取查询区域内的甲基化位点列表
-        List<Integer> cpgPosListInRegion = util.getcpgPosListInRegion(cpgPosList, region);
+        List<Integer> cpgPosListInRegion = util.getCpgPosListInRegion(cpgPosList, region);
 
         // 甲基化状态矩阵 0-未甲基化 1-甲基化
         Integer[][] cpgHpMatInRegion = util.getCpgHpMat(mHapList, cpgPosList, cpgPosListInRegion);

@@ -89,17 +89,23 @@ public class Util {
     }
 
     public BufferedWriter createOutputFile(String directory, String fileName) throws IOException {
-        // create the output directory
-        File outputDir = new File(directory);
-        if (!outputDir.exists()){
-            if (!outputDir.mkdirs()){
-                log.error("create" + outputDir.getAbsolutePath() + "fail");
-                return null;
+        String filePath = "";
+        if (directory != null && !directory.equals("")) {
+            // create the output directory
+            File outputDir = new File(directory);
+            if (!outputDir.exists()){
+                if (!outputDir.mkdirs()){
+                    log.error("create" + outputDir.getAbsolutePath() + "fail");
+                    return null;
+                }
             }
+            filePath = directory + "/" + fileName;
+        } else {
+            filePath = fileName;
         }
 
         // create the output file
-        File file = new File(directory + "/" + fileName);
+        File file = new File(filePath);
         if (!file.exists()) {
             if (!file.createNewFile()) {
                 log.error("create" + file.getAbsolutePath() + "fail");
@@ -117,7 +123,7 @@ public class Util {
         return bufferedWriter;
     }
 
-    public List<Integer> getcpgPosListInRegion(List<Integer> cpgPosList, Region region) throws Exception {
+    public List<Integer> getCpgPosListInRegion(List<Integer> cpgPosList, Region region) throws Exception {
         Integer cpgStartPos = 0;
         Integer cpgEndPos = cpgPosList.size() - 1;
         for (int i = 0; i < cpgPosList.size(); i++) {
@@ -157,7 +163,8 @@ public class Util {
             mHapInfo.setStrand(mHapLine.split("\t")[5]);
             if (mHapInfo.getCnt() > 1) {
                 mergedMHapInfoList.add(mHapInfo);
-                for (int i = 0; i < mHapInfo.getCnt(); i++) {
+                Integer cnt = mHapInfo.getCnt();
+                for (int i = 0; i < cnt; i++) {
                     unMergedMHapInfoList.add(mHapInfo);
                 }
             } else {
@@ -198,6 +205,37 @@ public class Util {
             }
         }
         return cpgHpMatInRegion;
+    }
+
+    public String cutReads(MHapInfo mHapInfo, List<Integer> cpgPosList, List<Integer> cpgPosListInRegion) {
+        String cpg = mHapInfo.getCpg();
+        Integer cpgStart = cpgPosList.get(0);
+        Integer cpgEnd = cpgPosList.get(cpgPosListInRegion.size() - 1);
+
+        if (mHapInfo.getStart() < cpgStart) { // mhap.start在region.start左边
+            if (mHapInfo.getEnd() < cpgEnd) { // mhap.end在region.end左边
+                int pos = 0;
+                for (int j = cpgPosList.indexOf(mHapInfo.getStart()); j < cpgPosList.indexOf(cpgStart); j++) {
+                    pos++;
+                }
+                cpg = cpg.substring(pos);
+            } else { // mhap.end在region.end右边
+                int pos = cpgPosList.indexOf(mHapInfo.getStart());
+                int pos1 = cpgPosList.indexOf(cpgStart);
+                int pos2 = cpgPosList.indexOf(cpgEnd);
+                cpg = cpg.substring(pos1 - pos, pos2 - pos);
+            }
+        } else { // mhap.start在region.start右边
+            if (mHapInfo.getEnd() > cpgEnd) { // mhap.end在region.end右边
+                int pos = 0;
+                for (int j = cpgPosList.indexOf(mHapInfo.getStart()); j <= cpgPosList.indexOf(cpgEnd); j++) {
+                    pos++;
+                }
+                cpg = cpg.substring(0, pos);
+            }
+        }
+
+        return cpg;
     }
 
     public R2Info getR2Info(Integer[][] cpgHpMat, Integer col1, Integer col2, Integer rowNum) {

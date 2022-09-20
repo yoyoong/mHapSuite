@@ -32,6 +32,7 @@ target/
 *.gz
 *.tar
 *.txt
+*.tsv
 *.tbi
 *.mhap
 *.bed

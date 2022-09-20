@@ -113,33 +113,13 @@ public class Tanghulu {
 
             if (args.getCutReads()) {
                 // get cpg site list in region
-                List<Integer> cpgPosListInRegion = util.getcpgPosListInRegion(cpgPosList, region);
+                List<Integer> cpgPosListInRegion = util.getCpgPosListInRegion(cpgPosList, region);
                 startPos = cpgPosListInRegion.get(0);
                 endPos = cpgPosListInRegion.get(cpgPosListInRegion.size() - 1);
 
-                // 截断不在region内的位点
+                cpg = util.cutReads(mHapInfo, cpgPosList, cpgPosListInRegion);
                 if (mHapInfo.getStart() < startPos) { // mhap.start在region.start左边
                     startCpgPos = startPos;
-                    if (mHapInfo.getEnd() < endPos) { // mhap.end在region.end左边
-                        int pos = 0;
-                        for (int j = cpgPosList.indexOf(mHapInfo.getStart()); j < cpgPosList.indexOf(startPos); j++) {
-                            pos++;
-                        }
-                        cpg = cpg.substring(pos);
-                    } else { // mhap.end在region.end右边
-                        int pos = cpgPosList.indexOf(mHapInfo.getStart());
-                        int pos1 = cpgPosList.indexOf(startPos);
-                        int pos2 = cpgPosList.indexOf(endPos);
-                        cpg = cpg.substring(pos1 - pos, pos2 - pos);
-                    }
-                } else { // mhap.start在region.start右边
-                    if (mHapInfo.getEnd() > endPos) { // mhap.end在region.end右边
-                        int pos = 0;
-                        for (int j = cpgPosList.indexOf(mHapInfo.getStart()); j <= cpgPosList.indexOf(endPos); j++) {
-                            pos++;
-                        }
-                        cpg = cpg.substring(0, pos);
-                    }
                 }
             } else {
                 if (mHapInfo.getStart() < startPos) { // 找出最远的甲基化位点
@@ -287,7 +267,7 @@ public class Tanghulu {
 
     private boolean simulation(List<MHapInfo> mHapInfoList, List<Integer> cpgPosList, Region region) throws Exception {
         // 提取查询区域内的甲基化位点列表
-        List<Integer> cpgPosListInRegion = util.getcpgPosListInRegion(cpgPosList, region);
+        List<Integer> cpgPosListInRegion = util.getCpgPosListInRegion(cpgPosList, region);
         if (cpgPosListInRegion.size() > 20) {
             log.error("nums of cpg are larger than 20 " + cpgPosListInRegion.size());
             return false;

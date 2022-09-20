@@ -21,6 +21,10 @@ public class StatInfo implements Serializable {
     public Double MBS = 0.0; //
     public Double MCR = 0.0; // MCR=cBase\tBase
     public Double Entropy = 0.0; //
+    // R2
+    public Integer nCPG = 0; // 甲基化位点个数
+    public Integer nPairs = 0; // 可计算r2的pair个数
+    public Double R2 = 0.0; //
 
     public String getChr() {
         return chr;
@@ -158,6 +162,30 @@ public class StatInfo implements Serializable {
         this.Entropy = entropy;
     }
 
+    public Integer getnCPG() {
+        return nCPG;
+    }
+
+    public void setnCPG(Integer nCPG) {
+        this.nCPG = nCPG;
+    }
+
+    public Integer getnPairs() {
+        return nPairs;
+    }
+
+    public void setnPairs(Integer nPairs) {
+        this.nPairs = nPairs;
+    }
+
+    public Double getR2() {
+        return R2;
+    }
+
+    public void setR2(Double r2) {
+        R2 = r2;
+    }
+
 
     public String print(List<String> metricsList) {
         String line = this.chr + "\t" + this.start + "\t" + this.end + "\t" + this.nReads + "\t" + this.mBase + "\t" +
@@ -177,6 +205,8 @@ public class StatInfo implements Serializable {
                 line += "\t" + String.format("%.8f", this.MCR);
             } else if (metricsList.get(i).equals("Entropy")) {
                 line += "\t" + String.format("%.8f", this.Entropy);
+            } else if (metricsList.get(i).equals("R2")) {
+                line += "\t" + this.nCPG + "\t" + this.nPairs + "\t" + String.format("%.8f", this.R2);
             }
         }
         line += "\n";

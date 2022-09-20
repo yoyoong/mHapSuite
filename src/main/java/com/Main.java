@@ -3,6 +3,8 @@ package com;
 import com.args.*;
 import org.apache.commons.cli.*;
 
+import java.util.*;
+
 public class Main {
     static Tanghulu tanghulu = new Tanghulu();
     static MHapView mHapView = new MHapView();
@@ -142,8 +144,9 @@ public class Main {
         Option option9 = OptionBuilder.withArgName("com/args").withLongOpt("K").hasArg().withDescription("K").create("K");
         Option option10 = OptionBuilder.withArgName("com/args").withLongOpt("strand").hasArg().withDescription("strand").create("strand");
         Option option11 = OptionBuilder.withArgName("com/args").withLongOpt("cutReads").withDescription("cutReads").create("cutReads");
+        Option option12 = OptionBuilder.withArgName("com/args").withLongOpt("cutOff").hasArg().withDescription("cutOff").create("cutOff");
         options.addOption(option1).addOption(option2).addOption(option3).addOption(option4).addOption(option5).addOption(option6).addOption(option7)
-                .addOption(option8).addOption(option9).addOption(option10).addOption(option11);
+                .addOption(option8).addOption(option9).addOption(option10).addOption(option11).addOption(option12);
 
         BasicParser parser = new BasicParser();
         StatArgs statArgs = new StatArgs();
@@ -155,7 +158,25 @@ public class Main {
                 hf.printHelp("Options", options);
             } else {
                 if (commandLine.hasOption("metrics")) {
-                    statArgs.setMetrics(commandLine.getOptionValue("metrics"));
+                    String metrics = commandLine.getOptionValue("metrics");
+                    if (commandLine.getArgs().length > 1) {
+                        for (int i = 1; i < commandLine.getArgs().length; i++) {
+                            metrics += " " + commandLine.getArgs()[i];
+                        }
+                    }
+                    // 去除重复的metrics
+                    String[] metricsList = metrics.split(" ");
+                    Set<Object> haoma = new LinkedHashSet<Object>();
+                    for (int i = 0; i < metricsList.length; i++) {
+                        haoma.add(metricsList[i]);
+                    }
+
+                    String realMetrics = "";
+                    for (int i = 0; i < haoma.size(); i++) {
+                        realMetrics += " " + haoma.toArray()[i];
+                    }
+
+                    statArgs.setMetrics(realMetrics);
                 }
                 statArgs.setMhapPath(commandLine.getOptionValue("mhapPath"));
                 statArgs.setCpgPath(commandLine.getOptionValue("cpgPath"));
@@ -180,6 +201,9 @@ public class Main {
                 }
                 if (commandLine.hasOption("cutReads")) {
                     statArgs.setCutReads(true);
+                }
+                if (commandLine.hasOption("cutOff")) {
+                    statArgs.setCutOff(Integer.valueOf(commandLine.getOptionValue("cutOff")));
                 }
             }
         } else {

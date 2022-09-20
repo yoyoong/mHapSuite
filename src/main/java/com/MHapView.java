@@ -375,7 +375,7 @@ public class MHapView {
         List<R2Info> r2List = new ArrayList<>();
         for (int i = 0; i < cpgPosListInRegion.size(); i++) {
             for (int j = i + 1; j < cpgPosListInRegion.size(); j++) {
-                R2Info r2Info = util.getR2Info(cpgHpMatInRegion, i, j, cpgHpMatInRegion.length);
+                R2Info r2Info = util.getR2Info(cpgHpMatInRegion, i, j);
                 if (!r2Info.getR2().isNaN()) {
                     r2Info.setChrom(region.getChrom());
                     r2Info.setStart(cpgPosListInRegion.get(i));

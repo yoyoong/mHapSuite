@@ -2,6 +2,7 @@ package com;
 
 import com.args.StatArgs;
 import com.bean.MHapInfo;
+import com.bean.R2Info;
 import com.bean.Region;
 import com.bean.StatInfo;
 import com.common.Util;
@@ -65,13 +66,14 @@ public class Stat {
             }
 
             // parse the mhap file
+            List<MHapInfo> mHapInfoList = util.parseMhapFile(args.getMhapPath(), region, args.getStrand(), false);
             List<MHapInfo> mHapInfoListMerged = util.parseMhapFile(args.getMhapPath(), region, args.getStrand(), true);
 
             // parse the cpg file
             List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
 
             bufferedWriter.write(printHead(metricsList));
-            boolean getStatResult = getStat(mHapInfoListMerged, cpgPosList, region, metricsList, bufferedWriter);
+            boolean getStatResult = getStat(mHapInfoList, mHapInfoListMerged, cpgPosList, region, metricsList, bufferedWriter);
             if (!getStatResult) {
                 log.error("getStat fail, please check the command.");
                 return;
@@ -105,13 +107,15 @@ public class Stat {
                 line += "\t" + "MCR";
             } else if (metricsList.get(i).equals("Entropy")) {
                 line += "\t" + "Entropy";
+            } else if (metricsList.get(i).equals("R2")) {
+                line += "\t" + "nCPG" + "\t" + "nPairs" + "\t" + "R2";
             }
         }
         line += "\n";
         return line;
     }
 
-    private boolean getStat(List<MHapInfo> mHapInfoListMerged, List<Integer> cpgPosList, Region region,
+    private boolean getStat(List<MHapInfo> mHapInfoList, List<MHapInfo> mHapInfoListMerged, List<Integer> cpgPosList, Region region,
                             List<String> metricsList, BufferedWriter bufferedWriter) throws Exception {
 
         // get cpg site list in region
@@ -188,6 +192,10 @@ public class Stat {
                 statInfo.setMCR(cBase.doubleValue() / tBase.doubleValue());
             } else if (metricsList.get(i).equals("Entropy")) {
                 statInfo.setEntropy(calculateEntropy(mHapInfoListMerged));
+            } else if (metricsList.get(i).equals("R2")) {
+                statInfo.setnCPG(cpgPosListInRegion.size());
+                statInfo.setnPairs(calculateNPairsAndR2(mHapInfoList, cpgPosList, cpgPosListInRegion)[0].intValue());
+                statInfo.setR2(calculateNPairsAndR2(mHapInfoList, cpgPosList, cpgPosListInRegion)[1]);
             }
         }
 
@@ -307,4 +315,37 @@ public class Stat {
         return Entropy;
     }
 
+    public Double[] calculateNPairsAndR2(List<MHapInfo> mHapInfoList, List<Integer> cpgPosList, List<Integer> cpgPosListInRegion) {
+        Double[] nPairsAndR2 = new Double[2];
+
+        // get cpg status matrix in region
+        Integer[][] cpgHpMatInRegion = util.getCpgHpMat(mHapInfoList, cpgPosList, cpgPosListInRegion);
+
+        List<Integer> posList = new ArrayList<>(); // the index list of matrix which cpg site coverage count greater than cutoff
+        for (int i = 0; i < cpgPosListInRegion.size(); i++) {
+            Integer coverCnt = 0;
+            for (int j = 0; j < cpgHpMatInRegion.length; j++) {
+                if (cpgHpMatInRegion[j][i] != null) {
+                    coverCnt++;
+                }
+            }
+            if (coverCnt > args.getCutOff()) {
+                posList.add(i);
+            }
+        }
+
+        Double nPairs = 0.0;
+        Double R2 = 0.0;
+        for (int i = 0; i < posList.size(); i++) {
+            for (int j = i + 1; j < posList.size(); j++) {
+                R2Info r2Info = util.getR2Info(cpgHpMatInRegion, posList.get(i), posList.get(j));
+                nPairs++;
+                R2 += r2Info.getR2();
+            }
+        }
+
+        nPairsAndR2[0] = nPairs;
+        nPairsAndR2[1] = R2 / nPairs;
+        return nPairsAndR2;
+    }
 }

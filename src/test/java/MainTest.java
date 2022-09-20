@@ -75,7 +75,7 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "stat";
         String arg1 = "-metrics";
-        String arg2 = "MM PDR CHALM MHL MCR MBS Entropy";
+        String arg2 = "MM PDR CHALM MHL MCR MBS Entropy R2";
         String arg3 = "-mhapPath";
         String arg4 = "esophagus_T.mhap.gz";
         String arg5 = "-cpgPath";
@@ -95,8 +95,11 @@ public class MainTest extends TestCase {
         String arg17 = "-strand";
         String arg18 = "both";
         String arg19 = "-cutReads";
-        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18};
+        String arg20 = "-cutOff";
+        String arg21 = "2000";
+        //String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18};
         //String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19};
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg20, arg21};
 
         String argsStr = "";
         for (int i = 0; i < args.length; i++) {

@@ -238,7 +238,7 @@ public class Util {
         return cpg;
     }
 
-    public R2Info getR2Info(Integer[][] cpgHpMat, Integer col1, Integer col2, Integer rowNum) {
+    public R2Info getR2Info(Integer[][] cpgHpMat, Integer col1, Integer col2) {
         R2Info r2Info = new R2Info();
 
         Integer N00 = 0;
@@ -246,7 +246,7 @@ public class Util {
         Integer N10 = 0;
         Integer N11 = 0;
 
-        for (int i = 0; i < rowNum; i++) {
+        for (int i = 0; i < cpgHpMat.length; i++) {
             if (cpgHpMat[i][col1] != null && cpgHpMat[i][col2] != null) {
                 if (cpgHpMat[i][col1] == 0 && cpgHpMat[i][col2] == 0) {
                     N00++;

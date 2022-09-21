@@ -56,7 +56,7 @@ public class MainTest extends TestCase {
         String arg9 = "-outputFile";
         String arg10 = "test";
         String arg11 = "-outFormat";
-        String arg12 = "png";
+        String arg12 = "pdf";
         String arg13 = "-strand";
         String arg14 = "both";
         String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14};

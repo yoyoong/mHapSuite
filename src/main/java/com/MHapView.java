@@ -52,6 +52,7 @@ public class MHapView {
     Util util = new Util();
     MHapViewArgs args = new MHapViewArgs();
     Region region = new Region();
+    Integer width = 0;
 
     public void mHapView(MHapViewArgs r2Args) throws Exception {
         log.info("MHapView start!");
@@ -95,6 +96,9 @@ public class MHapView {
         // 甲基化状态矩阵 0-未甲基化 1-甲基化
         Integer[][] cpgHpMatInRegion = util.getCpgHpMat(mHapList, cpgPosList, cpgPosListInRegion);
 
+        // 画布大小设置
+        width = cpgHpMatInRegion[0].length * 50;
+
         CategoryPlot cellCntPlot = createReadCntPlot(mHapList, cpgPosListInRegion);
         CategoryPlot mmPlot = createMMPlot(cpgPosListInRegion, cpgHpMatInRegion);
         XYPlot whiteBlackPlot = createWhiteBlackPlot(cpgHpMatInRegion);
@@ -104,22 +108,20 @@ public class MHapView {
         }
         XYPlot MHapViewHeatMapPlot = createHeatMapPlot(cpgHpMatInRegion, cpgPosListInRegion);
 
-        // 画布大小设置
-        Integer width = cpgHpMatInRegion[0].length * 50;
         List<Plot> plotList = new ArrayList<>();
         List<Integer> heightList = new ArrayList<>();
         plotList.add(cellCntPlot);
-        heightList.add(cpgHpMatInRegion[0].length * 7);
+        heightList.add(width * 7 / 50);
         plotList.add(mmPlot);
-        heightList.add(cpgHpMatInRegion[0].length * 5);
+        heightList.add(width / 10);
         plotList.add(whiteBlackPlot);
-        heightList.add(cpgHpMatInRegion[0].length * 20);
+        heightList.add(width * 2 / 5);
         if (args.getBed() != null && !args.getBed().equals("")) {
             plotList.add(bedRegionPlot);
-            heightList.add(cpgHpMatInRegion[0].length * 3);
+            heightList.add(width * 3 / 50);
         }
         plotList.add(MHapViewHeatMapPlot);
-        heightList.add(cpgHpMatInRegion[0].length * 15);
+        heightList.add(width * 3 / 10);
 
         // 输出到文件
         String outputPath = "";
@@ -166,9 +168,9 @@ public class MHapView {
         valueAxis.setRange(new Range(1, maxCellCnt * 1.1));
         valueAxis.setVisible(true);
         valueAxis.setTickUnit(new NumberTickUnit(50));
-        valueAxis.setTickLabelFont(new Font("", Font.PLAIN, cpgPosListInRegion.size() / 3));
+        valueAxis.setTickLabelFont(new Font("", Font.PLAIN, width / 150));
         valueAxis.setLabel("read count");
-        valueAxis.setLabelFont(new Font("", Font.PLAIN, cpgPosListInRegion.size() / 2));
+        valueAxis.setLabelFont(new Font("", Font.PLAIN, width / 100));
 
         // renderer
         BarRenderer barRenderer = new BarRenderer();
@@ -226,9 +228,9 @@ public class MHapView {
         valueAxis.setRange(new Range(0, 1.1));
         valueAxis.setVisible(true);
         valueAxis.setTickUnit(new NumberTickUnit(0.5));
-        valueAxis.setTickLabelFont(new Font("", Font.PLAIN, cpgPosListInRegion.size() / 3));
+        valueAxis.setTickLabelFont(new Font("", Font.PLAIN, width / 150));
         valueAxis.setLabel("mean methylation");
-        valueAxis.setLabelFont(new Font("", Font.PLAIN, cpgPosListInRegion.size() / 2));
+        valueAxis.setLabelFont(new Font("", Font.PLAIN, width / 100));
 
         // renderer
         BarRenderer barRenderer = new BarRenderer();
@@ -286,7 +288,7 @@ public class MHapView {
         yAxis.setRange(new Range(1, cpgHpMatInRegion.length));
         yAxis.setVisible(true);
         yAxis.setLabel("cpg");
-        yAxis.setLabelFont(new Font("", Font.PLAIN, cpgHpMatInRegion[0].length / 2));
+        yAxis.setLabelFont(new Font("", Font.PLAIN, width / 100));
 
         LookupPaintScale paintScale = new LookupPaintScale(-1, 2, Color.black);
         paintScale.add(-1, Color.white);
@@ -335,17 +337,13 @@ public class MHapView {
 
         // xy轴
         NumberAxis xAxis = new NumberAxis();
-        xAxis.setUpperMargin(0);
-        xAxis.setLowerMargin(0);
-        xAxis.setRange(new Range(0, cpgPosListInRegion.size()));
         xAxis.setVisible(false);
-
         NumberAxis yAxis = new NumberAxis();
         yAxis.setTickUnit(new NumberTickUnit(bedInfoList.size() * 3));
-        yAxis.setRange(new Range(0, bedInfoList.size() * 2 + 1));
+        yAxis.setRange(new Range(1, bedInfoList.size() * 2 + 1));
         yAxis.setVisible(true);
         yAxis.setLabel("bed file");
-        yAxis.setLabelFont(new Font("", Font.PLAIN, cpgPosListInRegion.size() / 2));
+        yAxis.setLabelFont(new Font("", Font.PLAIN, width / 100));
 
         LookupPaintScale paintScale = new LookupPaintScale(0, 2, Color.WHITE);
         paintScale.add(0, Color.WHITE);
@@ -375,8 +373,8 @@ public class MHapView {
         List<R2Info> r2List = new ArrayList<>();
         for (int i = 0; i < cpgPosListInRegion.size(); i++) {
             for (int j = i + 1; j < cpgPosListInRegion.size(); j++) {
-                R2Info r2Info = util.getR2Info(cpgHpMatInRegion, i, j);
-                if (!r2Info.getR2().isNaN()) {
+                R2Info r2Info = util.getR2Info(cpgHpMatInRegion, i, j, 0);
+                if (r2Info != null && !r2Info.getR2().isNaN()) {
                     r2Info.setChrom(region.getChrom());
                     r2Info.setStart(cpgPosListInRegion.get(i));
                     r2Info.setEnd(cpgPosListInRegion.get(j));
@@ -428,7 +426,7 @@ public class MHapView {
         yAxis.setRange(new Range(1, cpgHpMatInRegion.length));
         yAxis.setVisible(true);
         yAxis.setLabel("MHapView HeatMap");
-        yAxis.setLabelFont(new Font("", Font.PLAIN, cpgHpMatInRegion[0].length / 2));
+        yAxis.setLabelFont(new Font("", Font.PLAIN, width / 100));
 
         // 颜色定义
         LookupPaintScale paintScale = new LookupPaintScale(0, 510, Color.black);

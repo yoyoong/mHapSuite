@@ -14,7 +14,7 @@ public class StatArgs implements Serializable {
     public Integer K = 4; // k-mer length for entropy, PDR, and CHALM, can be 3, 4, or 5 [4]
     public String strand = "both"; // plus,minus,both [both]
     public Boolean cutReads = false; // indicates whether only keep CpGs in the defined region
-    public Integer cutOff = 0; // cutoff reads count for R2
+    public Integer r2Cov = 20; // minimal number of reads that cover two CpGs for R2 calculation [20]
 
     public String getMetrics() {
         return metrics;
@@ -104,11 +104,11 @@ public class StatArgs implements Serializable {
         this.cutReads = cutReads;
     }
 
-    public Integer getCutOff() {
-        return cutOff;
+    public Integer getR2Cov() {
+        return r2Cov;
     }
 
-    public void setCutOff(Integer cutOff) {
-        this.cutOff = cutOff;
+    public void setR2Cov(Integer r2Cov) {
+        this.r2Cov = r2Cov;
     }
 }

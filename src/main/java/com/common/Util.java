@@ -238,7 +238,7 @@ public class Util {
         return cpg;
     }
 
-    public R2Info getR2Info(Integer[][] cpgHpMat, Integer col1, Integer col2) {
+    public R2Info getR2Info(Integer[][] cpgHpMat, Integer col1, Integer col2, Integer r2Cov) {
         R2Info r2Info = new R2Info();
 
         Integer N00 = 0;
@@ -258,6 +258,10 @@ public class Util {
                     N11++;
                 }
             }
+        }
+
+        if ((N00 + N01 + N10 + N11) < r2Cov) {
+            return null;
         }
 
         /// 计算r2

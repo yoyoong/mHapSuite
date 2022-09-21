@@ -202,8 +202,8 @@ public class Main {
                 if (commandLine.hasOption("cutReads")) {
                     statArgs.setCutReads(true);
                 }
-                if (commandLine.hasOption("cutOff")) {
-                    statArgs.setCutOff(Integer.valueOf(commandLine.getOptionValue("cutOff")));
+                if (commandLine.hasOption("r2Cov")) {
+                    statArgs.setR2Cov(Integer.valueOf(commandLine.getOptionValue("r2Cov")));
                 }
             }
         } else {

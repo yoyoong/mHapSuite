@@ -322,26 +322,16 @@ public class Stat {
         // get cpg status matrix in region
         Integer[][] cpgHpMatInRegion = util.getCpgHpMat(mHapInfoList, cpgPosList, cpgPosListInRegion);
 
-        List<Integer> posList = new ArrayList<>(); // the index list of matrix which cpg site coverage count greater than cutoff
-        for (int i = 0; i < cpgPosListInRegion.size(); i++) {
-            Integer coverCnt = 0;
-            for (int j = 0; j < cpgHpMatInRegion.length; j++) {
-                if (cpgHpMatInRegion[j][i] != null) {
-                    coverCnt++;
-                }
-            }
-            if (coverCnt > args.getCutOff()) {
-                posList.add(i);
-            }
-        }
-
         Double nPairs = 0.0;
         Double R2 = 0.0;
-        for (int i = 0; i < posList.size(); i++) {
-            for (int j = i + 1; j < posList.size(); j++) {
-                R2Info r2Info = util.getR2Info(cpgHpMatInRegion, posList.get(i), posList.get(j));
-                nPairs++;
-                R2 += r2Info.getR2();
+        for (int i = 0; i < cpgPosListInRegion.size(); i++) {
+            for (int j = i + 1; j < cpgPosListInRegion.size(); j++) {
+                R2Info r2Info = util.getR2Info(cpgHpMatInRegion, i, j, args.getR2Cov());
+                if (r2Info != null) {
+                    nPairs++;
+                    log.info(cpgPosListInRegion.get(i) + "-" + cpgPosListInRegion.get(j));
+                    R2 += r2Info.getR2();
+                }
             }
         }
 

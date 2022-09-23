@@ -5,7 +5,6 @@ import com.bean.BedInfo;
 import com.bean.MHapInfo;
 import com.bean.R2Info;
 import com.bean.Region;
-import com.common.Sort;
 import com.common.Util;
 import com.itextpdf.awt.DefaultFontMapper;
 import com.itextpdf.text.Document;
@@ -15,7 +14,6 @@ import com.itextpdf.text.pdf.PdfTemplate;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.rewrite.CustomXYBlockRenderer;
 import com.rewrite.CustomXYBlockRenderer2;
-import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.CategoryAxis;
@@ -373,7 +371,7 @@ public class MHapView {
         List<R2Info> r2List = new ArrayList<>();
         for (int i = 0; i < cpgPosListInRegion.size(); i++) {
             for (int j = i + 1; j < cpgPosListInRegion.size(); j++) {
-                R2Info r2Info = util.getR2Info(cpgHpMatInRegion, i, j, 0);
+                R2Info r2Info = util.getR2FromMat(cpgHpMatInRegion, i, j, 0);
                 if (r2Info != null && !r2Info.getR2().isNaN()) {
                     r2Info.setChrom(region.getChrom());
                     r2Info.setStart(cpgPosListInRegion.get(i));

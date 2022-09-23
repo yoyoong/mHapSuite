@@ -48,6 +48,34 @@ public class Util {
         return cpgPosList;
     }
 
+    public Map<String, List<Integer>> parseWholeCpgFile(String cpgPath) throws Exception {
+        Map<String, List<Integer>> cpgPosListMap = new HashMap<>();
+
+        List<Integer> cpgPosList = new ArrayList<>();
+        TabixReader cpgTabixReader = new TabixReader(cpgPath);
+        String cpgLine = cpgTabixReader.readLine();
+        String lastChr = cpgLine.split("\t")[0];
+        while(cpgLine != null && !cpgLine.equals("")) {
+            if (cpgLine.split("\t").length < 3) {
+                continue;
+            } else {
+                if (lastChr.equals(cpgLine.split("\t")[0])) {
+                    cpgPosList.add(Integer.valueOf(cpgLine.split("\t")[1]));
+                } else {
+                    log.info("Read cpg file " + lastChr + " end");
+                    cpgPosListMap.put(lastChr, cpgPosList);
+                    lastChr = cpgLine.split("\t")[0];
+                    cpgPosList = new ArrayList<>();
+                    cpgPosList.add(Integer.valueOf(cpgLine.split("\t")[1]));
+                }
+                cpgLine = cpgTabixReader.readLine();
+            }
+        }
+        log.info("Read cpg file " + lastChr + " end");
+
+        return cpgPosListMap;
+    }
+
     public List<Integer> parseCpgFileWithShift(String cpgPath, Region region, Integer shift) throws Exception {
         List<Integer> cpgPosList = new ArrayList<>();
         TabixReader cpgTabixReader = new TabixReader(cpgPath);
@@ -238,7 +266,7 @@ public class Util {
         return cpg;
     }
 
-    public R2Info getR2Info(Integer[][] cpgHpMat, Integer col1, Integer col2, Integer r2Cov) {
+    public R2Info getR2FromMat(Integer[][] cpgHpMat, Integer col1, Integer col2, Integer r2Cov) {
         R2Info r2Info = new R2Info();
 
         Integer N00 = 0;
@@ -255,6 +283,78 @@ public class Util {
                 } else if (cpgHpMat[i][col1] == 1 && cpgHpMat[i][col2] == 0) {
                     N10++;
                 } else if (cpgHpMat[i][col1] == 1 && cpgHpMat[i][col2] == 1) {
+                    N11++;
+                }
+            }
+        }
+
+        if ((N00 + N01 + N10 + N11) < r2Cov) {
+            return null;
+        }
+
+        /// 计算r2
+        Double r2 = 0.0;
+        Double pvalue = 0.0;
+        Double N = N00 + N01 + N10 + N11 + 0.0;
+        if(N == 0) {
+            r2 = Double.NaN;
+            pvalue = Double.NaN;
+        }
+        Double PA = (N10 + N11) / N;
+        Double PB = (N01 + N11) / N;
+        Double D = N11 / N - PA * PB;
+        Double Num = D * D;
+        Double Den = PA * (1 - PA) * PB * (1 - PB);
+        if (Den == 0.0) {
+            r2 = Double.NaN;
+        } else {
+            r2 = Num / Den;
+            if (D < 0) {
+                r2 = -1 * r2;
+            }
+        }
+
+        // 计算pvalue
+        BinomialDistribution binomialDistribution = new BinomialDistribution(N.intValue(), PA * PB);
+        Double pGreater = 1 - binomialDistribution.cumulativeProbability(N11);
+        Double pEqual = binomialDistribution.probability(N11);
+        pvalue = pGreater + pEqual;
+
+        r2Info.setN00(N00);
+        r2Info.setN01(N01);
+        r2Info.setN10(N10);
+        r2Info.setN11(N11);
+        r2Info.setR2(r2);
+        r2Info.setPvalue(pvalue);
+
+        return r2Info;
+    }
+
+    public R2Info getR2FromList(List<MHapInfo> mHapInfoList, List<Integer> cpgPosList, Integer cpgPos1, Integer cpgPos2, Integer r2Cov) {
+        R2Info r2Info = new R2Info();
+
+        Integer N00 = 0;
+        Integer N01 = 0;
+        Integer N10 = 0;
+        Integer N11 = 0;
+
+        for (int i = 0; i < mHapInfoList.size(); i++) {
+            MHapInfo mHapInfo = mHapInfoList.get(i);
+            if (cpgPos2 < cpgPos1) {
+                Integer temp = cpgPos2;
+                cpgPos2 = cpgPos1;
+                cpgPos1 = temp;
+            }
+            if (mHapInfo.getStart() <= cpgPos1 && cpgPos2 <= mHapInfo.getEnd()) {
+                Integer pos1 = cpgPosList.indexOf(cpgPos1) - cpgPosList.indexOf(mHapInfo.getStart());
+                Integer pos2 = cpgPosList.indexOf(cpgPos2) - cpgPosList.indexOf(mHapInfo.getStart());
+                if (mHapInfo.getCpg().charAt(pos1) == '0' && mHapInfo.getCpg().charAt(pos2) == '0') {
+                    N00++;
+                } else if (mHapInfo.getCpg().charAt(pos1) == '0' && mHapInfo.getCpg().charAt(pos2) == '1') {
+                    N01++;
+                } else if (mHapInfo.getCpg().charAt(pos1) == '1' && mHapInfo.getCpg().charAt(pos2) == '0') {
+                    N10++;
+                } else if (mHapInfo.getCpg().charAt(pos1) == '1' && mHapInfo.getCpg().charAt(pos2) == '1') {
                     N11++;
                 }
             }
@@ -351,4 +451,125 @@ public class Util {
         }
     }
 
+    public Double calculateMHL(List<MHapInfo> mHapInfoListMerged, Integer minK, Integer maxK) {
+        Double MHL = 0.0;
+        Integer maxCpgLength = 0;
+        for (int i = 0; i < mHapInfoListMerged.size(); i++) {
+            MHapInfo mHapInfo = mHapInfoListMerged.get(i);
+            if (minK > mHapInfo.getCpg().length()) {
+                log.error("calculate MHL Error: startK is too large.");
+                return 0.0;
+            }
+            if (maxCpgLength < mHapInfo.getCpg().length()) {
+                maxCpgLength = mHapInfo.getCpg().length();
+            }
+        }
+        if (maxK > maxCpgLength) {
+            maxK = maxCpgLength;
+        }
+
+
+        Double temp = 0.0;
+        Integer w = 0;
+        String fullMethStr = "";
+        for (int i = 0; i < minK; i++) {
+            fullMethStr += "1";
+        }
+        for (Integer kmer = minK; kmer < maxK + 1; kmer++) {
+            Map<String, Integer> kmerMap = new HashMap<>();
+            Integer kmerNum = 0;
+            Integer mKmerNum = 0;
+            w += kmer;
+            for (int j = 0; j < mHapInfoListMerged.size(); j++) {
+                MHapInfo mHapInfo = mHapInfoListMerged.get(j);
+                if (mHapInfo.getCpg().length() >= kmer) {
+                    for (int k = 0; k < mHapInfo.getCpg().length() - kmer + 1; k++) {
+                        String kmerStr = mHapInfo.getCpg().substring(k, k + kmer);
+                        if (kmerMap.containsKey(kmerStr)) {
+                            kmerMap.put(kmerStr, kmerMap.get(kmerStr) + mHapInfo.getCnt());
+                        } else {
+                            kmerMap.put(kmerStr, mHapInfo.getCnt());
+                        }
+                    }
+                }
+            }
+
+            Iterator<String> iterator = kmerMap.keySet().iterator();
+            while (iterator.hasNext()) {
+                String key = iterator.next();
+                kmerNum += kmerMap.get(key);
+                if (key.substring(0, kmer).equals(fullMethStr)) {
+                    mKmerNum += kmerMap.get(key);
+                }
+            }
+
+            fullMethStr += "1";
+            temp += kmer.doubleValue() * mKmerNum.doubleValue() / kmerNum.doubleValue();
+        }
+        MHL = temp / w;
+
+        return MHL;
+    }
+
+    public Double calculateMBS(List<MHapInfo> mHapInfoListMerged, Integer K) {
+        Double MBS = 0.0;
+        Integer kmerNum = 0;
+        Double temp1 = 0.0;
+        for (int i = 0; i < mHapInfoListMerged.size(); i++) {
+            MHapInfo mHapInfo = mHapInfoListMerged.get(i);
+            if (mHapInfo.getCpg().length() >= K) {
+                String[] cpgStrList = mHapInfo.getCpg().split("0");
+                Double temp2 = 0.0;
+                for (String cpg : cpgStrList) {
+                    temp2 += Math.pow(cpg.length(), 2);
+                }
+                temp1 += temp2 / Math.pow(mHapInfo.getCpg().length(), 2) * mHapInfo.getCnt();
+                kmerNum += mHapInfo.getCnt();
+            }
+        }
+        MBS = temp1 / kmerNum.doubleValue();
+
+        return MBS;
+    }
+
+    public Double calculateEntropy(List<MHapInfo> mHapInfoListMerged, Integer K) {
+        Double Entropy = 0.0;
+        Map<String, Integer> kmerMap = new HashMap<>();
+        Integer kmerAll = 0;
+        for (int i = 0; i < mHapInfoListMerged.size(); i++) {
+            MHapInfo mHapInfo = mHapInfoListMerged.get(i);
+            if (mHapInfo.getCpg().length() >= K) {
+                for (int j = 0; j < mHapInfo.getCpg().length() - K + 1; j++) {
+                    kmerAll += mHapInfo.getCnt();
+                    String kmerStr = mHapInfo.getCpg().substring(j, j + K);
+                    if (kmerMap.containsKey(kmerStr)) {
+                        kmerMap.put(kmerStr, kmerMap.get(kmerStr) + mHapInfo.getCnt());
+                    } else {
+                        kmerMap.put(kmerStr, mHapInfo.getCnt());
+                    }
+                }
+            }
+        }
+
+        Iterator<String> iterator = kmerMap.keySet().iterator();
+        Double temp = 0.0;
+        while (iterator.hasNext()) {
+            Integer cnt = kmerMap.get(iterator.next());
+            temp += cnt.doubleValue() / kmerAll.doubleValue() * Math.log(cnt.doubleValue() / kmerAll.doubleValue()) / Math.log(2);
+        }
+        Entropy = - 1 / K.doubleValue() * temp;
+
+        return Entropy;
+    }
+
+
+
+    public boolean isNumeric(String str){
+        for (int i = str.length(); --i>=0 ;){
+            if (!Character.isDigit(str.charAt(i))){
+                return false;
+            }
+        }
+        return true;
+    }
 }

@@ -178,7 +178,7 @@ public class Stat {
         statInfo.setnDR(nDR);
         statInfo.setnMR(nMR);
         statInfo.setnCPG(cpgPosListInRegion.size());
-        Double[] nPairsAndR2 = calculateNPairsAndR2(mHapInfoList, cpgPosList, cpgPosListInRegion);
+        Double[] nPairsAndR2 = calculateNPairsAndR2(mHapInfoList, cpgPosList, cpgPosListInRegion, args.getR2Cov());
         statInfo.setnPairs(nPairsAndR2[0].intValue());
         for (int i = 0; i < metricsList.size(); i++) {
             if (metricsList.get(i).equals("MM")) {
@@ -188,13 +188,13 @@ public class Stat {
             } else if (metricsList.get(i).equals("PDR")) {
                 statInfo.setPDR(nDR.doubleValue() / K4plus.doubleValue());
             } else if (metricsList.get(i).equals("MHL")) {
-                statInfo.setMHL(calculateMHL(mHapInfoListMerged));
+                statInfo.setMHL(util.calculateMHL(mHapInfoListMerged, args.getMinK(), args.getMaxK()));
             } else if (metricsList.get(i).equals("MBS")) {
-                statInfo.setMBS(calculateMBS(mHapInfoListMerged));
+                statInfo.setMBS(util.calculateMBS(mHapInfoListMerged, args.getK()));
             } else if (metricsList.get(i).equals("MCR")) {
                 statInfo.setMCR(cBase.doubleValue() / tBase.doubleValue());
             } else if (metricsList.get(i).equals("Entropy")) {
-                statInfo.setEntropy(calculateEntropy(mHapInfoListMerged));
+                statInfo.setEntropy(util.calculateEntropy(mHapInfoListMerged, args.getK()));
             } else if (metricsList.get(i).equals("R2")) {
                 statInfo.setR2(nPairsAndR2[1]);
             }
@@ -205,131 +205,16 @@ public class Stat {
         return true;
     }
 
-    public Double calculateMHL(List<MHapInfo> mHapInfoListMerged) {
-        Double MHL = 0.0;
-        Integer maxCpgLength = 0;
-        for (int i = 0; i < mHapInfoListMerged.size(); i++) {
-            MHapInfo mHapInfo = mHapInfoListMerged.get(i);
-            if (args.getMinK() > mHapInfo.getCpg().length()) {
-                log.error("calculate MHL Error: startK is too large.");
-                return 0.0;
-            }
-            if (maxCpgLength < mHapInfo.getCpg().length()) {
-                maxCpgLength = mHapInfo.getCpg().length();
-            }
-        }
-        if (args.getMaxK() > maxCpgLength) {
-            args.setMaxK(maxCpgLength);
-        }
-
-
-        Double temp = 0.0;
-        Integer w = 0;
-        String fullMethStr = "";
-        for (int i = 0; i < args.getMinK(); i++) {
-            fullMethStr += "1";
-        }
-        for (Integer kmer = args.getMinK(); kmer < args.getMaxK() + 1; kmer++) {
-            Map<String, Integer> kmerMap = new HashMap<>();
-            Integer kmerNum = 0;
-            Integer mKmerNum = 0;
-            w += kmer;
-            for (int j = 0; j < mHapInfoListMerged.size(); j++) {
-                MHapInfo mHapInfo = mHapInfoListMerged.get(j);
-                if (mHapInfo.getCpg().length() >= kmer) {
-                    for (int k = 0; k < mHapInfo.getCpg().length() - kmer + 1; k++) {
-                        String kmerStr = mHapInfo.getCpg().substring(k, k + kmer);
-                        if (kmerMap.containsKey(kmerStr)) {
-                            kmerMap.put(kmerStr, kmerMap.get(kmerStr) + mHapInfo.getCnt());
-                        } else {
-                            kmerMap.put(kmerStr, mHapInfo.getCnt());
-                        }
-                    }
-                }
-            }
-
-            Iterator<String> iterator = kmerMap.keySet().iterator();
-            while (iterator.hasNext()) {
-                String key = iterator.next();
-                kmerNum += kmerMap.get(key);
-                if (key.substring(0, kmer).equals(fullMethStr)) {
-                    mKmerNum += kmerMap.get(key);
-                }
-            }
-
-            fullMethStr += "1";
-            temp += kmer.doubleValue() * mKmerNum.doubleValue() / kmerNum.doubleValue();
-        }
-        MHL = temp / w;
-
-        return MHL;
-    }
-
-    public Double calculateMBS(List<MHapInfo> mHapInfoListMerged) {
-        Double MBS = 0.0;
-        Integer kmerNum = 0;
-        Double temp1 = 0.0;
-        for (int i = 0; i < mHapInfoListMerged.size(); i++) {
-            MHapInfo mHapInfo = mHapInfoListMerged.get(i);
-            if (mHapInfo.getCpg().length() >= args.getK()) {
-                String[] cpgStrList = mHapInfo.getCpg().split("0");
-                Double temp2 = 0.0;
-                for (String cpg : cpgStrList) {
-                    temp2 += Math.pow(cpg.length(), 2);
-                }
-                temp1 += temp2 / Math.pow(mHapInfo.getCpg().length(), 2) * mHapInfo.getCnt();
-                kmerNum += mHapInfo.getCnt();
-            }
-        }
-        MBS = temp1 / kmerNum.doubleValue();
-
-        return MBS;
-    }
-
-    public Double calculateEntropy(List<MHapInfo> mHapInfoListMerged) {
-        Double Entropy = 0.0;
-        Map<String, Integer> kmerMap = new HashMap<>();
-        Integer kmerAll = 0;
-        for (int i = 0; i < mHapInfoListMerged.size(); i++) {
-            MHapInfo mHapInfo = mHapInfoListMerged.get(i);
-            if (mHapInfo.getCpg().length() >= args.getK()) {
-                for (int j = 0; j < mHapInfo.getCpg().length() - args.getK() + 1; j++) {
-                    kmerAll += mHapInfo.getCnt();
-                    String kmerStr = mHapInfo.getCpg().substring(j, j + args.getK());
-                    if (kmerMap.containsKey(kmerStr)) {
-                        kmerMap.put(kmerStr, kmerMap.get(kmerStr) + mHapInfo.getCnt());
-                    } else {
-                        kmerMap.put(kmerStr, mHapInfo.getCnt());
-                    }
-                }
-            }
-        }
-
-        Iterator<String> iterator = kmerMap.keySet().iterator();
-        Double temp = 0.0;
-        while (iterator.hasNext()) {
-            Integer cnt = kmerMap.get(iterator.next());
-            temp += cnt.doubleValue() / kmerAll.doubleValue() * Math.log(cnt.doubleValue() / kmerAll.doubleValue()) / Math.log(2);
-        }
-        Entropy = - 1 / args.getK().doubleValue() * temp;
-
-        return Entropy;
-    }
-
-    public Double[] calculateNPairsAndR2(List<MHapInfo> mHapInfoList, List<Integer> cpgPosList, List<Integer> cpgPosListInRegion) {
+    public Double[] calculateNPairsAndR2(List<MHapInfo> mHapInfoList, List<Integer> cpgPosList, List<Integer> cpgPosListInRegion, Integer r2Cov) {
         Double[] nPairsAndR2 = new Double[2];
-
-        // get cpg status matrix in region
-        Integer[][] cpgHpMatInRegion = util.getCpgHpMat(mHapInfoList, cpgPosList, cpgPosListInRegion);
 
         Double nPairs = 0.0;
         Double R2 = 0.0;
         for (int i = 0; i < cpgPosListInRegion.size(); i++) {
             for (int j = i + 1; j < cpgPosListInRegion.size(); j++) {
-                R2Info r2Info = util.getR2Info(cpgHpMatInRegion, i, j, args.getR2Cov());
+                R2Info r2Info = util.getR2FromList(mHapInfoList, cpgPosList, cpgPosListInRegion.get(i), cpgPosListInRegion.get(j), r2Cov);
                 if (r2Info != null) {
                     nPairs++;
-                    log.info(cpgPosListInRegion.get(i) + "-" + cpgPosListInRegion.get(j));
                     R2 += r2Info.getR2();
                 }
             }
@@ -339,4 +224,5 @@ public class Stat {
         nPairsAndR2[1] = R2 / nPairs;
         return nPairsAndR2;
     }
+
 }

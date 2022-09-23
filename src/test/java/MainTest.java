@@ -109,4 +109,49 @@ public class MainTest extends TestCase {
 
         main.main(args);
     }
+
+    @Test
+    public void test_genomeWide() throws Exception {
+        Main main = new Main();
+        String arg0 = "genomeWide";
+        String arg1 = "-tag";
+        String arg2 = "test";
+        String arg3 = "-mhapPath";
+        String arg4 = "esophagus_T.mhap.gz";
+        String arg5 = "-cpgPath";
+        String arg6 = "hg19_CpG.gz";
+        String arg7 = "-metrics";
+        String arg8 = "MM PDR CHALM MHL MCR MBS Entropy R2";
+        String arg9 = "-outputDir";
+        String arg10 = "outputDir";
+        String arg11 = "-minK";
+        String arg12 = "1";
+        String arg13 = "-maxK";
+        String arg14 = "10";
+        String arg15 = "-K";
+        String arg16 = "4";
+        String arg17 = "-strand";
+        String arg18 = "both";
+        String arg19 = "-region";
+        String arg20 = "chr1:566520-566816";
+        String arg21 = "-cpgCov";
+        String arg22 = "5";
+        String arg23 = "-r2Cov";
+        String arg24 = "20";
+        String arg25 = "-k4Plus";
+        String arg26 = "5";
+
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14,
+                arg15, arg16, arg17, arg18, arg19, arg20, arg21, arg22, arg23, arg24, arg25, arg26};
+//        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14,
+//                arg15, arg16, arg17, arg18, arg21, arg22, arg23, arg24, arg25, arg26};
+
+        String argsStr = "";
+        for (int i = 0; i < args.length; i++) {
+            argsStr += args[i] + " ";
+        }
+        System.out.println(argsStr);
+
+        main.main(args);
+    }
 }

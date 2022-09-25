@@ -178,7 +178,7 @@ public class Stat {
         statInfo.setnDR(nDR);
         statInfo.setnMR(nMR);
         statInfo.setnCPG(cpgPosListInRegion.size());
-        Double[] nPairsAndR2 = calculateNPairsAndR2(mHapInfoList, cpgPosList, cpgPosListInRegion, args.getR2Cov());
+        Double[] nPairsAndR2 = calculateNPairsAndR2(mHapInfoListMerged, cpgPosList, cpgPosListInRegion, args.getR2Cov());
         statInfo.setnPairs(nPairsAndR2[0].intValue());
         for (int i = 0; i < metricsList.size(); i++) {
             if (metricsList.get(i).equals("MM")) {

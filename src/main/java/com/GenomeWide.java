@@ -8,6 +8,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -72,10 +76,7 @@ public class GenomeWide {
                     region.setStart(cpgPosListInRegion.get(0));
                     region.setEnd(cpgPosListInRegion.get(cpgPosListInRegion.size() - 1));
 
-                    // parse the mhap file
-                    List<MHapInfo> mHapInfoList = util.parseMhapFile(args.getMhapPath(), region, args.getStrand(), true);
-
-                    boolean getGenomeWideResult = getGenomeWide(metric, cpgPosListInRegion, mHapInfoList, bufferedWriter);
+                    boolean getGenomeWideResult = getGenomeWide(metric, cpgPosListInRegion, region, bufferedWriter);
                     if (!getGenomeWideResult) {
                         log.error("getGenomeWide fail, please check the command.");
                         return;
@@ -93,10 +94,28 @@ public class GenomeWide {
         return true;
     }
 
-    private boolean getGenomeWide(String metric, List<Integer> cpgPosListInRegion, List<MHapInfo> mHapInfoList,
-                                  BufferedWriter bufferedWriter) throws Exception {
+    private boolean getGenomeWide(String metric, List<Integer> cpgPosListInRegion, Region region, BufferedWriter bufferedWriter) throws Exception {
+        Integer getCnt = 0;
         for (Integer cpgPos : cpgPosListInRegion) {
-            List<MHapInfo> mHapInfoListWithSite = getMhapInfoListWithSite(mHapInfoList, cpgPos);
+            getCnt++;
+            if (getCnt % 1000 == 0) {
+                log.info("calculate " + metric + " complete " + + getCnt + " positions.");
+            }
+
+            //获取时间戳
+//            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS");
+//            long timeStramp = System.currentTimeMillis();
+//            log.info(format.format(timeStramp));
+
+            Region thisSiteRegion = new Region();
+            thisSiteRegion.setChrom(region.getChrom());
+            thisSiteRegion.setStart(cpgPos);
+            thisSiteRegion.setEnd(cpgPos);
+            // parse the mhap file
+            List<MHapInfo> mHapInfoListWithSite = util.parseMhapFile(args.getMhapPath(), thisSiteRegion, args.getStrand(), true);
+            if (mHapInfoListWithSite.size() < 1) {
+                continue;
+            }
 
             // get the region with site
             Region regionWithSite = new Region();
@@ -113,8 +132,7 @@ public class GenomeWide {
             regionWithSite.setChrom(mHapInfoListWithSite.get(0).getChrom());
             regionWithSite.setStart(startPos);
             regionWithSite.setEnd(endPos);
-
-            List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), regionWithSite, 500);
+            List<Integer> cpgPosListWithSite = util.parseCpgFileWithShift(args.getCpgPath(), regionWithSite, 500);
 
             // calculate some base calue
             Integer nReads = 0; // 总read个数
@@ -124,41 +142,45 @@ public class GenomeWide {
             Integer K4plus = 0; // 长度大于等于K个位点的read个数
             Integer nDR = 0; // 长度大于等于K个位点且同时含有甲基化和未甲基化位点的read个数
             Integer nMR = 0; // 长度大于等于K个位点且含有甲基化位点的read个数
-            for (int i = 0; i < mHapInfoListWithSite.size(); i++) {
-                MHapInfo mHapInfo = mHapInfoListWithSite.get(i);
-                String cpg = mHapInfo.getCpg();
-                Integer cnt = mHapInfo.getCnt();
-                nReads += cnt;
-                tBase += cpg.length() * cnt;
-                for (int j = 0; j < cpg.length(); j++) {
-                    if (cpg.charAt(j) == '1') {
+            if (metric.equals("MM") || metric.equals("PDR") || metric.equals("CHALM") || metric.equals("MCR")) {
+                for (int i = 0; i < mHapInfoListWithSite.size(); i++) {
+                    MHapInfo mHapInfo = mHapInfoListWithSite.get(i);
+                    String cpg = mHapInfo.getCpg();
+                    Integer cnt = mHapInfo.getCnt();
+                    nReads += cnt;
+                    tBase += cpg.length() * cnt;
+
+                    // 计算该位点的MM
+                    Integer pos = cpgPosListInRegion.indexOf(cpgPos) - cpgPosListInRegion.indexOf(mHapInfo.getStart());
+                    if (mHapInfo.getCpg().charAt(pos) == '1') {
                         mBase += cnt;
                     }
-                }
-                if (cpg.contains("1")) {
-                    for (int j = 0; j < cpg.length(); j++) {
-                        if (cpg.charAt(j) == '0') {
-                            cBase += cnt;
+
+                    if (cpg.contains("1")) {
+                        for (int j = 0; j < cpg.length(); j++) {
+                            if (cpg.charAt(j) == '0') {
+                                cBase += cnt;
+                            }
                         }
                     }
-                }
-                if (cpg.length() >= args.getK()) {
-                    K4plus += cnt;
-                    if (cpg.contains("1")) {
-                        nMR += cnt;
-                        if (cpg.contains("0")) {
-                            nDR += cnt;
+                    if (cpg.length() >= args.getK()) {
+                        K4plus += cnt;
+                        if (cpg.contains("1")) {
+                            nMR += cnt;
+                            if (cpg.contains("0")) {
+                                nDR += cnt;
+                            }
                         }
                     }
                 }
             }
 
             BedGraphInfo bedGraphInfo = new BedGraphInfo();
-            bedGraphInfo.setChrom(regionWithSite.getChrom());
+            bedGraphInfo.setChrom(region.getChrom());
             bedGraphInfo.setStart(cpgPos - 1);
             bedGraphInfo.setEnd(cpgPos);
             if (metric.equals("MM")) {
-                bedGraphInfo.setValue(mBase.doubleValue() / tBase.doubleValue());
+                bedGraphInfo.setValue(mBase.doubleValue() / nReads.doubleValue());
             } else if (metric.equals("PDR")) {
                 bedGraphInfo.setValue(nDR.doubleValue() / K4plus.doubleValue());
             } else if (metric.equals("CHALM")) {
@@ -172,7 +194,7 @@ public class GenomeWide {
             } else if (metric.equals("Entropy")) {
                 bedGraphInfo.setValue(util.calculateEntropy(mHapInfoListWithSite, args.getK()));
             } else if (metric.equals("R2")) {
-                bedGraphInfo.setValue(calculateR2(mHapInfoList, cpgPosList, cpgPos));
+                bedGraphInfo.setValue(calculateR2(mHapInfoListWithSite, cpgPosListWithSite, cpgPos));
             }
 
             String line = bedGraphInfo.getChrom() + "\t" + bedGraphInfo.getStart() + "\t" + bedGraphInfo.getEnd() + "\t" + bedGraphInfo.getValue() + "\n";
@@ -182,30 +204,22 @@ public class GenomeWide {
         return true;
     }
 
-    private List<MHapInfo> getMhapInfoListWithSite(List<MHapInfo> mHapInfoList, Integer cpgPos) {
-        List<MHapInfo> mHapInfoListWithSite = new ArrayList<>();
-        for (MHapInfo mHapInfo : mHapInfoList) {
-            if (mHapInfo.getStart() <= cpgPos && cpgPos <= mHapInfo.getEnd()) {
-                mHapInfoListWithSite.add(mHapInfo);
-            }
-        }
-        return mHapInfoListWithSite;
-    }
-
     public Double calculateR2(List<MHapInfo> mHapInfoList, List<Integer> cpgPosList, Integer cpgPos) {
         Double r2Sum = 0.0;
         List<Double> r2List = new ArrayList<>();
 
         Integer pos = cpgPosList.indexOf(cpgPos);
         for (int j = pos - 2; j < pos + 3; j++) {
-            if (j < 0 || j >= cpgPosList.size()) {
+            if (j < 0 || j == pos || j >= cpgPosList.size()) {
                 continue;
             }
-            R2Info r2Info = util.getR2FromList(mHapInfoList, cpgPosList, cpgPosList.get(pos), cpgPosList.get(j), args.getCpgCov());
-            if (r2Info != null) {
+
+            R2Info r2Info = util.getR2FromList(mHapInfoList, cpgPosList, cpgPos, cpgPosList.get(j), args.getCpgCov());
+            if (r2Info != null && r2Info.getR2() != Double.NaN) {
                 r2List.add(r2Info.getR2());
             }
         }
+
 
         for (int i = 0; i < r2List.size(); i++) {
             r2Sum += r2List.get(i);

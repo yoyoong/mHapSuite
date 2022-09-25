@@ -18,6 +18,8 @@ import org.slf4j.LoggerFactory;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
 
@@ -177,7 +179,12 @@ public class Util {
         List<MHapInfo> mergedMHapInfoList = new ArrayList<>(); // mhap数据列表（原始值）
         List<MHapInfo> unMergedMHapInfoList = new ArrayList<>(); // mhap数据列表（未合并的值）
         String mHapLine = "";
+        Integer cnt = 0;
         while((mHapLine = mhapIterator.next()) != null) {
+            cnt++;
+            if (cnt % 1000000 == 0) {
+                log.info("Read " + region.getChrom() + " mhap " + cnt + " lines.");
+            }
             if ((strand.equals("plus") && mHapLine.split("\t")[5].equals("-")) ||
                     (strand.equals("minus") && mHapLine.split("\t")[5].equals("+"))) {
                 continue;
@@ -191,8 +198,7 @@ public class Util {
             mHapInfo.setStrand(mHapLine.split("\t")[5]);
             if (mHapInfo.getCnt() > 1) {
                 mergedMHapInfoList.add(mHapInfo);
-                Integer cnt = mHapInfo.getCnt();
-                for (int i = 0; i < cnt; i++) {
+                for (int i = 0; i < mHapInfo.getCnt(); i++) {
                     unMergedMHapInfoList.add(mHapInfo);
                 }
             } else {
@@ -332,30 +338,29 @@ public class Util {
 
     public R2Info getR2FromList(List<MHapInfo> mHapInfoList, List<Integer> cpgPosList, Integer cpgPos1, Integer cpgPos2, Integer r2Cov) {
         R2Info r2Info = new R2Info();
-
         Integer N00 = 0;
         Integer N01 = 0;
         Integer N10 = 0;
         Integer N11 = 0;
+        if (cpgPos2 < cpgPos1) {
+            Integer temp = cpgPos2;
+            cpgPos2 = cpgPos1;
+            cpgPos1 = temp;
+        }
 
         for (int i = 0; i < mHapInfoList.size(); i++) {
             MHapInfo mHapInfo = mHapInfoList.get(i);
-            if (cpgPos2 < cpgPos1) {
-                Integer temp = cpgPos2;
-                cpgPos2 = cpgPos1;
-                cpgPos1 = temp;
-            }
             if (mHapInfo.getStart() <= cpgPos1 && cpgPos2 <= mHapInfo.getEnd()) {
                 Integer pos1 = cpgPosList.indexOf(cpgPos1) - cpgPosList.indexOf(mHapInfo.getStart());
                 Integer pos2 = cpgPosList.indexOf(cpgPos2) - cpgPosList.indexOf(mHapInfo.getStart());
                 if (mHapInfo.getCpg().charAt(pos1) == '0' && mHapInfo.getCpg().charAt(pos2) == '0') {
-                    N00++;
+                    N00 += mHapInfo.getCnt();
                 } else if (mHapInfo.getCpg().charAt(pos1) == '0' && mHapInfo.getCpg().charAt(pos2) == '1') {
-                    N01++;
+                    N01 += mHapInfo.getCnt();
                 } else if (mHapInfo.getCpg().charAt(pos1) == '1' && mHapInfo.getCpg().charAt(pos2) == '0') {
-                    N10++;
+                    N10 += mHapInfo.getCnt();
                 } else if (mHapInfo.getCpg().charAt(pos1) == '1' && mHapInfo.getCpg().charAt(pos2) == '1') {
-                    N11++;
+                    N11 += mHapInfo.getCnt();
                 }
             }
         }

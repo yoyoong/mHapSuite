@@ -98,7 +98,7 @@ public class GenomeWide {
         Integer getCnt = 0;
         for (Integer cpgPos : cpgPosListInRegion) {
             getCnt++;
-            if (getCnt % 1000 == 0) {
+            if (getCnt % 10000 == 0) {
                 log.info("calculate " + metric + " complete " + + getCnt + " positions.");
             }
 
@@ -175,6 +175,16 @@ public class GenomeWide {
                 }
             }
 
+            if (metric.equals("MM") && nReads < args.getCpgCov()) {
+                continue;
+            }
+            if (metric.equals("PDR") || metric.equals("CHALM") || metric.equals("MHL") ||
+                    metric.equals("MCR") || metric.equals("MBS") || metric.equals("Entropy")) {
+                if (K4plus < args.getK4Plus()) {
+                    continue;
+                }
+            }
+
             BedGraphInfo bedGraphInfo = new BedGraphInfo();
             bedGraphInfo.setChrom(region.getChrom());
             bedGraphInfo.setStart(cpgPos - 1);
@@ -219,7 +229,6 @@ public class GenomeWide {
                 r2List.add(r2Info.getR2());
             }
         }
-
 
         for (int i = 0; i < r2List.size(); i++) {
             r2Sum += r2List.get(i);

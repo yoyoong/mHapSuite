@@ -69,6 +69,7 @@ public class CustomXYLineAndShapeRenderer extends XYLineAndShapeRenderer {
                     position = this.getNegativeItemLabelPosition(series, item);
                 }
 
+                y = y + label.length() * 2;
                 Point2D anchorPoint = this.calculateLabelAnchorPoint(position.getItemLabelAnchor(), x, y, orientation);
                 TextUtils.drawRotatedString(label, g2, (float)anchorPoint.getX(), (float)anchorPoint.getY(),
                         position.getTextAnchor(), position.getAngle(), position.getRotationAnchor());

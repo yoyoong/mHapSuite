@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
+import java.io.File;
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.*;
@@ -98,6 +99,11 @@ public class Tanghulu {
             return false;
         }
 
+        if (args.getSimulation() && args.getMerge()) {
+            log.error("Can not enter both simulation and merge");
+            return false;
+        }
+
         return true;
     }
 
@@ -155,8 +161,9 @@ public class Tanghulu {
         dataset.addSeries(alignSeries);
 
         // 绘制XY图
-        String head = args.getRegion() + "(" + args.getMhapPath() + ")";
-        JFreeChart jfreechart = ChartFactory.createXYLineChart(head, // 标题
+        File tempFile = new File(args.getMhapPath());
+        String title = args.getRegion() + "(" + tempFile.getName() + ")";
+        JFreeChart jfreechart = ChartFactory.createXYLineChart(title, // 标题
                 "Genomic position", // categoryAxisLabel （category轴，横轴，X轴标签）
                 "", // valueAxisLabel（value轴，纵轴，Y轴的标签）
                 dataset, // dataset

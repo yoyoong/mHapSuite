@@ -81,6 +81,7 @@ public class GenomeWide {
                         log.error("getGenomeWide fail, please check the command.");
                         return;
                     }
+                    log.info("calculate " + metric + " " + cpgPosListMap.getKey() + " end!");
                 }
                 bufferedWriter.close();
                 log.info("calculate " + metric + " succeed!");
@@ -142,7 +143,8 @@ public class GenomeWide {
             Integer K4plus = 0; // 长度大于等于K个位点的read个数
             Integer nDR = 0; // 长度大于等于K个位点且同时含有甲基化和未甲基化位点的read个数
             Integer nMR = 0; // 长度大于等于K个位点且含有甲基化位点的read个数
-            if (metric.equals("MM") || metric.equals("PDR") || metric.equals("CHALM") || metric.equals("MCR")) {
+            if (metric.equals("MM") || metric.equals("PDR") || metric.equals("CHALM") || metric.equals("MHL") ||
+                    metric.equals("MCR") || metric.equals("MBS") || metric.equals("Entropy")) {
                 for (int i = 0; i < mHapInfoListWithSite.size(); i++) {
                     MHapInfo mHapInfo = mHapInfoListWithSite.get(i);
                     String cpg = mHapInfo.getCpg();
@@ -225,7 +227,7 @@ public class GenomeWide {
             }
 
             R2Info r2Info = util.getR2FromList(mHapInfoList, cpgPosList, cpgPos, cpgPosList.get(j), args.getCpgCov());
-            if (r2Info != null && r2Info.getR2() != Double.NaN) {
+            if (r2Info != null && !r2Info.getR2().isNaN()) {
                 r2List.add(r2Info.getR2());
             }
         }

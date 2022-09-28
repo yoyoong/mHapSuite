@@ -64,7 +64,6 @@ public class Util {
                 if (lastChr.equals(cpgLine.split("\t")[0])) {
                     cpgPosList.add(Integer.valueOf(cpgLine.split("\t")[1]));
                 } else {
-                    log.info("Read cpg file " + lastChr + " end");
                     cpgPosListMap.put(lastChr, cpgPosList);
                     lastChr = cpgLine.split("\t")[0];
                     cpgPosList = new ArrayList<>();
@@ -73,7 +72,7 @@ public class Util {
                 cpgLine = cpgTabixReader.readLine();
             }
         }
-        log.info("Read cpg file " + lastChr + " end");
+        log.info("Read cpg file success.");
 
         return cpgPosListMap;
     }
@@ -243,8 +242,8 @@ public class Util {
 
     public String cutReads(MHapInfo mHapInfo, List<Integer> cpgPosList, List<Integer> cpgPosListInRegion) {
         String cpg = mHapInfo.getCpg();
-        Integer cpgStart = cpgPosList.get(0);
-        Integer cpgEnd = cpgPosList.get(cpgPosListInRegion.size() - 1);
+        Integer cpgStart = cpgPosListInRegion.get(0);
+        Integer cpgEnd = cpgPosListInRegion.get(cpgPosListInRegion.size() - 1);
 
         if (mHapInfo.getStart() < cpgStart) { // mhap.start在region.start左边
             if (mHapInfo.getEnd() < cpgEnd) { // mhap.end在region.end左边

@@ -13,6 +13,7 @@ public class GenomeWideArgs implements Serializable {
     public Integer K = 4; // k-mer length for entropy, PDR, and CHALM, can be 3, 4, or 5 [4]
     public String strand = "both"; // plus,minus,both [both]
     public String region = ""; // one region, in the format of chr:start-end
+    public String bedFile = ""; // a bed file
     public Integer cpgCov = 5; // minimal number of CpG coverage for MM calculation [5]
     public Integer r2Cov = 20; // minimal number of reads that cover two CpGs for R2 calculation [20]
     public Integer k4Plus = 5; // minimal number of reads that cover 4 or more CpGs for PDR, CHALM, MHL, MCR, MBS and Entropy [5]
@@ -95,6 +96,14 @@ public class GenomeWideArgs implements Serializable {
 
     public void setRegion(String region) {
         this.region = region;
+    }
+
+    public String getBedFile() {
+        return bedFile;
+    }
+
+    public void setBedFile(String bedFile) {
+        this.bedFile = bedFile;
     }
 
     public Integer getCpgCov() {

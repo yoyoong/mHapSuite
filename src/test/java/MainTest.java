@@ -28,9 +28,9 @@ public class MainTest extends TestCase {
         String arg18 = "-simulation";
         String arg19 = "-cutReads";
         // String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17};
-        // String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg18};
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg18};
         // String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18};
-        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg19};
+        // String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg19};
 
         String argsStr = "";
         for (int i = 0; i < args.length; i++) {
@@ -134,6 +134,8 @@ public class MainTest extends TestCase {
         String arg18 = "both";
         String arg19 = "-region";
         String arg20 = "chr1:10468-10638";
+//        String arg19 = "-bedFile";
+//        String arg20 = "CRC_MHB_non_NC.bed";
         String arg21 = "-cpgCov";
         String arg22 = "5";
         String arg23 = "-r2Cov";

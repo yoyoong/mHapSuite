@@ -36,8 +36,8 @@ public class Util {
 
     public List<Integer> parseCpgFile(String cpgPath, Region region) throws Exception {
         List<Integer> cpgPosList = new ArrayList<>();
-        TabixReader cpgTabixReader = new TabixReader(cpgPath);
-        TabixReader.Iterator cpgIterator = cpgTabixReader.query(region.getChrom(), region.getStart(), region.getEnd());
+        TabixReader tabixReader = new TabixReader(cpgPath);
+        TabixReader.Iterator cpgIterator = tabixReader.query(region.getChrom(), region.getStart(), region.getEnd());
         String cpgLine = "";
         while((cpgLine = cpgIterator.next()) != null) {
             if (cpgLine.split("\t").length < 3) {
@@ -47,6 +47,7 @@ public class Util {
             }
         }
 
+        tabixReader.close();
         return cpgPosList;
     }
 
@@ -54,8 +55,8 @@ public class Util {
         Map<String, List<Integer>> cpgPosListMap = new HashMap<>();
 
         List<Integer> cpgPosList = new ArrayList<>();
-        TabixReader cpgTabixReader = new TabixReader(cpgPath);
-        String cpgLine = cpgTabixReader.readLine();
+        TabixReader tabixReader = new TabixReader(cpgPath);
+        String cpgLine = tabixReader.readLine();
         String lastChr = cpgLine.split("\t")[0];
         while(cpgLine != null && !cpgLine.equals("")) {
             if (cpgLine.split("\t").length < 3) {
@@ -69,18 +70,19 @@ public class Util {
                     cpgPosList = new ArrayList<>();
                     cpgPosList.add(Integer.valueOf(cpgLine.split("\t")[1]));
                 }
-                cpgLine = cpgTabixReader.readLine();
+                cpgLine = tabixReader.readLine();
             }
         }
         log.info("Read cpg file success.");
 
+        tabixReader.close();
         return cpgPosListMap;
     }
 
     public List<Integer> parseCpgFileWithShift(String cpgPath, Region region, Integer shift) throws Exception {
         List<Integer> cpgPosList = new ArrayList<>();
-        TabixReader cpgTabixReader = new TabixReader(cpgPath);
-        TabixReader.Iterator cpgIterator = cpgTabixReader.query(region.getChrom(), region.getStart() - shift, region.getEnd() + shift);
+        TabixReader tabixReader = new TabixReader(cpgPath);
+        TabixReader.Iterator cpgIterator = tabixReader.query(region.getChrom(), region.getStart() - shift, region.getEnd() + shift);
         String cpgLine = "";
         while((cpgLine = cpgIterator.next()) != null) {
             if (cpgLine.split("\t").length < 3) {
@@ -90,7 +92,26 @@ public class Util {
             }
         }
 
+        tabixReader.close();
         return cpgPosList;
+    }
+
+    public List<Region> getBedRegionList(String bedFile) throws Exception {
+        List<Region> regionList = new ArrayList<>();
+        BufferedReader bufferedReader = new BufferedReader(new FileReader(new File(bedFile)));
+        String bedLine = "";
+        while ((bedLine = bufferedReader.readLine()) != null && !bedLine.equals("")) {
+            Region region = new Region();
+            if (bedLine.split("\t").length < 3) {
+                log.error("Interval not in correct format.");
+                break;
+            }
+            region.setChrom(bedLine.split("\t")[0]);
+            region.setStart(Integer.valueOf(bedLine.split("\t")[1]) + 1);
+            region.setEnd(Integer.valueOf(bedLine.split("\t")[2]));
+            regionList.add(region);
+        }
+        return regionList;
     }
 
     public List<BedInfo> parseBedFile(String bedFile, Region region) throws Exception {
@@ -172,18 +193,17 @@ public class Util {
         return cpgPosListInRegion;
     }
 
-    public List<MHapInfo> parseMhapFile(String mhapPath, Region region, String strand, Boolean isMerge) throws IOException {
-        TabixReader mhapTabixReader = new TabixReader(mhapPath);
-        TabixReader.Iterator mhapIterator = mhapTabixReader.query(region.getChrom(), region.getStart() - 1, region.getEnd());
-        List<MHapInfo> mergedMHapInfoList = new ArrayList<>(); // mhap数据列表（原始值）
-        List<MHapInfo> unMergedMHapInfoList = new ArrayList<>(); // mhap数据列表（未合并的值）
+    public List<MHapInfo> parseMhapFile(String mhapPath, Region region, String strand, Boolean isMerge) throws IOException, InterruptedException {
+        TabixReader tabixReader = new TabixReader(mhapPath);
+        TabixReader.Iterator mhapIterator = tabixReader.query(region.getChrom(), region.getStart() - 1, region.getEnd());
+        List<MHapInfo> mHapInfoList = new ArrayList<>();
         String mHapLine = "";
-        Integer cnt = 0;
+//        Integer cnt = 0;
         while((mHapLine = mhapIterator.next()) != null) {
-            cnt++;
-            if (cnt % 1000000 == 0) {
-                log.info("Read " + region.getChrom() + " mhap " + cnt + " lines.");
-            }
+//            cnt++;
+//            if (cnt % 1000000 == 0) {
+//                log.info("Read " + region.getChrom() + " mhap " + cnt + " lines.");
+//            }
             if ((strand.equals("plus") && mHapLine.split("\t")[5].equals("-")) ||
                     (strand.equals("minus") && mHapLine.split("\t")[5].equals("+"))) {
                 continue;
@@ -195,24 +215,22 @@ public class Util {
             mHapInfo.setCpg(mHapLine.split("\t")[3]);
             mHapInfo.setCnt(Integer.valueOf(mHapLine.split("\t")[4]));
             mHapInfo.setStrand(mHapLine.split("\t")[5]);
-            if (mHapInfo.getCnt() > 1) {
-                mergedMHapInfoList.add(mHapInfo);
-                for (int i = 0; i < mHapInfo.getCnt(); i++) {
-                    unMergedMHapInfoList.add(mHapInfo);
-                }
+            if (isMerge) {
+                mHapInfoList.add(mHapInfo);
             } else {
-                mergedMHapInfoList.add(mHapInfo);
-                unMergedMHapInfoList.add(mHapInfo);
+                Integer cnt = mHapInfo.getCnt();
+                if (cnt > 1) {
+                    for (int i = 0; i < cnt; i++) {
+                        mHapInfo.setCnt(1);
+                        mHapInfoList.add(mHapInfo);
+                    }
+                } else {
+                    mHapInfoList.add(mHapInfo);
+                }
             }
         }
 
-        List<MHapInfo> mHapInfoList = new ArrayList<>();
-        if (isMerge) {
-            mHapInfoList = mergedMHapInfoList;
-        } else {
-            mHapInfoList = unMergedMHapInfoList;
-        }
-
+        tabixReader.close();
         return mHapInfoList;
     }
 

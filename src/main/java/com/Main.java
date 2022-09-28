@@ -291,11 +291,12 @@ public class Main {
         Option option8 = OptionBuilder.withLongOpt("K").hasArg().withDescription(K_Description).create("K");
         Option option9 = OptionBuilder.withLongOpt("strand").hasArg().withDescription(strand_Description).create("strand");
         Option option10 = OptionBuilder.withLongOpt("region").hasArg().withDescription(region_Description).create("region");
-        Option option11 = OptionBuilder.withLongOpt("cpgCov").hasArg().withDescription(cpgCov_Description).create("cpgCov");
-        Option option12 = OptionBuilder.withLongOpt("r2Cov").hasArg().withDescription(r2Cov_Description).create("r2Cov");
-        Option option13 = OptionBuilder.withLongOpt("k4Plus").hasArg().withDescription(k4Plus_Description).create("k4Plus");
+        Option option11 = OptionBuilder.withLongOpt("bedFile").hasArg().withDescription(region_Description).create("bedFile");
+        Option option12 = OptionBuilder.withLongOpt("cpgCov").hasArg().withDescription(cpgCov_Description).create("cpgCov");
+        Option option13 = OptionBuilder.withLongOpt("r2Cov").hasArg().withDescription(r2Cov_Description).create("r2Cov");
+        Option option14 = OptionBuilder.withLongOpt("k4Plus").hasArg().withDescription(k4Plus_Description).create("k4Plus");
         options.addOption(option0).addOption(option1).addOption(option2).addOption(option3).addOption(option4).addOption(option5).addOption(option6).
-                addOption(option7).addOption(option8).addOption(option9).addOption(option10).addOption(option11).addOption(option12).addOption(option13);
+                addOption(option7).addOption(option8).addOption(option9).addOption(option10).addOption(option11).addOption(option12).addOption(option13).addOption(option14);
 
         BasicParser parser = new BasicParser();
         GenomeWideArgs genomeWideArgs = new GenomeWideArgs();
@@ -346,6 +347,9 @@ public class Main {
                 }
                 if (commandLine.hasOption("region")) {
                     genomeWideArgs.setRegion(commandLine.getOptionValue("region"));
+                }
+                if (commandLine.hasOption("bedFile")) {
+                    genomeWideArgs.setBedFile(commandLine.getOptionValue("bedFile"));
                 }
                 if (commandLine.hasOption("cpgCov")) {
                     genomeWideArgs.setCpgCov(Integer.valueOf(commandLine.getOptionValue("cpgCov")));

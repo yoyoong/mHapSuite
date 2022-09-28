@@ -6,8 +6,7 @@ import com.common.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Timestamp;
@@ -32,41 +31,56 @@ public class GenomeWide {
             return;
         }
 
-        // cpgPosList‘s map, a chrom corresponds to one list, map by chr
-        List<Map.Entry<String, List<Integer>>> cpgPosListMapList = new ArrayList<>();
-        Map<String, List<Integer>> cpgPosListMapRaw = new LinkedHashMap<>();
-        if (args.getRegion() != null && !args.getRegion().equals("")) {
-            Region region = util.parseRegion(args.getRegion());
-
-            // parse cpg file in region
-            List<Integer> cpgPosListInRegion = util.parseCpgFile(args.getCpgPath(), region);
-            cpgPosListMapRaw.put(region.getChrom(), cpgPosListInRegion);
-        } else {
-            // parse whole cpg file
-            cpgPosListMapRaw = util.parseWholeCpgFile(args.getCpgPath());
-        }
-
-        // sort the cpgPosListMap
-        cpgPosListMapList = new ArrayList<Map.Entry<String, List<Integer>>>(cpgPosListMapRaw.entrySet());
-        Collections.sort(cpgPosListMapList, (o1, o2) -> o1.getKey().compareTo(o2.getKey()));
-        cpgPosListMapList.sort(new Comparator<Map.Entry<String, List<Integer>>>() {
-            @Override
-            public int compare(Map.Entry<String, List<Integer>> o1, Map.Entry<String, List<Integer>> o2) {
-                String chromNum1 = o1.getKey().substring(3, o1.getKey().length());
-                String chromNum2 = o2.getKey().substring(3, o2.getKey().length());
-                if (util.isNumeric(chromNum1) && util.isNumeric(chromNum2)) {
-                    return Integer.valueOf(chromNum1) - Integer.valueOf(chromNum2);//o1减o2是升序，反之是降序
-                } else {
-                    return chromNum1.compareTo(chromNum2);
-                }
-            }
-        });
-
         // get the metric list
-        String[] metrics = args.getMetrics().split(" ");
+        String[] metrics = args.getMetrics().trim().split(" ");
         for (String metric : metrics) {
-            if (!metric.equals("")) {
-                BufferedWriter bufferedWriter = util.createOutputFile(args.getOutputDir(), args.getTag() + "." + metric + ".bedGraph");
+            BufferedWriter bufferedWriter = util.createOutputFile(args.getOutputDir(), args.getTag() + "." + metric + ".bedGraph");
+            if (args.getRegion() != null && !args.getRegion().equals("")) {
+                Region region = util.parseRegion(args.getRegion());
+                // parse cpg file in region
+                List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
+                List<Integer> cpgPosListInRegion = util.getCpgPosListInRegion(cpgPosList, region);
+
+                boolean getGenomeWideResult = getGenomeWide(metric, cpgPosListInRegion, region, bufferedWriter);
+                if (!getGenomeWideResult) {
+                    log.error("getGenomeWide fail, please check the command.");
+                    return;
+                }
+            } else if (args.getBedFile() != null && !args.getBedFile().equals("")) {
+                // get region list from bed file
+                List<Region> regionList = util.getBedRegionList(args.getBedFile());;
+
+                for (Region region : regionList) {
+                    // parse cpg file in region
+                    List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
+                    List<Integer> cpgPosListInRegion = util.getCpgPosListInRegion(cpgPosList, region);
+
+                    boolean getGenomeWideResult = getGenomeWide(metric, cpgPosListInRegion, region, bufferedWriter);
+                    if (!getGenomeWideResult) {
+                        log.error("getGenomeWide fail, please check the command.");
+                        return;
+                    }
+                }
+            } else {
+                // parse whole cpg file
+                Map<String, List<Integer>> cpgPosListMapRaw = util.parseWholeCpgFile(args.getCpgPath());
+
+                // sort the cpgPosListMap
+                List<Map.Entry<String, List<Integer>>> cpgPosListMapList = new ArrayList<Map.Entry<String, List<Integer>>>(cpgPosListMapRaw.entrySet());
+                Collections.sort(cpgPosListMapList, (o1, o2) -> o1.getKey().compareTo(o2.getKey()));
+                cpgPosListMapList.sort(new Comparator<Map.Entry<String, List<Integer>>>() {
+                    @Override
+                    public int compare(Map.Entry<String, List<Integer>> o1, Map.Entry<String, List<Integer>> o2) {
+                        String chromNum1 = o1.getKey().substring(3, o1.getKey().length());
+                        String chromNum2 = o2.getKey().substring(3, o2.getKey().length());
+                        if (util.isNumeric(chromNum1) && util.isNumeric(chromNum2)) {
+                            return Integer.valueOf(chromNum1) - Integer.valueOf(chromNum2);//o1减o2是升序，反之是降序
+                        } else {
+                            return chromNum1.compareTo(chromNum2);
+                        }
+                    }
+                });
+
                 for (Map.Entry<String, List<Integer>> cpgPosListMap : cpgPosListMapList) {
                     List<Integer> cpgPosListInRegion = cpgPosListMap.getValue();
 
@@ -83,9 +97,10 @@ public class GenomeWide {
                     }
                     log.info("calculate " + metric + " " + cpgPosListMap.getKey() + " end!");
                 }
-                bufferedWriter.close();
-                log.info("calculate " + metric + " succeed!");
             }
+
+            bufferedWriter.close();
+            log.info("calculate " + metric + " succeed!");
         }
 
         log.info("GenomeWide end!");
@@ -192,21 +207,53 @@ public class GenomeWide {
             bedGraphInfo.setStart(cpgPos - 1);
             bedGraphInfo.setEnd(cpgPos);
             if (metric.equals("MM")) {
-                bedGraphInfo.setValue(mBase.doubleValue() / nReads.doubleValue());
+                Double MM = mBase.doubleValue() / nReads.doubleValue();
+                if (MM.isNaN() || MM.isInfinite()) {
+                    continue;
+                }
+                bedGraphInfo.setValue(MM.floatValue());
             } else if (metric.equals("PDR")) {
-                bedGraphInfo.setValue(nDR.doubleValue() / K4plus.doubleValue());
+                Double PDR = nDR.doubleValue() / K4plus.doubleValue();
+                if (PDR.isNaN() || PDR.isInfinite()) {
+                    continue;
+                }
+                bedGraphInfo.setValue(PDR.floatValue());
             } else if (metric.equals("CHALM")) {
-                bedGraphInfo.setValue(nMR.doubleValue() / K4plus.doubleValue());
+                Double CHALM = nMR.doubleValue() / K4plus.doubleValue();
+                if (CHALM.isNaN() || CHALM.isInfinite()) {
+                    continue;
+                }
+                bedGraphInfo.setValue(CHALM.floatValue());
             } else if (metric.equals("MHL")) {
-                bedGraphInfo.setValue(util.calculateMHL(mHapInfoListWithSite, args.getMinK(), args.getMaxK()));
+                Double MHL = util.calculateMHL(mHapInfoListWithSite, args.getMinK(), args.getMaxK());
+                if (MHL.isNaN() || MHL.isInfinite()) {
+                    continue;
+                }
+                bedGraphInfo.setValue(MHL.floatValue());
             } else if (metric.equals("MCR")) {
-                bedGraphInfo.setValue(cBase.doubleValue() / tBase.doubleValue());
+                Double MCR = cBase.doubleValue() / tBase.doubleValue();
+                if (MCR.isNaN() || MCR.isInfinite()) {
+                    continue;
+                }
+                bedGraphInfo.setValue(MCR.floatValue());
             } else if (metric.equals("MBS")) {
-                bedGraphInfo.setValue(util.calculateMBS(mHapInfoListWithSite, args.getK()));
+                Double MBS = util.calculateMBS(mHapInfoListWithSite, args.getK());
+                if (MBS.isNaN() || MBS.isInfinite()) {
+                    continue;
+                }
+                bedGraphInfo.setValue(MBS.floatValue());
             } else if (metric.equals("Entropy")) {
-                bedGraphInfo.setValue(util.calculateEntropy(mHapInfoListWithSite, args.getK()));
+                Double Entropy = util.calculateEntropy(mHapInfoListWithSite, args.getK());
+                if (Entropy.isNaN() || Entropy.isInfinite()) {
+                    continue;
+                }
+                bedGraphInfo.setValue(Entropy.floatValue());
             } else if (metric.equals("R2")) {
-                bedGraphInfo.setValue(calculateR2(mHapInfoListWithSite, cpgPosListWithSite, cpgPos));
+                Double R2 = calculateR2(mHapInfoListWithSite, cpgPosListWithSite, cpgPos);
+                if (R2.isNaN() || R2.isInfinite()) {
+                    continue;
+                }
+                bedGraphInfo.setValue(R2.floatValue());
             }
 
             String line = bedGraphInfo.getChrom() + "\t" + bedGraphInfo.getStart() + "\t" + bedGraphInfo.getEnd() + "\t" + bedGraphInfo.getValue() + "\n";
@@ -226,7 +273,7 @@ public class GenomeWide {
                 continue;
             }
 
-            R2Info r2Info = util.getR2FromList(mHapInfoList, cpgPosList, cpgPos, cpgPosList.get(j), args.getCpgCov());
+            R2Info r2Info = util.getR2FromList(mHapInfoList, cpgPosList, cpgPos, cpgPosList.get(j), args.getR2Cov());
             if (r2Info != null && !r2Info.getR2().isNaN()) {
                 r2List.add(r2Info.getR2());
             }

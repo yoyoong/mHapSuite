@@ -59,6 +59,9 @@ public class Tanghulu {
             return;
         }
 
+        // parse the cpg file
+        List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
+
         // parse the mhap file
         List<MHapInfo> mHapInfoList = util.parseMhapFile(args.getMhapPath(), region, args.getStrand(), args.getMerge());
         if (mHapInfoList.size() > args.getMaxReads()) {
@@ -67,11 +70,7 @@ public class Tanghulu {
             mHapInfoList = mHapInfoList.subList(0, args.getMaxReads());
         }
 
-        // parse the cpg file
-        List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
-
         if (args.getSimulation()) {
-            mHapInfoList = util.parseMhapFile(args.getMhapPath(), region, args.getStrand(), false);
             boolean simulationResult = simulation(mHapInfoList, cpgPosList, region);
             if (!simulationResult) {
                 log.error("simulation fail, please check the command.");

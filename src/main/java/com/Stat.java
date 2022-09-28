@@ -39,20 +39,7 @@ public class Stat {
             Region region = util.parseRegion(args.getRegion());
             regionList.add(region);
         } else {
-            File bedFile = new File(args.getBedPath());
-            BufferedReader bufferedReader = new BufferedReader(new FileReader(bedFile));
-            String bedLine = "";
-            while ((bedLine = bufferedReader.readLine()) != null && !bedLine.equals("")) {
-                Region region = new Region();
-                if (bedLine.split("\t").length < 3) {
-                    log.error("Interval not in correct format.");
-                    break;
-                }
-                region.setChrom(bedLine.split("\t")[0]);
-                region.setStart(Integer.valueOf(bedLine.split("\t")[1]) + 1);
-                region.setEnd(Integer.valueOf(bedLine.split("\t")[2]));
-                regionList.add(region);
-            }
+            regionList = util.getBedRegionList(args.getBedPath());
         }
 
         BufferedWriter bufferedWriter = util.createOutputFile("", args.getOutputFile());
@@ -210,18 +197,22 @@ public class Stat {
 
         Double nPairs = 0.0;
         Double R2 = 0.0;
+        Integer R2Cnt = 0;
         for (int i = 0; i < cpgPosListInRegion.size(); i++) {
             for (int j = i + 1; j < cpgPosListInRegion.size(); j++) {
                 R2Info r2Info = util.getR2FromList(mHapInfoList, cpgPosList, cpgPosListInRegion.get(i), cpgPosListInRegion.get(j), r2Cov);
                 if (r2Info != null) {
                     nPairs++;
-                    R2 += r2Info.getR2();
+                    if (!r2Info.getR2().isNaN()) {
+                        R2Cnt++;
+                        R2 += r2Info.getR2();
+                    }
                 }
             }
         }
 
         nPairsAndR2[0] = nPairs;
-        nPairsAndR2[1] = R2 / nPairs;
+        nPairsAndR2[1] = R2 / R2Cnt;
         return nPairsAndR2;
     }
 

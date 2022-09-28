@@ -6,7 +6,7 @@ public class BedGraphInfo implements Serializable {
     public String chrom;
     public Integer start;
     public Integer end;
-    public Double value;
+    public Float value;
 
     public String getChrom() {
         return chrom;
@@ -32,11 +32,11 @@ public class BedGraphInfo implements Serializable {
         this.end = end;
     }
 
-    public Double getValue() {
+    public Float getValue() {
         return value;
     }
 
-    public void setValue(Double value) {
+    public void setValue(Float value) {
         this.value = value;
     }
 }

@@ -428,7 +428,8 @@ public class MHapView {
                 R2Info r2Info = r2InfoList.get(j);
                 x[next + j] = i;
                 y[next + j] = j;
-                z[next + j] = (r2Info.getR2() < -1 ? -1 : r2Info.getR2()) > 1 ? 1 : r2Info.getR2();
+                Double r2 = (r2Info.getR2() < -1 ? -1 : r2Info.getR2()) > 1 ? 1 : r2Info.getR2();
+                z[next + j] = r2 * r2;
             }
             next += r2InfoList.size();
         }
@@ -448,10 +449,10 @@ public class MHapView {
         // 颜色定义
         LookupPaintScale paintScale = new LookupPaintScale(-1, 1, Color.black);
         for (Double j = 0.0; j < 255.0; j++) {
-            paintScale.add((j - 255) / 255, new Color(j.intValue(), (int) (50.0 + 205.0 / 255.0 * j), (int) (100.0 + 155.0 / 255.0 * j)));
+            paintScale.add((j - 255) / 255, new Color(j.intValue(), j.intValue(), 255));
         }
         for (Double j = 255.0; j < 510.0; j++) {
-            paintScale.add((j - 255) / 255, new Color((int) (410.0 - 155.0 / 255.0 * j), (int) (510.0 - j), (int) (510.0 - j)));
+            paintScale.add((j - 255) / 255, new Color(255, 510 - j.intValue(), 510 - j.intValue()));
         }
 
         XYPlot xyPlot = new XYPlot(dataset, xAxis, yAxis, new CustomXYBlockRenderer());
@@ -504,10 +505,10 @@ public class MHapView {
                 // 颜色定义
                 LookupPaintScale paintScale = new LookupPaintScale(-1, 1, Color.black);
                 for (Double j = 0.0; j < 255.0; j++) {
-                    paintScale.add((j - 255) / 255, new Color(j.intValue(), (int) (50.0 + 205.0 / 255.0 * j), (int) (100.0 + 155.0 / 255.0 * j)));
+                    paintScale.add((j - 255) / 255, new Color(j.intValue(), j.intValue(), 255));
                 }
                 for (Double j = 255.0; j < 510.0; j++) {
-                    paintScale.add((j - 255) / 255, new Color((int) (410.0 - 155.0 / 255.0 * j), (int) (510.0 - j), (int) (510.0 - j)));
+                    paintScale.add((j - 255) / 255, new Color(255, 510 - j.intValue(), 510 - j.intValue()));
                 }
 
                 // 颜色示意图
@@ -552,12 +553,10 @@ public class MHapView {
                 // 颜色定义
                 LookupPaintScale paintScale = new LookupPaintScale(-1, 1, Color.black);
                 for (Double j = 0.0; j < 255.0; j++) {
-                    //log.info(String.valueOf(j.intValue()) + "-" + String.valueOf((int) (50.0 + 205.0 / 255.0 * j)) + "-" + String.valueOf((int) (100.0 + 155.0 / 255.0 * j)));
-                    paintScale.add((j - 255) / 255, new Color(j.intValue(), (int) (50.0 + 205.0 / 255.0 * j), (int) (100.0 + 155.0 / 255.0 * j)));
+                    paintScale.add((j - 255) / 255, new Color(j.intValue(), j.intValue(), 255));
                 }
                 for (Double j = 255.0; j < 510.0; j++) {
-                    //log.info(String.valueOf((int) (410.0 - 155.0 / 255.0 * j)) + "-" + String.valueOf((int) (510.0 - j)) + "-" + String.valueOf((int) (510.0 - j)));
-                    paintScale.add((j - 255) / 255, new Color((int) (410.0 - 155.0 / 255.0 * j), (int) (510.0 - j), (int) (510.0 - j)));
+                    paintScale.add((j - 255) / 255, new Color(255, 510 - j.intValue(), 510 - j.intValue()));
                 }
 
                 // 颜色示意图

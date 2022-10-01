@@ -63,7 +63,7 @@ public class CustomXYBlockRenderer2 extends XYBlockRenderer {
         double x = dataset.getXValue(series, item);
         double y = dataset.getYValue(series, item);
 
-        if (x != 0 && y != 0) {
+        if (x != 0 || y != 0) {
             int xa = (int) (dataArea.getX() + dataArea.getWidth() / this.xBlockNum * x);
             int xb = (int) (dataArea.getX() + dataArea.getWidth() / this.xBlockNum * (x + 1));
             int xc = (int) (dataArea.getX() + dataArea.getWidth() / this.xBlockNum * (x + 1));
@@ -76,7 +76,7 @@ public class CustomXYBlockRenderer2 extends XYBlockRenderer {
             int [] xPos = {xa, xb, xc, xd};
             int [] yPos = {ya, yb, yc, yd};
             g2.drawPolygon(xPos, yPos, 4);
-            g2.setPaint(new Color(0, 136, 0));
+            g2.setPaint(new Color(0, 135, 100));
             g2.fillPolygon(xPos, yPos, 4);
         }
     }

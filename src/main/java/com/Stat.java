@@ -44,14 +44,15 @@ public class Stat {
 
         BufferedWriter bufferedWriter = util.createOutputFile("", args.getOutputFile());
 
-        // get the metric list
         String[] metrics = args.getMetrics().split(" ");
-        for (Region region : regionList) {
-            List<String> metricsList = new ArrayList<>();
-            for (String metric : metrics) {
-                metricsList.add(metric);
-            }
+        List<String> metricsList = new ArrayList<>();
+        for (String metric : metrics) {
+            metricsList.add(metric);
+        }
+        bufferedWriter.write(printHead(metricsList));
 
+        // get the metric list
+        for (Region region : regionList) {
             // parse the mhap file
             List<MHapInfo> mHapInfoList = util.parseMhapFile(args.getMhapPath(), region, args.getStrand(), false);
             List<MHapInfo> mHapInfoListMerged = util.parseMhapFile(args.getMhapPath(), region, args.getStrand(), true);
@@ -59,7 +60,6 @@ public class Stat {
             // parse the cpg file
             List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
 
-            bufferedWriter.write(printHead(metricsList));
             boolean getStatResult = getStat(mHapInfoList, mHapInfoListMerged, cpgPosList, region, metricsList, bufferedWriter);
             if (!getStatResult) {
                 log.error("getStat fail, please check the command.");
@@ -72,7 +72,22 @@ public class Stat {
     }
 
     private boolean checkArgs() {
-
+        if (args.getMhapPath().equals("")) {
+            log.error("mhapPath can not be null.");
+            return false;
+        }
+        if (args.getCpgPath().equals("")) {
+            log.error("cpgPath can not be null.");
+            return false;
+        }
+        if (!args.getRegion().equals("") && !args.getBedPath().equals("")) {
+            log.error("Can not input region and bedPath at the same time.");
+            return false;
+        }
+        if (!args.getStrand().equals("plus") && !args.getStrand().equals("minus") && !args.getStrand().equals("both")) {
+            log.error("The strand must be one of plus, minus or both");
+            return false;
+        }
         return true;
     }
 
@@ -207,6 +222,7 @@ public class Stat {
                         R2Cnt++;
                         R2 += r2Info.getR2();
                     }
+
                 }
             }
         }

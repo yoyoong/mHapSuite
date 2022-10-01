@@ -208,13 +208,9 @@ public class Util {
                     (strand.equals("minus") && mHapLine.split("\t")[5].equals("+"))) {
                 continue;
             }
-            MHapInfo mHapInfo = new MHapInfo();
-            mHapInfo.setChrom(mHapLine.split("\t")[0]);
-            mHapInfo.setStart(Integer.valueOf(mHapLine.split("\t")[1]));
-            mHapInfo.setEnd(Integer.valueOf(mHapLine.split("\t")[2]));
-            mHapInfo.setCpg(mHapLine.split("\t")[3]);
-            mHapInfo.setCnt(Integer.valueOf(mHapLine.split("\t")[4]));
-            mHapInfo.setStrand(mHapLine.split("\t")[5]);
+            MHapInfo mHapInfo = new MHapInfo(mHapLine.split("\t")[0], Integer.valueOf(mHapLine.split("\t")[1]),
+                    Integer.valueOf(mHapLine.split("\t")[2]), mHapLine.split("\t")[3],
+                    Integer.valueOf(mHapLine.split("\t")[4]), mHapLine.split("\t")[5]);
             if (isMerge) {
                 mHapInfoList.add(mHapInfo);
             } else {

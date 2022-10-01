@@ -2,6 +2,7 @@ package com;
 
 import com.args.TanghuluArgs;
 import com.bean.MHapInfo;
+import com.bean.MHapInfo;
 import com.bean.Region;
 import com.common.Util;
 import com.rewrite.CustomXYLineAndShapeRenderer;
@@ -31,6 +32,7 @@ import java.io.File;
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.lang.Math.random;
 
@@ -48,7 +50,7 @@ public class Tanghulu {
         Region region = util.parseRegion(args.getRegion());
         if (region.getEnd() - region.getStart() > args.getMaxLength()) {
             log.info("The region is larger than " + args.getMaxLength()
-                    + ", it's not recommanded to do tanghulu plotting and we will cut the superfluous region.");
+                    + ", it's not recommand to do tanghulu plotting and we will cut the superfluous region.");
             region.setEnd(region.getStart() + args.getMaxLength());
         }
 
@@ -66,8 +68,35 @@ public class Tanghulu {
         List<MHapInfo> mHapInfoList = util.parseMhapFile(args.getMhapPath(), region, args.getStrand(), args.getMerge());
         if (mHapInfoList.size() > args.getMaxReads()) {
             log.info("The reads is larger than " + args.getMaxReads()
-                    + ", it's not recommanded to do tanghulu plotting and we will cut the superfluous reads.");
+                    + ", it's not recommand to do tanghulu plotting and we will cut the superfluous reads.");
             mHapInfoList = mHapInfoList.subList(0, args.getMaxReads());
+        }
+
+        // merge the same mhap after cut read
+        if (args.getCutReads()) {
+            List<MHapInfo> mHapInfoListCutReadsMerged = new ArrayList<>();
+            for (MHapInfo mHapInfo : mHapInfoList) {
+                // get cpg site list in region
+                List<Integer> cpgPosListInRegion = util.getCpgPosListInRegion(cpgPosList, region);
+                String cpg = util.cutReads(mHapInfo, cpgPosList, cpgPosListInRegion);
+                mHapInfo.setCpg(cpg);
+                if (mHapInfo.getStart() < cpgPosListInRegion.get(0)) {
+                    mHapInfo.setStart(cpgPosListInRegion.get(0));
+                }
+                if (mHapInfo.getEnd() > cpgPosListInRegion.get(cpgPosListInRegion.size() - 1)) {
+                    mHapInfo.setEnd(cpgPosListInRegion.get(cpgPosListInRegion.size() - 1));
+                }
+            }
+
+            mHapInfoList.parallelStream().collect(Collectors.groupingBy(o -> (o.index()), Collectors.toList())).forEach(
+                    (id, transfer) -> {transfer.stream().reduce((a, b) ->
+                         new MHapInfo(a.getChrom(), a.getStart(), a.getEnd(), a.getCpg(), a.getCnt() + b.getCnt(), a.getStrand()))
+                            .ifPresent(mHapInfoListCutReadsMerged::add);
+                    }
+            );
+            mHapInfoListCutReadsMerged.sort(Comparator.comparing(MHapInfo::getStart));
+
+            mHapInfoList = mHapInfoListCutReadsMerged;
         }
 
         if (args.getSimulation()) {
@@ -88,18 +117,39 @@ public class Tanghulu {
     }
 
     private boolean checkArgs() {
+        if (args.getMhapPath().equals("")) {
+            log.error("mhapPath can not be null.");
+            return false;
+        }
+        if (args.getCpgPath().equals("")) {
+            log.error("cpgPath can not be null.");
+            return false;
+        }
+        if (args.getRegion().equals("")) {
+            log.error("region can not be null.");
+            return false;
+        }
         if (!args.getOutFormat().equals("png") && !args.getOutFormat().equals("pdf")) {
             log.error("The output format must be pdf or png");
             return false;
         }
-
         if (!args.getStrand().equals("plus") && !args.getStrand().equals("minus") && !args.getStrand().equals("both")) {
             log.error("The strand must be one of plus, minus or both");
             return false;
         }
-
         if (args.getSimulation() && args.getMerge()) {
             log.error("Can not enter both simulation and merge");
+            return false;
+        }
+        if (args.getSimulation() && args.getCutReads()) {
+            log.info("The cutReads parameter is invalid when input simulation command");
+        }
+        if (args.getMaxReads() > 50) {
+            log.error("The reads is larger than 50, it's not recommand to do tanghulu plotting, please re-enter the maxReads");
+            return false;
+        }
+        if (args.getMaxLength() > 2000) {
+            log.error("The region is larger than 2000, it's not recommand to do tanghulu plotting, please re-enter the maxLength");
             return false;
         }
 
@@ -111,28 +161,17 @@ public class Tanghulu {
         XYSeriesCollection dataset = new XYSeriesCollection();
         Integer startPos = Integer.MAX_VALUE; // 最近的甲基化位点
         Integer endPos = 0; // 最远的甲基化位点
+
         for (int i = 0; i < mHapInfoList.size(); i++) {
             MHapInfo mHapInfo = mHapInfoList.get(i);
             String cpg = mHapInfo.getCpg();
             Integer startCpgPos = mHapInfo.getStart();
 
-            if (args.getCutReads()) {
-                // get cpg site list in region
-                List<Integer> cpgPosListInRegion = util.getCpgPosListInRegion(cpgPosList, region);
-                startPos = cpgPosListInRegion.get(0);
-                endPos = cpgPosListInRegion.get(cpgPosListInRegion.size() - 1);
-
-                cpg = util.cutReads(mHapInfo, cpgPosList, cpgPosListInRegion);
-                if (mHapInfo.getStart() < startPos) { // mhap.start在region.start左边
-                    startCpgPos = startPos;
-                }
-            } else {
-                if (mHapInfo.getStart() < startPos) { // 找出最远的甲基化位点
-                    startPos = mHapInfo.getStart();
-                }
-                if (mHapInfo.getEnd() > endPos) { // 找出最远的甲基化位点
-                    endPos = mHapInfo.getEnd();
-                }
+            if (mHapInfo.getStart() < startPos) { // 找出最远的甲基化位点
+                startPos = mHapInfo.getStart();
+            }
+            if (mHapInfo.getEnd() > endPos) { // 找出最远的甲基化位点
+                endPos = mHapInfo.getEnd();
             }
 
             XYSeries allSeries = new XYSeries(i + mHapInfo.indexByPos()

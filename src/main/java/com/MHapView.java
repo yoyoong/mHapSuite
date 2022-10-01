@@ -82,7 +82,30 @@ public class MHapView {
     }
 
     private boolean checkArgs() {
-
+        if (args.getMhapPath().equals("")) {
+            log.error("mhapPath can not be null.");
+            return false;
+        }
+        if (args.getCpgPath().equals("")) {
+            log.error("cpgPath can not be null.");
+            return false;
+        }
+        if (args.getRegion().equals("")) {
+            log.error("region can not be null.");
+            return false;
+        }
+        if (args.getTag().equals("")) {
+            log.error("tag can not be null.");
+            return false;
+        }
+        if (!args.getOutFormat().equals("png") && !args.getOutFormat().equals("pdf")) {
+            log.error("The output format must be pdf or png");
+            return false;
+        }
+        if (!args.getStrand().equals("plus") && !args.getStrand().equals("minus") && !args.getStrand().equals("both")) {
+            log.error("The strand must be one of plus, minus or both");
+            return false;
+        }
         return true;
     }
 
@@ -114,7 +137,7 @@ public class MHapView {
         heightList.add(width / 10);
         plotList.add(whiteBlackPlot);
         heightList.add(width * 2 / 5);
-        if (args.getBed() != null && !args.getBed().equals("")) {
+        if (bedRegionPlot != null) {
             plotList.add(bedRegionPlot);
             heightList.add(width * 3 / 50);
         }
@@ -124,10 +147,10 @@ public class MHapView {
         // 输出到文件
         String outputPath = "";
         if (args.getOutFormat().equals("pdf")) {
-            outputPath = args.getOutputFile() + "_" + region.toFileString() + ".mHapView.pdf";
+            outputPath = args.getTag() + "_" + region.toFileString() + ".mHapView.pdf";
             saveAsPdf(plotList, outputPath, width, heightList, cpgPosListInRegion);
         } else if (args.getOutFormat().equals("png")) {
-            outputPath = args.getOutputFile() + "_" + region.toFileString() + ".mHapView.png";
+            outputPath = args.getTag() + "_" + region.toFileString() + ".mHapView.png";
             saveAsPng(plotList, outputPath, width, heightList, cpgPosListInRegion);
         }
 
@@ -165,7 +188,7 @@ public class MHapView {
         NumberAxis valueAxis = new NumberAxis();
         valueAxis.setRange(new Range(1, maxCellCnt * 1.1));
         valueAxis.setVisible(true);
-        valueAxis.setTickUnit(new NumberTickUnit(50));
+        valueAxis.setTickUnit(new NumberTickUnit(maxCellCnt / 2));
         valueAxis.setTickLabelFont(new Font("", Font.PLAIN, width / 150));
         valueAxis.setLabel("read count");
         valueAxis.setLabelFont(new Font("", Font.PLAIN, width / 100));
@@ -311,7 +334,9 @@ public class MHapView {
 
         // parse the bed file
         List<BedInfo> bedInfoList = util.parseBedFile(args.getBed(), region);
-
+        if (bedInfoList.size() <= 0) {
+            return null;
+        }
         // 创建数据集
         DefaultXYZDataset dataset = new DefaultXYZDataset();
         double x[] = new double[cpgPosListInRegion.size() * (bedInfoList.size() * 2 + 1)];
@@ -337,7 +362,7 @@ public class MHapView {
         NumberAxis xAxis = new NumberAxis();
         xAxis.setVisible(false);
         NumberAxis yAxis = new NumberAxis();
-        yAxis.setTickUnit(new NumberTickUnit(bedInfoList.size() * 3));
+        yAxis.setTickUnit(new NumberTickUnit(bedInfoList.size() * 5));
         yAxis.setRange(new Range(1, bedInfoList.size() * 2 + 1));
         yAxis.setVisible(true);
         yAxis.setLabel("bed file");
@@ -403,13 +428,7 @@ public class MHapView {
                 R2Info r2Info = r2InfoList.get(j);
                 x[next + j] = i;
                 y[next + j] = j;
-                z[next + j] = 255 + r2Info.getR2() * 255;
-                if (z[next + j] < 0) {
-                    z[next + j] = 0;
-                }
-                if (z[next + j] > 510) {
-                    z[next + j] = 510;
-                }
+                z[next + j] = (r2Info.getR2() < -1 ? -1 : r2Info.getR2()) > 1 ? 1 : r2Info.getR2();
             }
             next += r2InfoList.size();
         }
@@ -427,12 +446,12 @@ public class MHapView {
         yAxis.setLabelFont(new Font("", Font.PLAIN, width / 100));
 
         // 颜色定义
-        LookupPaintScale paintScale = new LookupPaintScale(0, 510, Color.black);
-        for (int i = 0; i < 255; i++) {
-            paintScale.add(i, new Color(i, i, 255));
+        LookupPaintScale paintScale = new LookupPaintScale(-1, 1, Color.black);
+        for (Double j = 0.0; j < 255.0; j++) {
+            paintScale.add((j - 255) / 255, new Color(j.intValue(), (int) (50.0 + 205.0 / 255.0 * j), (int) (100.0 + 155.0 / 255.0 * j)));
         }
-        for (int i = 255; i < 510; i++) {
-            paintScale.add(i, new Color(255, 510 - i, 510 - i));
+        for (Double j = 255.0; j < 510.0; j++) {
+            paintScale.add((j - 255) / 255, new Color((int) (410.0 - 155.0 / 255.0 * j), (int) (510.0 - j), (int) (510.0 - j)));
         }
 
         XYPlot xyPlot = new XYPlot(dataset, xAxis, yAxis, new CustomXYBlockRenderer());
@@ -484,11 +503,11 @@ public class MHapView {
             } else if (i == plotList.size() - 1) {
                 // 颜色定义
                 LookupPaintScale paintScale = new LookupPaintScale(-1, 1, Color.black);
-                for (double j = -1; j < 0; j += 0.01) {
-                    paintScale.add(j, new Color((int) (255 + j * 255), (int) (255 + j * 255), 255));
+                for (Double j = 0.0; j < 255.0; j++) {
+                    paintScale.add((j - 255) / 255, new Color(j.intValue(), (int) (50.0 + 205.0 / 255.0 * j), (int) (100.0 + 155.0 / 255.0 * j)));
                 }
-                for (double j = 0; j < 1; j += 0.01) {
-                    paintScale.add(j, new Color(255, (int) (255 - j * 255), (int) (255 - j * 255)));
+                for (Double j = 255.0; j < 510.0; j++) {
+                    paintScale.add((j - 255) / 255, new Color((int) (410.0 - 155.0 / 255.0 * j), (int) (510.0 - j), (int) (510.0 - j)));
                 }
 
                 // 颜色示意图
@@ -532,11 +551,13 @@ public class MHapView {
             } else if (i == plotList.size() - 1) {
                 // 颜色定义
                 LookupPaintScale paintScale = new LookupPaintScale(-1, 1, Color.black);
-                for (double j = -1; j < 0; j += 0.01) {
-                    paintScale.add(j, new Color((int) (255 + j * 255), (int) (255 + j * 255), 255));
+                for (Double j = 0.0; j < 255.0; j++) {
+                    //log.info(String.valueOf(j.intValue()) + "-" + String.valueOf((int) (50.0 + 205.0 / 255.0 * j)) + "-" + String.valueOf((int) (100.0 + 155.0 / 255.0 * j)));
+                    paintScale.add((j - 255) / 255, new Color(j.intValue(), (int) (50.0 + 205.0 / 255.0 * j), (int) (100.0 + 155.0 / 255.0 * j)));
                 }
-                for (double j = 0; j < 1; j += 0.01) {
-                    paintScale.add(j, new Color(255, (int) (255 - j * 255), (int) (255 - j * 255)));
+                for (Double j = 255.0; j < 510.0; j++) {
+                    //log.info(String.valueOf((int) (410.0 - 155.0 / 255.0 * j)) + "-" + String.valueOf((int) (510.0 - j)) + "-" + String.valueOf((int) (510.0 - j)));
+                    paintScale.add((j - 255) / 255, new Color((int) (410.0 - 155.0 / 255.0 * j), (int) (510.0 - j), (int) (510.0 - j)));
                 }
 
                 // 颜色示意图

@@ -46,9 +46,9 @@ public class GenomeWide {
                     log.error("getGenomeWide fail, please check the command.");
                     return;
                 }
-            } else if (args.getBedFile() != null && !args.getBedFile().equals("")) {
+            } else if (args.getBedPath() != null && !args.getBedPath().equals("")) {
                 // get region list from bed file
-                List<Region> regionList = util.getBedRegionList(args.getBedFile());;
+                List<Region> regionList = util.getBedRegionList(args.getBedPath());;
 
                 for (Region region : regionList) {
                     // parse cpg file in region
@@ -107,6 +107,23 @@ public class GenomeWide {
     }
 
     private boolean checkArgs() {
+        if (args.getMhapPath().equals("")) {
+            log.error("mhapPath can not be null.");
+            return false;
+        }
+        if (args.getCpgPath().equals("")) {
+            log.error("cpgPath can not be null.");
+            return false;
+        }
+        if (args.getMetrics().equals("")) {
+            log.error("metrics can not be null.");
+            return false;
+        }
+        if (!args.getRegion().equals("") && !args.getBedPath().equals("")) {
+            log.error("Can not input region and bedPath at the same time.");
+            return false;
+        }
+
         return true;
     }
 

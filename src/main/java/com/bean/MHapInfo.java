@@ -10,6 +10,15 @@ public class MHapInfo implements Serializable {
     public Integer cnt;
     public String strand;
 
+    public MHapInfo(String chrom, Integer start, Integer end, String cpg, Integer cnt, String strand) {
+        this.chrom = chrom;
+        this.start = start;
+        this.end = end;
+        this.cpg = cpg;
+        this.cnt = cnt;
+        this.strand = strand;
+    }
+
     public String getChrom() {
         return chrom;
     }
@@ -64,6 +73,10 @@ public class MHapInfo implements Serializable {
 
     public String indexByRead() {
         return this.chrom + this.start+ this.end + this.cpg;
+    }
+
+    public String index() {
+        return this.chrom + this.start+ this.end + this.cpg + this.strand;
     }
 
     public String print() {

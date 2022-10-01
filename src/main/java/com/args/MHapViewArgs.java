@@ -8,7 +8,7 @@ public class MHapViewArgs implements Serializable {
     public String cpgPath = ""; // genomic CpG file, gz format and Indexed
     public String region = ""; // one region, in the format of chr:start-end
     public String bed; // a bed file
-    public String outputFile = ""; // output file
+    public String tag = ""; // output file
     public String outFormat = "pdf"; // output format,pdf or png [pdf]
     public String strand = "both"; // plus,minus,both [both]
 
@@ -44,12 +44,12 @@ public class MHapViewArgs implements Serializable {
         this.bed = bed;
     }
 
-    public String getOutputFile() {
-        return outputFile;
+    public String getTag() {
+        return tag;
     }
 
-    public void setOutputFile(String outputFile) {
-        this.outputFile = outputFile;
+    public void setTag(String tag) {
+        this.tag = tag;
     }
 
     public String getOutFormat() {

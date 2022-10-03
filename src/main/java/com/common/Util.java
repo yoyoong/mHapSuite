@@ -198,12 +198,12 @@ public class Util {
         TabixReader.Iterator mhapIterator = tabixReader.query(region.getChrom(), region.getStart() - 1, region.getEnd());
         List<MHapInfo> mHapInfoList = new ArrayList<>();
         String mHapLine = "";
-//        Integer cnt = 0;
+        Integer lineCnt = 0;
         while((mHapLine = mhapIterator.next()) != null) {
-//            cnt++;
-//            if (cnt % 1000000 == 0) {
-//                log.info("Read " + region.getChrom() + " mhap " + cnt + " lines.");
-//            }
+            lineCnt++;
+            if (lineCnt % 1000000 == 0) {
+                log.info("Read " + region.getChrom() + " mhap " + lineCnt + " lines.");
+            }
             if ((strand.equals("plus") && mHapLine.split("\t")[5].equals("-")) ||
                     (strand.equals("minus") && mHapLine.split("\t")[5].equals("+"))) {
                 continue;

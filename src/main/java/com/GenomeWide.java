@@ -62,7 +62,6 @@ public class GenomeWide {
                         log.info("calculate " + metric + " begin!");
                         BufferedWriter bufferedWriter = util.createOutputFile(args.getOutputDir(), args.getTag() + "." + metric + ".bedGraph");
                         Region region = util.parseRegion(args.getRegion());
-                        // parse cpg file in region
                         List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
                         List<Integer> cpgPosListInRegion = util.getCpgPosListInRegion(cpgPosList, region);
 
@@ -96,7 +95,6 @@ public class GenomeWide {
                         log.info("calculate " + metric + " begin!");
                         BufferedWriter bufferedWriter = util.createOutputFile(args.getOutputDir(), args.getTag() + "." + metric + ".bedGraph");
                         for (Region region : regionList) {
-                            // parse cpg file in region
                             List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
                             List<Integer> cpgPosListInRegion = util.getCpgPosListInRegion(cpgPosList, region);
 
@@ -335,6 +333,12 @@ public class GenomeWide {
     private List<BedGraphInfo> calculateOneThread(String metric, List<Integer> cpgPosListInRegion, Region region) throws Exception {
         List<BedGraphInfo> bedGraphInfoList = Lists.newArrayList();
         Integer getCnt = 0;
+//        HashMap<Integer, Integer> cpgPosListInRegionMap = new HashMap<>();
+//        for (Integer cpgPos : cpgPosListInRegion) {
+//            cpgPosListInRegionMap.put(cpgPos, cpgPos);
+//        }
+
+
         for (Integer cpgPos : cpgPosListInRegion) {
             getCnt++;
             if (getCnt % 1000 == 0) {
@@ -351,23 +355,6 @@ public class GenomeWide {
                 continue;
             }
 
-            // get the region with site
-            Region regionWithSite = new Region();
-            Integer startPos = Integer.MAX_VALUE;
-            Integer endPos = 0;
-            for (MHapInfo mHapInfo : mHapInfoListWithSite) {
-                if (mHapInfo.getStart() < startPos) {
-                    startPos = mHapInfo.getStart();
-                }
-                if (mHapInfo.getEnd() > endPos) {
-                    endPos = mHapInfo.getEnd();
-                }
-            }
-            regionWithSite.setChrom(mHapInfoListWithSite.get(0).getChrom());
-            regionWithSite.setStart(startPos);
-            regionWithSite.setEnd(endPos);
-            List<Integer> cpgPosListWithSite = util.parseCpgFileWithShift(args.getCpgPath(), regionWithSite, 500);
-
             // calculate some base calue
             Integer nReads = 0; // 总read个数
             Integer mBase = 0; // 甲基化位点个数
@@ -378,8 +365,7 @@ public class GenomeWide {
             Integer nMR = 0; // 长度大于等于K个位点且含有甲基化位点的read个数
             if (metric.equals("MM") || metric.equals("PDR") || metric.equals("CHALM") || metric.equals("MHL") ||
                     metric.equals("MCR") || metric.equals("MBS") || metric.equals("Entropy")) {
-                for (int i = 0; i < mHapInfoListWithSite.size(); i++) {
-                    MHapInfo mHapInfo = mHapInfoListWithSite.get(i);
+                for (MHapInfo mHapInfo : mHapInfoListWithSite) {
                     String cpg = mHapInfo.getCpg();
                     Integer cnt = mHapInfo.getCnt();
                     nReads += cnt;
@@ -467,7 +453,7 @@ public class GenomeWide {
                 }
                 bedGraphInfo.setValue(Entropy.floatValue());
             } else if (metric.equals("R2")) {
-                Double R2 = calculateR2(mHapInfoListWithSite, cpgPosListWithSite, cpgPos);
+                Double R2 = calculateR2(mHapInfoListWithSite, cpgPosListInRegion, cpgPos);
                 if (R2.isNaN() || R2.isInfinite()) {
                     continue;
                 }
@@ -475,7 +461,6 @@ public class GenomeWide {
             }
 
             bedGraphInfoList.add(bedGraphInfo);
-
         }
 
         return bedGraphInfoList;
@@ -483,8 +468,7 @@ public class GenomeWide {
 
     public Double calculateR2(List<MHapInfo> mHapInfoList, List<Integer> cpgPosList, Integer cpgPos) {
         Double r2Sum = 0.0;
-        List<Double> r2List = new ArrayList<>();
-
+        Integer r2Num = 0;
         Integer pos = cpgPosList.indexOf(cpgPos);
         for (int j = pos - 2; j < pos + 3; j++) {
             if (j < 0 || j == pos || j >= cpgPosList.size()) {
@@ -493,14 +477,11 @@ public class GenomeWide {
 
             R2Info r2Info = util.getR2FromList(mHapInfoList, cpgPosList, cpgPos, cpgPosList.get(j), args.getR2Cov());
             if (r2Info != null && !r2Info.getR2().isNaN()) {
-                r2List.add(r2Info.getR2());
+                r2Num++;
+                r2Sum += r2Info.getR2();
             }
         }
 
-        for (int i = 0; i < r2List.size(); i++) {
-            r2Sum += r2List.get(i);
-        }
-
-        return r2Sum / r2List.size();
+        return r2Sum / r2Num;
     }
 }

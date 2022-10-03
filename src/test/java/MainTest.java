@@ -133,7 +133,7 @@ public class MainTest extends TestCase {
         String arg17 = "-strand";
         String arg18 = "both";
         String arg19 = "-region";
-        String arg20 = "chr1:10468-10638";
+        String arg20 = "chr1:10468-106380000";
 //        String arg19 = "-bedPath";
 //        String arg20 = "CRC_MHB_non_NC.bed";
         String arg21 = "-cpgCov";
@@ -143,10 +143,10 @@ public class MainTest extends TestCase {
         String arg25 = "-k4Plus";
         String arg26 = "5";
 
-        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14,
-                arg15, arg16, arg17, arg18, arg19, arg20, arg21, arg22, arg23, arg24, arg25, arg26};
 //        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14,
-//                arg15, arg16, arg17, arg18, arg21, arg22, arg23, arg24, arg25, arg26};
+//                arg15, arg16, arg17, arg18, arg19, arg20, arg21, arg22, arg23, arg24, arg25, arg26};
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14,
+                arg15, arg16, arg17, arg18, arg21, arg22, arg23, arg24, arg25, arg26};
 
         String argsStr = "";
         for (int i = 0; i < args.length; i++) {

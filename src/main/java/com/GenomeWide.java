@@ -3,6 +3,8 @@ package com;
 import com.args.GenomeWideArgs;
 import com.bean.*;
 import com.common.Util;
+import org.apache.commons.compress.utils.Lists;
+import org.jfree.chart.util.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +14,14 @@ import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
+
+import static java.lang.Thread.sleep;
 
 public class GenomeWide {
     public final Logger log = LoggerFactory.getLogger(GenomeWide.class);
@@ -33,75 +42,200 @@ public class GenomeWide {
 
         // get the metric list
         String[] metrics = args.getMetrics().trim().split(" ");
-        for (String metric : metrics) {
-            BufferedWriter bufferedWriter = util.createOutputFile(args.getOutputDir(), args.getTag() + "." + metric + ".bedGraph");
-            if (args.getRegion() != null && !args.getRegion().equals("")) {
-                Region region = util.parseRegion(args.getRegion());
-                // parse cpg file in region
-                List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
-                List<Integer> cpgPosListInRegion = util.getCpgPosListInRegion(cpgPosList, region);
 
-                boolean getGenomeWideResult = getGenomeWide(metric, cpgPosListInRegion, region, bufferedWriter);
-                if (!getGenomeWideResult) {
-                    log.error("getGenomeWide fail, please check the command.");
-                    return;
-                }
-            } else if (args.getBedPath() != null && !args.getBedPath().equals("")) {
-                // get region list from bed file
-                List<Region> regionList = util.getBedRegionList(args.getBedPath());;
+        // 线程数
+        int threadNum = metrics.length;
+        // 计数器
+        CountDownLatch countDownLatch = new CountDownLatch(threadNum);
+        // 创建一个线程池
+        ExecutorService executorService = Executors.newFixedThreadPool(threadNum);
+        // 定义一个任务集合
+        List<Callable<Boolean>> tasks = Lists.newArrayList();
+        // 定义一个任务
+        Callable<Boolean> task;
 
-                for (Region region : regionList) {
-                    // parse cpg file in region
-                    List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
-                    List<Integer> cpgPosListInRegion = util.getCpgPosListInRegion(cpgPosList, region);
-
-                    boolean getGenomeWideResult = getGenomeWide(metric, cpgPosListInRegion, region, bufferedWriter);
-                    if (!getGenomeWideResult) {
-                        log.error("getGenomeWide fail, please check the command.");
-                        return;
-                    }
-                }
-            } else {
-                // parse whole cpg file
-                Map<String, List<Integer>> cpgPosListMapRaw = util.parseWholeCpgFile(args.getCpgPath());
-
-                // sort the cpgPosListMap
-                List<Map.Entry<String, List<Integer>>> cpgPosListMapList = new ArrayList<Map.Entry<String, List<Integer>>>(cpgPosListMapRaw.entrySet());
-                Collections.sort(cpgPosListMapList, (o1, o2) -> o1.getKey().compareTo(o2.getKey()));
-                cpgPosListMapList.sort(new Comparator<Map.Entry<String, List<Integer>>>() {
+        if (args.getRegion() != null && !args.getRegion().equals("")) {
+            for (String metric : metrics) {
+                task = new Callable<Boolean>() {
                     @Override
-                    public int compare(Map.Entry<String, List<Integer>> o1, Map.Entry<String, List<Integer>> o2) {
-                        String chromNum1 = o1.getKey().substring(3, o1.getKey().length());
-                        String chromNum2 = o2.getKey().substring(3, o2.getKey().length());
-                        if (util.isNumeric(chromNum1) && util.isNumeric(chromNum2)) {
-                            return Integer.valueOf(chromNum1) - Integer.valueOf(chromNum2);//o1减o2是升序，反之是降序
-                        } else {
-                            return chromNum1.compareTo(chromNum2);
+                    public Boolean call() throws Exception {
+                        log.info("calculate " + metric + " begin!");
+                        BufferedWriter bufferedWriter = util.createOutputFile(args.getOutputDir(), args.getTag() + "." + metric + ".bedGraph");
+                        Region region = util.parseRegion(args.getRegion());
+                        // parse cpg file in region
+                        List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
+                        List<Integer> cpgPosListInRegion = util.getCpgPosListInRegion(cpgPosList, region);
+
+                        List<BedGraphInfo> calculateResult = calculateOneThread(metric, cpgPosListInRegion, region);
+                        if (calculateResult.size() > 0) {
+                            for (BedGraphInfo bedGraphInfo : calculateResult) {
+                                String line = bedGraphInfo.getChrom() + "\t" + bedGraphInfo.getStart() + "\t" + bedGraphInfo.getEnd() + "\t" + bedGraphInfo.getValue() + "\n";
+                                bufferedWriter.write(line);
+                            }
                         }
+                        bufferedWriter.close();
+                        log.info("calculate " + metric + " succeed!");
+
+                        return true;
                     }
-                });
-
-                for (Map.Entry<String, List<Integer>> cpgPosListMap : cpgPosListMapList) {
-                    List<Integer> cpgPosListInRegion = cpgPosListMap.getValue();
-
-                    // get the whole region of this chrom
-                    Region region = new Region();
-                    region.setChrom(cpgPosListMap.getKey());
-                    region.setStart(cpgPosListInRegion.get(0));
-                    region.setEnd(cpgPosListInRegion.get(cpgPosListInRegion.size() - 1));
-
-                    boolean getGenomeWideResult = getGenomeWide(metric, cpgPosListInRegion, region, bufferedWriter);
-                    if (!getGenomeWideResult) {
-                        log.error("getGenomeWide fail, please check the command.");
-                        return;
-                    }
-                    log.info("calculate " + metric + " " + cpgPosListMap.getKey() + " end!");
-                }
+                };
+                // 减少计数器的计数，如果计数达到零，则释放所有等待线程。
+                // 如果当前计数大于零，则递减。如果新计数为零，则重新启用所有等待线程以进行线程调度。
+                countDownLatch.countDown();
+                // 任务处理完加入集合
+                tasks.add(task);
             }
+        } else if (args.getBedPath() != null && !args.getBedPath().equals("")) {
+            // get region list from bed file
+            List<Region> regionList = util.getBedRegionList(args.getBedPath());
 
-            bufferedWriter.close();
-            log.info("calculate " + metric + " succeed!");
+            for (String metric : metrics) {
+                task = new Callable<Boolean>() {
+                    @Override
+                    public Boolean call() throws Exception {
+                        log.info("calculate " + metric + " begin!");
+                        BufferedWriter bufferedWriter = util.createOutputFile(args.getOutputDir(), args.getTag() + "." + metric + ".bedGraph");
+                        for (Region region : regionList) {
+                            // parse cpg file in region
+                            List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
+                            List<Integer> cpgPosListInRegion = util.getCpgPosListInRegion(cpgPosList, region);
+
+                            List<BedGraphInfo> calculateResult = calculateOneThread(metric, cpgPosListInRegion, region);
+                            if (calculateResult.size() > 0) {
+                                for (BedGraphInfo bedGraphInfo : calculateResult) {
+                                    String line = bedGraphInfo.getChrom() + "\t" + bedGraphInfo.getStart() + "\t" + bedGraphInfo.getEnd() + "\t" + bedGraphInfo.getValue() + "\n";
+                                    bufferedWriter.write(line);
+                                }
+                            }
+                        }
+                        bufferedWriter.close();
+                        log.info("calculate " + metric + " succeed!");
+
+                        return true;
+                    }
+                };
+                // 减少计数器的计数，如果计数达到零，则释放所有等待线程。
+                // 如果当前计数大于零，则递减。如果新计数为零，则重新启用所有等待线程以进行线程调度。
+                countDownLatch.countDown();
+                // 任务处理完加入集合
+                tasks.add(task);
+            }
+        } else {
+            // parse whole cpg file
+            Map<String, List<Integer>> cpgPosListMapRaw = util.parseWholeCpgFile(args.getCpgPath());
+
+            // sort the cpgPosListMap
+            List<Map.Entry<String, List<Integer>>> cpgPosListMapList = new ArrayList<Map.Entry<String, List<Integer>>>(cpgPosListMapRaw.entrySet());
+            Collections.sort(cpgPosListMapList, (o1, o2) -> o1.getKey().compareTo(o2.getKey()));
+            cpgPosListMapList.sort(new Comparator<Map.Entry<String, List<Integer>>>() {
+                @Override
+                public int compare(Map.Entry<String, List<Integer>> o1, Map.Entry<String, List<Integer>> o2) {
+                    String chromNum1 = o1.getKey().substring(3, o1.getKey().length());
+                    String chromNum2 = o2.getKey().substring(3, o2.getKey().length());
+                    if (util.isNumeric(chromNum1) && util.isNumeric(chromNum2)) {
+                        return Integer.valueOf(chromNum1) - Integer.valueOf(chromNum2);//o1减o2是升序，反之是降序
+                    } else {
+                        return chromNum1.compareTo(chromNum2);
+                    }
+                }
+            });
+
+            for (String metric : metrics) {
+                BufferedWriter bufferedWriter = util.createOutputFile(args.getOutputDir(), args.getTag() + "." + metric + ".bedGraph");
+                task = new Callable<Boolean>() {
+                    @Override
+                    public Boolean call() throws Exception {
+                        log.info("calculate " + metric + " begin!");
+
+                        // 线程数
+                        int threadNum = cpgPosListMapList.size();
+                        // 计数器
+                        CountDownLatch countDownLatch = new CountDownLatch(threadNum);
+                        // 创建一个线程池
+                        ExecutorService executorService = Executors.newFixedThreadPool(threadNum);
+                        // 定义一个任务集合
+                        List<Callable<Boolean>> tasks = Lists.newArrayList();
+                        // 定义一个任务
+                        Callable<Boolean> task;
+
+                        for (Map.Entry<String, List<Integer>> cpgPosListMap : cpgPosListMapList) {
+                            List<Integer> cpgPosListInRegion = cpgPosListMap.getValue();
+                            // get the whole region of this chrom
+                            Region region = new Region();
+                            region.setChrom(cpgPosListMap.getKey());
+                            region.setStart(cpgPosListInRegion.get(0));
+                            region.setEnd(cpgPosListInRegion.get(cpgPosListInRegion.size() - 1));
+
+//                            boolean calculateResult = calculateMultiThread(metric, cpgPosListInRegion, region, bufferedWriter, 100000);
+//                            if (!calculateResult) {
+//                                log.error("calculate fail, please check the command.");
+//                                return false;
+//                            }
+                            task = new Callable<Boolean>() {
+                                @Override
+                                public Boolean call() throws Exception {
+                                    log.info("calculate " + metric + " " + cpgPosListMap.getKey() + " start!");
+                                    List<BedGraphInfo> calculateResult = calculateOneThread(metric, cpgPosListInRegion, region);
+                                    if (calculateResult.size() > 0) {
+                                        for (BedGraphInfo bedGraphInfo : calculateResult) {
+                                            String line = bedGraphInfo.getChrom() + "\t" + bedGraphInfo.getStart() + "\t" + bedGraphInfo.getEnd() + "\t" + bedGraphInfo.getValue() + "\n";
+                                            bufferedWriter.write(line);
+                                        }
+                                    }
+                                    log.info("calculate " + metric + " " + cpgPosListMap.getKey() + " end!");
+                                    return true;
+                                }
+                            };
+                            // 减少计数器的计数，如果计数达到零，则释放所有等待线程。
+                            // 如果当前计数大于零，则递减。如果新计数为零，则重新启用所有等待线程以进行线程调度。
+                            countDownLatch.countDown();
+                            // 任务处理完加入集合
+                            tasks.add(task);
+
+                        }
+
+                        try {
+                            // 执行给定的任务，返回一个 Futures 列表，在所有完成时保存它们的状态和结果。
+                            // Future.isDone对于返回列表的每个元素都是true 。
+                            // 请注意，已完成的任务可能已经正常终止，也可能通过引发异常终止。
+                            // 如果在此操作进行时修改了给定的集合，则此方法的结果是不确定的
+                            executorService.invokeAll(tasks);
+                            // 等待计数器归零
+                            countDownLatch.await();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        // 关闭线程池
+                        executorService.shutdown();
+
+                        bufferedWriter.close();
+                        log.info("calculate " + metric + " succeed!");
+
+                        return true;
+                    }
+                };
+                // 减少计数器的计数，如果计数达到零，则释放所有等待线程。
+                // 如果当前计数大于零，则递减。如果新计数为零，则重新启用所有等待线程以进行线程调度。
+                countDownLatch.countDown();
+                // 任务处理完加入集合
+                tasks.add(task);
+
+            }
         }
+
+        try {
+            // 执行给定的任务，返回一个 Futures 列表，在所有完成时保存它们的状态和结果。
+            // Future.isDone对于返回列表的每个元素都是true 。
+            // 请注意，已完成的任务可能已经正常终止，也可能通过引发异常终止。
+            // 如果在此操作进行时修改了给定的集合，则此方法的结果是不确定的
+            executorService.invokeAll(tasks);
+            // 等待计数器归零
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        // 关闭线程池
+        executorService.shutdown();
 
         log.info("GenomeWide end!");
     }
@@ -127,18 +261,85 @@ public class GenomeWide {
         return true;
     }
 
-    private boolean getGenomeWide(String metric, List<Integer> cpgPosListInRegion, Region region, BufferedWriter bufferedWriter) throws Exception {
+    private boolean calculateMultiThread(String metric, List<Integer> cpgPosListInRegion, Region region, BufferedWriter bufferedWriter, Integer threadSize) {
+        // 返回的数据
+        List<BedGraphInfo> bedGraphInfoList = Lists.newArrayList();
+        // 总数据条数
+        Integer dataSize = cpgPosListInRegion.size();
+        // 线程数
+        Integer threadNum = dataSize / threadSize + 1;
+        // 计数器
+        CountDownLatch countDownLatch = new CountDownLatch(threadNum);
+        // 创建一个线程池
+        ExecutorService executorService = Executors.newFixedThreadPool(threadNum);
+        // 定义标记,过滤threadNum为整数
+        boolean special = dataSize % threadSize == 0;
+        // 定义一个任务集合
+        List<Callable<Boolean>> tasks = Lists.newArrayList();
+        // 定义一个任务
+        Callable<Boolean> task;
+        // 定义循环处理的i批次数据
+        List<Integer> loopDataList;
+        // 确定每条线程的数据
+        for (int i = 0; i < threadNum; i++) {
+            if (i == threadNum - 1) {
+                if (special) {
+                    countDownLatch.countDown();
+                    break;
+                }
+                loopDataList = cpgPosListInRegion.subList(threadSize * i, dataSize);
+            } else {
+                loopDataList = cpgPosListInRegion.subList(threadSize * i, threadSize * (i + 1));
+            }
+            // 当前循环处理的数据集
+            List<Integer> cpgPosListInRegionLoop = loopDataList;
+            task = new Callable<Boolean>() {
+                @Override
+                public Boolean call() throws Exception {
+                    if (cpgPosListInRegionLoop.size() > 0) {
+                        List<BedGraphInfo> calculateResult = calculateOneThread(metric, cpgPosListInRegionLoop, region);
+                        if (calculateResult.size() > 0) {
+                            for (BedGraphInfo bedGraphInfo : calculateResult) {
+                                String line = bedGraphInfo.getChrom() + "\t" + bedGraphInfo.getStart() + "\t" + bedGraphInfo.getEnd() + "\t" + bedGraphInfo.getValue() + "\n";
+                                bufferedWriter.write(line);
+                            }
+                        }
+                    }
+                    return true;
+                }
+            };
+            // 减少计数器的计数，如果计数达到零，则释放所有等待线程。
+            // 如果当前计数大于零，则递减。如果新计数为零，则重新启用所有等待线程以进行线程调度。
+            countDownLatch.countDown();
+            // 任务处理完加入集合
+            tasks.add(task);
+        }
+
+        try {
+            // 执行给定的任务，返回一个 Futures 列表，在所有完成时保存它们的状态和结果。
+            // Future.isDone对于返回列表的每个元素都是true 。
+            // 请注意，已完成的任务可能已经正常终止，也可能通过引发异常终止。
+            // 如果在此操作进行时修改了给定的集合，则此方法的结果是不确定的
+            executorService.invokeAll(tasks);
+            // 等待计数器归零
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        // 关闭线程池
+        executorService.shutdown();
+        //return bedGraphInfoList;
+        return true;
+    }
+
+    private List<BedGraphInfo> calculateOneThread(String metric, List<Integer> cpgPosListInRegion, Region region) throws Exception {
+        List<BedGraphInfo> bedGraphInfoList = Lists.newArrayList();
         Integer getCnt = 0;
         for (Integer cpgPos : cpgPosListInRegion) {
             getCnt++;
-            if (getCnt % 10000 == 0) {
-                log.info("calculate " + metric + " complete " + + getCnt + " positions.");
+            if (getCnt % 1000 == 0) {
+                log.info("calculate " + metric + " complete " + region.getChrom() + " " + getCnt + " positions.");
             }
-
-            //获取时间戳
-//            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS");
-//            long timeStramp = System.currentTimeMillis();
-//            log.info(format.format(timeStramp));
 
             Region thisSiteRegion = new Region();
             thisSiteRegion.setChrom(region.getChrom());
@@ -273,11 +474,11 @@ public class GenomeWide {
                 bedGraphInfo.setValue(R2.floatValue());
             }
 
-            String line = bedGraphInfo.getChrom() + "\t" + bedGraphInfo.getStart() + "\t" + bedGraphInfo.getEnd() + "\t" + bedGraphInfo.getValue() + "\n";
-            bufferedWriter.write(line);
+            bedGraphInfoList.add(bedGraphInfo);
+
         }
 
-        return true;
+        return bedGraphInfoList;
     }
 
     public Double calculateR2(List<MHapInfo> mHapInfoList, List<Integer> cpgPosList, Integer cpgPos) {

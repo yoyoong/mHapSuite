@@ -13,7 +13,7 @@ public class MainTest extends TestCase {
         String arg3 = "-cpgPath";
         String arg4 = "hg19_CpG.gz";
         String arg5 = "-region";
-        String arg6 = "chr1:14469-14653";
+        String arg6 = "chr1:10469-10903";
         String arg7 = "-outputFile";
         String arg8 = "esophagus_T";
         String arg9 = "-strand";
@@ -121,7 +121,7 @@ public class MainTest extends TestCase {
         String arg5 = "-cpgPath";
         String arg6 = "hg19_CpG.gz";
         String arg7 = "-metrics";
-        String arg8 = "MM";
+        String arg8 = "MM PDR CHALM MCR MHL";
         String arg9 = "-outputDir";
         String arg10 = "outputDir";
         String arg11 = "-minK";
@@ -133,7 +133,7 @@ public class MainTest extends TestCase {
         String arg17 = "-strand";
         String arg18 = "both";
         String arg19 = "-region";
-        String arg20 = "chr1:10468-106380000";
+        String arg20 = "chr1:10469-10903";
 //        String arg19 = "-bedPath";
 //        String arg20 = "CRC_MHB_non_NC.bed";
         String arg21 = "-cpgCov";
@@ -143,10 +143,10 @@ public class MainTest extends TestCase {
         String arg25 = "-k4Plus";
         String arg26 = "5";
 
-        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14,
-                arg15, arg16, arg17, arg18, arg19, arg20, arg21, arg22, arg23, arg24, arg25, arg26};
 //        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14,
-//                arg15, arg16, arg17, arg18, arg21, arg22, arg23, arg24, arg25, arg26};
+//                arg15, arg16, arg17, arg18, arg19, arg20, arg21, arg22, arg23, arg24, arg25, arg26};
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14,
+                arg15, arg16, arg17, arg18, arg21, arg22, arg23, arg24, arg25, arg26};
 
         String argsStr = "";
         for (int i = 0; i < args.length; i++) {

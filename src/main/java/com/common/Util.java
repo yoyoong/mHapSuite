@@ -472,10 +472,9 @@ public class Util {
     public Double calculateMHL(List<MHapInfo> mHapInfoListMerged, Integer minK, Integer maxK) {
         Double MHL = 0.0;
         Integer maxCpgLength = 0;
-        for (int i = 0; i < mHapInfoListMerged.size(); i++) {
-            MHapInfo mHapInfo = mHapInfoListMerged.get(i);
+        for (MHapInfo mHapInfo : mHapInfoListMerged) {
             if (minK > mHapInfo.getCpg().length()) {
-                log.error("calculate MHL Error: startK is too large.");
+                log.error("calculate MHL Error: minK is too large.");
                 return 0.0;
             }
             if (maxCpgLength < mHapInfo.getCpg().length()) {
@@ -485,7 +484,6 @@ public class Util {
         if (maxK > maxCpgLength) {
             maxK = maxCpgLength;
         }
-
 
         Double temp = 0.0;
         Integer w = 0;

@@ -3,6 +3,8 @@ package com;
 import com.args.GenomeWideArgs;
 import com.bean.*;
 import com.common.Util;
+import htsjdk.samtools.util.StringUtil;
+import htsjdk.tribble.readers.TabixReader;
 import org.apache.commons.compress.utils.Lists;
 import org.jfree.chart.util.ObjectUtils;
 import org.slf4j.Logger;
@@ -40,84 +42,127 @@ public class GenomeWide {
             return;
         }
 
-        // get the metric list
-        String[] metrics = args.getMetrics().trim().split(" ");
+        BufferedWriter bufferedWriterMM = util.createOutputFile(args.getOutputDir(), args.getTag() + ".MM.bedGraph");
+        BufferedWriter bufferedWriterPDR = util.createOutputFile(args.getOutputDir(), args.getTag() + ".PDR.bedGraph");
+        BufferedWriter bufferedWriterCHALM = util.createOutputFile(args.getOutputDir(), args.getTag() + ".CHALM.bedGraph");
+        BufferedWriter bufferedWriterMHL = util.createOutputFile(args.getOutputDir(), args.getTag() + ".MHL.bedGraph");
+        BufferedWriter bufferedWriterMCR = util.createOutputFile(args.getOutputDir(), args.getTag() + ".MCR.bedGraph");
+        BufferedWriter bufferedWriterMBS = util.createOutputFile(args.getOutputDir(), args.getTag() + ".MBS.bedGraph");
+        BufferedWriter bufferedWriterEntropy = util.createOutputFile(args.getOutputDir(), args.getTag() + ".Entropy.bedGraph");
+        BufferedWriter bufferedWriterR2 = util.createOutputFile(args.getOutputDir(), args.getTag() + ".R2.bedGraph");
 
-        // 线程数
-        int threadNum = metrics.length;
-        // 计数器
-        CountDownLatch countDownLatch = new CountDownLatch(threadNum);
-        // 创建一个线程池
-        ExecutorService executorService = Executors.newFixedThreadPool(threadNum);
-        // 定义一个任务集合
-        List<Callable<Boolean>> tasks = Lists.newArrayList();
-        // 定义一个任务
-        Callable<Boolean> task;
+//        if (args.getMetrics().contains("MM")) {
+//            bufferedWriterMM = util.createOutputFile(args.getOutputDir(), args.getTag() + ".MM.bedGraph");
+//        }
+//        if (args.getMetrics().contains("PDR")) {
+//            bufferedWriterPDR = util.createOutputFile(args.getOutputDir(), args.getTag() + ".PDR.bedGraph");
+//        }
+//        if (args.getMetrics().contains("CHALM")) {
+//            bufferedWriterCHALM = util.createOutputFile(args.getOutputDir(), args.getTag() + ".CHALM.bedGraph");
+//        }
+//        if (args.getMetrics().contains("MHL")) {
+//            bufferedWriterMHL = util.createOutputFile(args.getOutputDir(), args.getTag() + ".MHL.bedGraph");
+//        }
+//        if (args.getMetrics().contains("MCR")) {
+//            bufferedWriterMCR = util.createOutputFile(args.getOutputDir(), args.getTag() + ".MCR.bedGraph");
+//        }
+//        if (args.getMetrics().contains("MBS")) {
+//            bufferedWriterMBS = util.createOutputFile(args.getOutputDir(), args.getTag() + ".MBS.bedGraph");
+//        }
+//        if (args.getMetrics().contains("Entropy")) {
+//            bufferedWriterEntropy = util.createOutputFile(args.getOutputDir(), args.getTag() + ".Entropy.bedGraph");
+//        }
+//        if (args.getMetrics().contains("R2")) {
+//            bufferedWriterR2 = util.createOutputFile(args.getOutputDir(), args.getTag() + ".R2.bedGraph");
+//        }
 
         if (args.getRegion() != null && !args.getRegion().equals("")) {
-            for (String metric : metrics) {
-                task = new Callable<Boolean>() {
-                    @Override
-                    public Boolean call() throws Exception {
-                        log.info("calculate " + metric + " begin!");
-                        BufferedWriter bufferedWriter = util.createOutputFile(args.getOutputDir(), args.getTag() + "." + metric + ".bedGraph");
-                        Region region = util.parseRegion(args.getRegion());
-                        List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
-                        List<Integer> cpgPosListInRegion = util.getCpgPosListInRegion(cpgPosList, region);
+            Region region = util.parseRegion(args.getRegion());
+            List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
 
-                        List<BedGraphInfo> calculateResult = calculateOneThread(metric, cpgPosListInRegion, region);
-                        if (calculateResult.size() > 0) {
-                            for (BedGraphInfo bedGraphInfo : calculateResult) {
-                                String line = bedGraphInfo.getChrom() + "\t" + bedGraphInfo.getStart() + "\t" + bedGraphInfo.getEnd() + "\t" + bedGraphInfo.getValue() + "\n";
-                                bufferedWriter.write(line);
-                            }
-                        }
-                        bufferedWriter.close();
-                        log.info("calculate " + metric + " succeed!");
-
-                        return true;
+            List<BedGraphInfo> calculateResult = calculate1(cpgPosList, region);
+            if (calculateResult.size() > 0) {
+                for (BedGraphInfo bedGraphInfo : calculateResult) {
+                    if (args.getMetrics().contains("MM")) {
+                        bufferedWriterMM.write(bedGraphInfo.printMM());
                     }
-                };
-                // 减少计数器的计数，如果计数达到零，则释放所有等待线程。
-                // 如果当前计数大于零，则递减。如果新计数为零，则重新启用所有等待线程以进行线程调度。
-                countDownLatch.countDown();
-                // 任务处理完加入集合
-                tasks.add(task);
+                    if (args.getMetrics().contains("PDR")) {
+                        bufferedWriterPDR.write(bedGraphInfo.printPDR());
+                    }
+                    if (args.getMetrics().contains("CHALM")) {
+                        bufferedWriterCHALM.write(bedGraphInfo.printCHALM());
+                    }
+                    if (args.getMetrics().contains("MHL")) {
+                        bufferedWriterMHL.write(bedGraphInfo.printMHL());
+                    }
+                    if (args.getMetrics().contains("MCR")) {
+                        bufferedWriterMCR.write(bedGraphInfo.printMCR());
+                    }
+                    if (args.getMetrics().contains("MBS")) {
+                        bufferedWriterMBS.write(bedGraphInfo.printMBS());
+                    }
+                    if (args.getMetrics().contains("Entropy")) {
+                        bufferedWriterEntropy.write(bedGraphInfo.printEntropy());
+                    }
+                    if (args.getMetrics().contains("R2")) {
+                        bufferedWriterR2.write(bedGraphInfo.printR2());
+                    }
+                }
             }
+
+            bufferedWriterMM.close();
+            bufferedWriterPDR.close();
+            bufferedWriterCHALM.close();
+            bufferedWriterMHL.close();
+            bufferedWriterMCR.close();
+            bufferedWriterMBS.close();
+            bufferedWriterEntropy.close();
+            bufferedWriterR2.close();
         } else if (args.getBedPath() != null && !args.getBedPath().equals("")) {
             // get region list from bed file
             List<Region> regionList = util.getBedRegionList(args.getBedPath());
 
-            for (String metric : metrics) {
-                task = new Callable<Boolean>() {
-                    @Override
-                    public Boolean call() throws Exception {
-                        log.info("calculate " + metric + " begin!");
-                        BufferedWriter bufferedWriter = util.createOutputFile(args.getOutputDir(), args.getTag() + "." + metric + ".bedGraph");
-                        for (Region region : regionList) {
-                            List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
-                            List<Integer> cpgPosListInRegion = util.getCpgPosListInRegion(cpgPosList, region);
-
-                            List<BedGraphInfo> calculateResult = calculateOneThread(metric, cpgPosListInRegion, region);
-                            if (calculateResult.size() > 0) {
-                                for (BedGraphInfo bedGraphInfo : calculateResult) {
-                                    String line = bedGraphInfo.getChrom() + "\t" + bedGraphInfo.getStart() + "\t" + bedGraphInfo.getEnd() + "\t" + bedGraphInfo.getValue() + "\n";
-                                    bufferedWriter.write(line);
-                                }
-                            }
+            for (Region region : regionList) {
+                List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
+                List<BedGraphInfo> calculateResult = calculate1(cpgPosList, region);
+                if (calculateResult.size() > 0) {
+                    for (BedGraphInfo bedGraphInfo : calculateResult) {
+                        if (args.getMetrics().contains("MM")) {
+                            bufferedWriterMM.write(bedGraphInfo.printMM());
                         }
-                        bufferedWriter.close();
-                        log.info("calculate " + metric + " succeed!");
-
-                        return true;
+                        if (args.getMetrics().contains("PDR")) {
+                            bufferedWriterPDR.write(bedGraphInfo.printPDR());
+                        }
+                        if (args.getMetrics().contains("CHALM")) {
+                            bufferedWriterCHALM.write(bedGraphInfo.printCHALM());
+                        }
+                        if (args.getMetrics().contains("MHL")) {
+                            bufferedWriterMHL.write(bedGraphInfo.printMHL());
+                        }
+                        if (args.getMetrics().contains("MCR")) {
+                            bufferedWriterMCR.write(bedGraphInfo.printMCR());
+                        }
+                        if (args.getMetrics().contains("MBS")) {
+                            bufferedWriterMBS.write(bedGraphInfo.printMBS());
+                        }
+                        if (args.getMetrics().contains("Entropy")) {
+                            bufferedWriterEntropy.write(bedGraphInfo.printEntropy());
+                        }
+                        if (args.getMetrics().contains("R2")) {
+                            bufferedWriterR2.write(bedGraphInfo.printR2());
+                        }
                     }
-                };
-                // 减少计数器的计数，如果计数达到零，则释放所有等待线程。
-                // 如果当前计数大于零，则递减。如果新计数为零，则重新启用所有等待线程以进行线程调度。
-                countDownLatch.countDown();
-                // 任务处理完加入集合
-                tasks.add(task);
+                }
             }
+
+            bufferedWriterMM.close();
+            bufferedWriterPDR.close();
+            bufferedWriterCHALM.close();
+            bufferedWriterMHL.close();
+            bufferedWriterMCR.close();
+            bufferedWriterMBS.close();
+            bufferedWriterEntropy.close();
+            bufferedWriterR2.close();
         } else {
             // parse whole cpg file
             Map<String, List<Integer>> cpgPosListMapRaw = util.parseWholeCpgFile(args.getCpgPath());
@@ -138,80 +183,77 @@ public class GenomeWide {
                 }
             });
 
-            for (String metric : metrics) {
-                BufferedWriter bufferedWriter = util.createOutputFile(args.getOutputDir(), args.getTag() + "." + metric + ".bedGraph");
-                task = new Callable<Boolean>() {
-                    @Override
-                    public Boolean call() throws Exception {
-                        log.info("calculate " + metric + " begin!");
+            // 线程数
+            int threadNum = cpgPosListMapList.size();
+            // 计数器
+            CountDownLatch countDownLatch = new CountDownLatch(threadNum);
+            // 创建一个线程池
+            ExecutorService executorService = Executors.newFixedThreadPool(threadNum);
+            // 定义一个任务集合
+            List<Callable<Boolean>> tasks = Lists.newArrayList();
+            // 定义一个任务
+            Callable<Boolean> task;
 
-                        // 线程数
-                        int threadNum = cpgPosListMapList.size();
-                        // 计数器
-                        CountDownLatch countDownLatch = new CountDownLatch(threadNum);
-                        // 创建一个线程池
-                        ExecutorService executorService = Executors.newFixedThreadPool(threadNum);
-                        // 定义一个任务集合
-                        List<Callable<Boolean>> tasks = Lists.newArrayList();
-                        // 定义一个任务
-                        Callable<Boolean> task;
-
-                        for (Map.Entry<String, List<Integer>> cpgPosListMap : cpgPosListMapList) {
-                            List<Integer> cpgPosListInRegion = cpgPosListMap.getValue();
-                            // get the whole region of this chrom
-                            Region region = new Region();
-                            region.setChrom(cpgPosListMap.getKey());
-                            region.setStart(cpgPosListInRegion.get(0));
-                            region.setEnd(cpgPosListInRegion.get(cpgPosListInRegion.size() - 1));
+            for (Map.Entry<String, List<Integer>> cpgPosListMap : cpgPosListMapList) {
+                List<Integer> cpgPosList = cpgPosListMap.getValue();
+                // get the whole region of this chrom
+                Region region = new Region();
+                region.setChrom(cpgPosListMap.getKey());
+                region.setStart(cpgPosList.get(0));
+                region.setEnd(cpgPosList.get(cpgPosList.size() - 1));
 
 //                            boolean calculateResult = calculateMultiThread(metric, cpgPosListInRegion, region, bufferedWriter, 100000);
 //                            if (!calculateResult) {
 //                                log.error("calculate fail, please check the command.");
 //                                return false;
 //                            }
-                            task = new Callable<Boolean>() {
-                                @Override
-                                public Boolean call() throws Exception {
-                                    log.info("calculate " + metric + " " + cpgPosListMap.getKey() + " start!");
-                                    List<BedGraphInfo> calculateResult = calculateOneThread(metric, cpgPosListInRegion, region);
-                                    if (calculateResult.size() > 0) {
-                                        for (BedGraphInfo bedGraphInfo : calculateResult) {
-                                            String line = bedGraphInfo.getChrom() + "\t" + bedGraphInfo.getStart() + "\t" + bedGraphInfo.getEnd() + "\t" + bedGraphInfo.getValue() + "\n";
-                                            bufferedWriter.write(line);
-                                        }
-                                    }
-                                    log.info("calculate " + metric + " " + cpgPosListMap.getKey() + " end!");
-                                    return true;
+
+                task = new Callable<Boolean>() {
+                    @Override
+                    public Boolean call() throws Exception {
+                        log.info("Calculate " + cpgPosListMap.getKey() + " start!");
+                        List<BedGraphInfo> calculateResult = calculate1(cpgPosList, region);
+                        if (calculateResult.size() > 0) {
+                            for (BedGraphInfo bedGraphInfo : calculateResult) {
+                                if (args.getMetrics().contains("MM")) {
+                                    bufferedWriterMM.write(bedGraphInfo.printMM());
                                 }
-                            };
-                            // 减少计数器的计数，如果计数达到零，则释放所有等待线程。
-                            // 如果当前计数大于零，则递减。如果新计数为零，则重新启用所有等待线程以进行线程调度。
-                            countDownLatch.countDown();
-                            // 任务处理完加入集合
-                            tasks.add(task);
-
+                                if (args.getMetrics().contains("PDR")) {
+                                    bufferedWriterPDR.write(bedGraphInfo.printPDR());
+                                }
+                                if (args.getMetrics().contains("CHALM")) {
+                                    bufferedWriterCHALM.write(bedGraphInfo.printCHALM());
+                                }
+                                if (args.getMetrics().contains("MHL")) {
+                                    bufferedWriterMHL.write(bedGraphInfo.printMHL());
+                                }
+                                if (args.getMetrics().contains("MCR")) {
+                                    bufferedWriterMCR.write(bedGraphInfo.printMCR());
+                                }
+                                if (args.getMetrics().contains("MBS")) {
+                                    bufferedWriterMBS.write(bedGraphInfo.printMBS());
+                                }
+                                if (args.getMetrics().contains("Entropy")) {
+                                    bufferedWriterEntropy.write(bedGraphInfo.printEntropy());
+                                }
+                                if (args.getMetrics().contains("R2")) {
+                                    bufferedWriterR2.write(bedGraphInfo.printR2());
+                                }
+                            }
                         }
-
-                        try {
-                            // 执行给定的任务，返回一个 Futures 列表，在所有完成时保存它们的状态和结果。
-                            // Future.isDone对于返回列表的每个元素都是true 。
-                            // 请注意，已完成的任务可能已经正常终止，也可能通过引发异常终止。
-                            // 如果在此操作进行时修改了给定的集合，则此方法的结果是不确定的
-                            executorService.invokeAll(tasks);
-                            // 等待计数器归零
-                            countDownLatch.await();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        // 关闭线程池
-                        executorService.shutdown();
-
-                        bufferedWriter.close();
-                        log.info("calculate " + metric + " succeed!");
-
+                        log.info("Calculate " + cpgPosListMap.getKey() + " end!");
                         return true;
                     }
                 };
+
+                bufferedWriterMM.close();
+                bufferedWriterPDR.close();
+                bufferedWriterCHALM.close();
+                bufferedWriterMHL.close();
+                bufferedWriterMCR.close();
+                bufferedWriterMBS.close();
+                bufferedWriterEntropy.close();
+                bufferedWriterR2.close();
                 // 减少计数器的计数，如果计数达到零，则释放所有等待线程。
                 // 如果当前计数大于零，则递减。如果新计数为零，则重新启用所有等待线程以进行线程调度。
                 countDownLatch.countDown();
@@ -219,21 +261,21 @@ public class GenomeWide {
                 tasks.add(task);
 
             }
-        }
 
-        try {
-            // 执行给定的任务，返回一个 Futures 列表，在所有完成时保存它们的状态和结果。
-            // Future.isDone对于返回列表的每个元素都是true 。
-            // 请注意，已完成的任务可能已经正常终止，也可能通过引发异常终止。
-            // 如果在此操作进行时修改了给定的集合，则此方法的结果是不确定的
-            executorService.invokeAll(tasks);
-            // 等待计数器归零
-            countDownLatch.await();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            try {
+                // 执行给定的任务，返回一个 Futures 列表，在所有完成时保存它们的状态和结果。
+                // Future.isDone对于返回列表的每个元素都是true 。
+                // 请注意，已完成的任务可能已经正常终止，也可能通过引发异常终止。
+                // 如果在此操作进行时修改了给定的集合，则此方法的结果是不确定的
+                executorService.invokeAll(tasks);
+                // 等待计数器归零
+                countDownLatch.await();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            // 关闭线程池
+            executorService.shutdown();
         }
-        // 关闭线程池
-        executorService.shutdown();
 
         log.info("GenomeWide end!");
     }
@@ -290,19 +332,19 @@ public class GenomeWide {
                 loopDataList = cpgPosListInRegion.subList(threadSize * i, threadSize * (i + 1));
             }
             // 当前循环处理的数据集
-            List<Integer> cpgPosListInRegionLoop = loopDataList;
+            List<Integer> cpgPosListLoop = loopDataList;
             task = new Callable<Boolean>() {
                 @Override
                 public Boolean call() throws Exception {
-                    if (cpgPosListInRegionLoop.size() > 0) {
-                        List<BedGraphInfo> calculateResult = calculateOneThread(metric, cpgPosListInRegionLoop, region);
-                        if (calculateResult.size() > 0) {
-                            for (BedGraphInfo bedGraphInfo : calculateResult) {
-                                String line = bedGraphInfo.getChrom() + "\t" + bedGraphInfo.getStart() + "\t" + bedGraphInfo.getEnd() + "\t" + bedGraphInfo.getValue() + "\n";
-                                bufferedWriter.write(line);
-                            }
-                        }
-                    }
+//                    if (cpgPosListLoop.size() > 0) {
+//                        List<BedGraphInfo> calculateResult = calculate1(metric, cpgPosListLoop, region);
+//                        if (calculateResult.size() > 0) {
+//                            for (BedGraphInfo bedGraphInfo : calculateResult) {
+//                                String line = bedGraphInfo.getChrom() + "\t" + bedGraphInfo.getStart() + "\t" + bedGraphInfo.getEnd() + "\t" + bedGraphInfo.getValue() + "\n";
+//                                bufferedWriter.write(line);
+//                            }
+//                        }
+//                    }
                     return true;
                 }
             };
@@ -330,19 +372,209 @@ public class GenomeWide {
         return true;
     }
 
-    private List<BedGraphInfo> calculateOneThread(String metric, List<Integer> cpgPosListInRegion, Region region) throws Exception {
+    private List<BedGraphInfo> calculate1(List<Integer> cpgPosList, Region region) throws Exception {
         List<BedGraphInfo> bedGraphInfoList = Lists.newArrayList();
+
+        int[] nReadsList = new int[cpgPosList.size()]; // 该位点的总read个数
+        int[] mReadList = new int[cpgPosList.size()]; // 该位点为甲基化的read个数
+        int[] cBaseList = new int[cpgPosList.size()]; // 该位点为甲基化的read中的未甲基化cpg位点个数
+        int[] tBaseList = new int[cpgPosList.size()]; // 该位点的总cpg位点个数
+        int[] K4plusList = new int[cpgPosList.size()]; // 长度大于等于K个位点的read个数
+        int[] nDRList = new int[cpgPosList.size()]; // 长度大于等于K个位点且同时含有甲基化和未甲基化位点的read个数
+        int[] nMRList = new int[cpgPosList.size()]; // 长度大于等于K个位点且含有甲基化位点的read个数
+        int[] minReadList = new int[cpgPosList.size()]; // 最小cpg长度
+        for (Integer i = 0; i < cpgPosList.size(); i++) {
+            minReadList[i] = Integer.MAX_VALUE;
+        }
+        int[] maxReadList = new int[cpgPosList.size()]; // 最大cpg长度
+        int[][] methKmersList = new int[100][cpgPosList.size()]; // Number of fully methylated k-mers
+        int[][] totalKmersList = new int[100][cpgPosList.size()]; // Number of fully methylated k-mers
+
+        TabixReader tabixReader = new TabixReader(args.getMhapPath());
+        TabixReader.Iterator mhapIterator = tabixReader.query(region.getChrom(), region.getStart() - 1, region.getEnd());
+        List<MHapInfo> mHapInfoList = new ArrayList<>();
+        String mHapLine = "";
+        Integer lineCnt = 0;
+        while((mHapLine = mhapIterator.next()) != null) {
+            lineCnt++;
+            if (lineCnt % 100000 == 0) {
+                log.info("Calculate complete " + region.getChrom() + " " + lineCnt + " mhap lines.");
+            }
+            if ((args.getStrand().equals("plus") && mHapLine.split("\t")[5].equals("-")) ||
+                    (args.getStrand().equals("minus") && mHapLine.split("\t")[5].equals("+"))) {
+                continue;
+            }
+            MHapInfo mHapInfo = new MHapInfo(mHapLine.split("\t")[0], Integer.valueOf(mHapLine.split("\t")[1]),
+                    Integer.valueOf(mHapLine.split("\t")[2]), mHapLine.split("\t")[3],
+                    Integer.valueOf(mHapLine.split("\t")[4]), mHapLine.split("\t")[5]);
+            mHapInfoList.add(mHapInfo);
+
+            Integer cpgPosIndex = cpgPosList.indexOf(mHapInfo.getStart());
+            String cpgStr = mHapInfo.getCpg();
+            Integer cpgLen = cpgStr.length();
+            Integer readCnt = mHapInfo.getCnt();
+
+            if (args.getMetrics().contains("PDR") || args.getMetrics().contains("CHALM") || args.getMetrics().contains("MHL") ||
+                    args.getMetrics().contains("MCR") || args.getMetrics().contains("MBS") || args.getMetrics().contains("Entropy")) {
+                for (int i = 0; i < cpgLen; i++) {
+                    if (cpgStr.charAt(i) == '1') {
+                        mReadList[cpgPosIndex + i] += readCnt;
+                    }
+                    nReadsList[cpgPosIndex + i] += readCnt;
+                    tBaseList[cpgPosIndex + i] += cpgLen * readCnt;
+                    if (cpgStr.contains("1")) {
+                        long noMethCnt = cpgStr.chars().filter(ch -> ch == '0').count();
+                        cBaseList[cpgPosIndex + i] += noMethCnt * readCnt;
+                    }
+                }
+
+                if (cpgStr.length() >= args.getK()) {
+                    for (int i = 0; i < cpgLen; i++) {
+                        K4plusList[cpgPosIndex + i] += readCnt;
+                        if (cpgStr.contains("1")) {
+                            nMRList[cpgPosIndex + i] += readCnt;
+                            if (cpgStr.contains("0")) {
+                                nDRList[cpgPosIndex + i] += readCnt;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (args.getMetrics().contains("MHL")) {
+                int[] subMethKmersList = new int[cpgLen];
+                int[] subTotalKmersList = new int[cpgLen];
+                String fullMethStr = "1";
+                for (int i = 0; i < cpgLen; i++) {
+                    Integer noMethCnt = 0;
+                    int start = 0;
+                    while (cpgStr.indexOf(fullMethStr, start) >= 0 && start < cpgStr.length()) {
+                        noMethCnt++;
+                        start = cpgStr.indexOf(fullMethStr, start) + 1;
+                    }
+
+                    subMethKmersList[i] = noMethCnt * readCnt;
+                    subTotalKmersList[i] = (cpgLen - i) * readCnt;
+                    fullMethStr += "1";
+                }
+                for (int i = 0; i < cpgLen; i++) {
+                    for (int j = 0; j < cpgLen; j++) {
+                        methKmersList[i][cpgPosIndex + j] += subMethKmersList[i];
+                        totalKmersList[i][cpgPosIndex + j] += subTotalKmersList[i];
+                    }
+                    if (cpgLen < minReadList[cpgPosIndex + i]) {
+                        minReadList[cpgPosIndex + i] = cpgLen;
+                    }
+                    if (cpgLen > maxReadList[cpgPosIndex + i]) {
+                        maxReadList[cpgPosIndex + i] = cpgLen;
+                    }
+                }
+            }
+        }
+        tabixReader.close();
+
+        List<Integer> cpgPosListInRegion = util.getCpgPosListInRegion(cpgPosList, region);
+        for (Integer i = 0; i < cpgPosListInRegion.size(); i++) {
+            Integer nReads = nReadsList[i];
+            Integer mBase = mReadList[i];
+            Integer cBase = cBaseList[i];
+            Integer tBase = tBaseList[i];
+            Integer K4plus = K4plusList[i];
+            Integer nDR = nDRList[i];
+            Integer nMR = nMRList[i];
+            Integer minRead = minReadList[i];
+            Integer maxRead = maxReadList[i];
+
+            if (args.getMetrics().contains("MM") && nReads < args.getCpgCov()) {
+                continue;
+            }
+            if (args.getMetrics().contains("PDR") || args.getMetrics().contains("CHALM") || args.getMetrics().contains("MHL") ||
+                    args.getMetrics().contains("MCR") || args.getMetrics().contains("MBS") || args.getMetrics().contains("Entropy")) {
+                if (K4plus < args.getK4Plus()) {
+                    continue;
+                }
+            }
+            if (args.getMetrics().contains("MHL")) {
+                if (args.getMinK() > minRead) {
+                    log.error("calculate MHL Error: minK is too large.");
+                    continue;
+                }
+                if (args.getMaxK() > maxRead) {
+                    args.setMaxK(maxRead);
+                }
+            }
+
+            BedGraphInfo bedGraphInfo = new BedGraphInfo();
+            bedGraphInfo.setChrom(region.getChrom());
+            bedGraphInfo.setStart(cpgPosList.get(i) - 1);
+            bedGraphInfo.setEnd(cpgPosList.get(i));
+            if (args.getMetrics().contains("MM")) {
+                Double MM = mBase.doubleValue() / nReads.doubleValue();
+                if (MM.isNaN() || MM.isInfinite()) {
+                    continue;
+                }
+                bedGraphInfo.setMM(MM.floatValue());
+            }
+            if (args.getMetrics().contains("PDR")) {
+                Double PDR = nDR.doubleValue() / K4plus.doubleValue();
+                if (PDR.isNaN() || PDR.isInfinite()) {
+                    continue;
+                }
+                bedGraphInfo.setPDR(PDR.floatValue());
+            }
+            if (args.getMetrics().contains("CHALM")) {
+                Double CHALM = nMR.doubleValue() / K4plus.doubleValue();
+                if (CHALM.isNaN() || CHALM.isInfinite()) {
+                    continue;
+                }
+                bedGraphInfo.setCHALM(CHALM.floatValue());
+            }
+            if (args.getMetrics().contains("MHL")) {
+                Double temp = 0.0;
+                Integer w = 0;
+                for (int j = args.getMinK() - 1; j < args.getMaxK(); j++) {
+                    Integer methKmers = methKmersList[j][i];
+                    Integer totalKmers = totalKmersList[j][i];
+                    temp += methKmers.doubleValue() / totalKmers.doubleValue() * (j + 1);
+                    w += (j + 1);
+                }
+                Double MHL = temp / w;
+                if (MHL.isNaN() || MHL.isInfinite()) {
+                    continue;
+                }
+                bedGraphInfo.setMHL(MHL.floatValue());
+            }
+            if (args.getMetrics().contains("MCR")) {
+                Double MCR = cBase.doubleValue() / tBase.doubleValue();
+                if (MCR.isNaN() || MCR.isInfinite()) {
+                    continue;
+                }
+                bedGraphInfo.setMCR(MCR.floatValue());
+            }
+            if (args.getMetrics().contains("MBS")) {
+
+            }
+            if (args.getMetrics().contains("Entropy")) {
+
+            }
+            if (args.getMetrics().contains("R2")) {
+
+            }
+            bedGraphInfoList.add(bedGraphInfo);
+        }
+
+        return bedGraphInfoList;
+    }
+
+    private List<BedGraphInfo> calculate2(List<Integer> cpgPosList, Region region) throws Exception {
+        List<BedGraphInfo> bedGraphInfoList = Lists.newArrayList();
+        
+        List<Integer> cpgPosListInRegion = util.getCpgPosListInRegion(cpgPosList, region);
         Integer getCnt = 0;
-//        HashMap<Integer, Integer> cpgPosListInRegionMap = new HashMap<>();
-//        for (Integer cpgPos : cpgPosListInRegion) {
-//            cpgPosListInRegionMap.put(cpgPos, cpgPos);
-//        }
-
-
         for (Integer cpgPos : cpgPosListInRegion) {
             getCnt++;
-            if (getCnt % 1000 == 0) {
-                log.info("calculate " + metric + " complete " + region.getChrom() + " " + getCnt + " positions.");
+            if (getCnt % 10000 == 0) {
+                log.info("calculate complete " + region.getChrom() + " " + getCnt + " positions.");
             }
 
             Region thisSiteRegion = new Region();
@@ -363,16 +595,17 @@ public class GenomeWide {
             Integer K4plus = 0; // 长度大于等于K个位点的read个数
             Integer nDR = 0; // 长度大于等于K个位点且同时含有甲基化和未甲基化位点的read个数
             Integer nMR = 0; // 长度大于等于K个位点且含有甲基化位点的read个数
-            if (metric.equals("MM") || metric.equals("PDR") || metric.equals("CHALM") || metric.equals("MHL") ||
-                    metric.equals("MCR") || metric.equals("MBS") || metric.equals("Entropy")) {
-                for (MHapInfo mHapInfo : mHapInfoListWithSite) {
+
+            for(MHapInfo mHapInfo : mHapInfoListWithSite) {
+                if (args.getMetrics().contains("MM") || args.getMetrics().contains("PDR") || args.getMetrics().contains("CHALM") || args.getMetrics().contains("MHL") ||
+                        args.getMetrics().contains("MCR") || args.getMetrics().contains("MBS") || args.getMetrics().contains("Entropy")) {
                     String cpg = mHapInfo.getCpg();
                     Integer cnt = mHapInfo.getCnt();
                     nReads += cnt;
                     tBase += cpg.length() * cnt;
 
                     // 计算该位点的MM
-                    Integer pos = cpgPosListInRegion.indexOf(cpgPos) - cpgPosListInRegion.indexOf(mHapInfo.getStart());
+                    Integer pos = cpgPosList.indexOf(cpgPos) - cpgPosList.indexOf(mHapInfo.getStart());
                     if (mHapInfo.getCpg().charAt(pos) == '1') {
                         mBase += cnt;
                     }
@@ -396,68 +629,62 @@ public class GenomeWide {
                 }
             }
 
-            if (metric.equals("MM") && nReads < args.getCpgCov()) {
-                continue;
-            }
-            if (metric.equals("PDR") || metric.equals("CHALM") || metric.equals("MHL") ||
-                    metric.equals("MCR") || metric.equals("MBS") || metric.equals("Entropy")) {
-                if (K4plus < args.getK4Plus()) {
-                    continue;
-                }
+            if (args.getMetrics().contains("MM")) {
+                log.info("cpgPos:" + cpgPos + " | nReads:" + nReads + " mBase:" + mBase + " cBase:" + cBase + " tBase:" + tBase + " K4plus:" + K4plus + " nDR:" + nDR + " nMR:" + nMR);
             }
 
             BedGraphInfo bedGraphInfo = new BedGraphInfo();
             bedGraphInfo.setChrom(region.getChrom());
             bedGraphInfo.setStart(cpgPos - 1);
             bedGraphInfo.setEnd(cpgPos);
-            if (metric.equals("MM")) {
+            if (args.getMetrics().contains("MM")) {
                 Double MM = mBase.doubleValue() / nReads.doubleValue();
                 if (MM.isNaN() || MM.isInfinite()) {
                     continue;
                 }
-                bedGraphInfo.setValue(MM.floatValue());
-            } else if (metric.equals("PDR")) {
+                bedGraphInfo.setMM(MM.floatValue());
+            } else if (args.getMetrics().contains("PDR")) {
                 Double PDR = nDR.doubleValue() / K4plus.doubleValue();
                 if (PDR.isNaN() || PDR.isInfinite()) {
                     continue;
                 }
-                bedGraphInfo.setValue(PDR.floatValue());
-            } else if (metric.equals("CHALM")) {
+                bedGraphInfo.setPDR(PDR.floatValue());
+            } else if (args.getMetrics().contains("CHALM")) {
                 Double CHALM = nMR.doubleValue() / K4plus.doubleValue();
                 if (CHALM.isNaN() || CHALM.isInfinite()) {
                     continue;
                 }
-                bedGraphInfo.setValue(CHALM.floatValue());
-            } else if (metric.equals("MHL")) {
+                bedGraphInfo.setCHALM(CHALM.floatValue());
+            } else if (args.getMetrics().contains("MHL")) {
                 Double MHL = util.calculateMHL(mHapInfoListWithSite, args.getMinK(), args.getMaxK());
                 if (MHL.isNaN() || MHL.isInfinite()) {
                     continue;
                 }
-                bedGraphInfo.setValue(MHL.floatValue());
-            } else if (metric.equals("MCR")) {
+                bedGraphInfo.setMHL(MHL.floatValue());
+            } else if (args.getMetrics().contains("MCR")) {
                 Double MCR = cBase.doubleValue() / tBase.doubleValue();
                 if (MCR.isNaN() || MCR.isInfinite()) {
                     continue;
                 }
-                bedGraphInfo.setValue(MCR.floatValue());
-            } else if (metric.equals("MBS")) {
+                bedGraphInfo.setMCR(MCR.floatValue());
+            } else if (args.getMetrics().contains("MBS")) {
                 Double MBS = util.calculateMBS(mHapInfoListWithSite, args.getK());
                 if (MBS.isNaN() || MBS.isInfinite()) {
                     continue;
                 }
-                bedGraphInfo.setValue(MBS.floatValue());
-            } else if (metric.equals("Entropy")) {
+                bedGraphInfo.setMBS(MBS.floatValue());
+            } else if (args.getMetrics().contains("Entropy")) {
                 Double Entropy = util.calculateEntropy(mHapInfoListWithSite, args.getK());
                 if (Entropy.isNaN() || Entropy.isInfinite()) {
                     continue;
                 }
-                bedGraphInfo.setValue(Entropy.floatValue());
-            } else if (metric.equals("R2")) {
+                bedGraphInfo.setEntropy(Entropy.floatValue());
+            } else if (args.getMetrics().contains("R2")) {
                 Double R2 = calculateR2(mHapInfoListWithSite, cpgPosListInRegion, cpgPos);
                 if (R2.isNaN() || R2.isInfinite()) {
                     continue;
                 }
-                bedGraphInfo.setValue(R2.floatValue());
+                bedGraphInfo.setR2(R2.floatValue());
             }
 
             bedGraphInfoList.add(bedGraphInfo);

@@ -6,6 +6,7 @@ import com.common.Util;
 import htsjdk.samtools.util.StringUtil;
 import htsjdk.tribble.readers.TabixReader;
 import org.apache.commons.compress.utils.Lists;
+import org.apache.commons.math3.distribution.BinomialDistribution;
 import org.jfree.chart.util.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
+import static java.lang.Thread.interrupted;
 import static java.lang.Thread.sleep;
 
 public class GenomeWide {
@@ -80,7 +82,7 @@ public class GenomeWide {
             Region region = util.parseRegion(args.getRegion());
             List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
 
-            List<BedGraphInfo> calculateResult = calculate1(cpgPosList, region);
+            List<BedGraphInfo> calculateResult = calculate(cpgPosList, region);
             if (calculateResult.size() > 0) {
                 for (BedGraphInfo bedGraphInfo : calculateResult) {
                     if (args.getMetrics().contains("MM")) {
@@ -124,7 +126,7 @@ public class GenomeWide {
 
             for (Region region : regionList) {
                 List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
-                List<BedGraphInfo> calculateResult = calculate1(cpgPosList, region);
+                List<BedGraphInfo> calculateResult = calculate(cpgPosList, region);
                 if (calculateResult.size() > 0) {
                     for (BedGraphInfo bedGraphInfo : calculateResult) {
                         if (args.getMetrics().contains("MM")) {
@@ -212,7 +214,7 @@ public class GenomeWide {
                     @Override
                     public Boolean call() throws Exception {
                         log.info("Calculate " + cpgPosListMap.getKey() + " start!");
-                        List<BedGraphInfo> calculateResult = calculate1(cpgPosList, region);
+                        List<BedGraphInfo> calculateResult = calculate(cpgPosList, region);
                         if (calculateResult.size() > 0) {
                             for (BedGraphInfo bedGraphInfo : calculateResult) {
                                 if (args.getMetrics().contains("MM")) {
@@ -337,7 +339,7 @@ public class GenomeWide {
                 @Override
                 public Boolean call() throws Exception {
 //                    if (cpgPosListLoop.size() > 0) {
-//                        List<BedGraphInfo> calculateResult = calculate1(metric, cpgPosListLoop, region);
+//                        List<BedGraphInfo> calculateResult = calculate(metric, cpgPosListLoop, region);
 //                        if (calculateResult.size() > 0) {
 //                            for (BedGraphInfo bedGraphInfo : calculateResult) {
 //                                String line = bedGraphInfo.getChrom() + "\t" + bedGraphInfo.getStart() + "\t" + bedGraphInfo.getEnd() + "\t" + bedGraphInfo.getValue() + "\n";
@@ -372,7 +374,7 @@ public class GenomeWide {
         return true;
     }
 
-    private List<BedGraphInfo> calculate1(List<Integer> cpgPosList, Region region) throws Exception {
+    private List<BedGraphInfo> calculate(List<Integer> cpgPosList, Region region) throws Exception {
         List<BedGraphInfo> bedGraphInfoList = Lists.newArrayList();
 
         int[] nReadsList = new int[cpgPosList.size()]; // 该位点的总read个数
@@ -382,6 +384,7 @@ public class GenomeWide {
         int[] K4plusList = new int[cpgPosList.size()]; // 长度大于等于K个位点的read个数
         int[] nDRList = new int[cpgPosList.size()]; // 长度大于等于K个位点且同时含有甲基化和未甲基化位点的read个数
         int[] nMRList = new int[cpgPosList.size()]; // 长度大于等于K个位点且含有甲基化位点的read个数
+        // MHL
         int[] minReadList = new int[cpgPosList.size()]; // 最小cpg长度
         for (Integer i = 0; i < cpgPosList.size(); i++) {
             minReadList[i] = Integer.MAX_VALUE;
@@ -389,6 +392,19 @@ public class GenomeWide {
         int[] maxReadList = new int[cpgPosList.size()]; // 最大cpg长度
         int[][] methKmersList = new int[100][cpgPosList.size()]; // Number of fully methylated k-mers
         int[][] totalKmersList = new int[100][cpgPosList.size()]; // Number of fully methylated k-mers
+        // MBS
+        Double[] mbsNumList = new Double[cpgPosList.size()]; // MBS list
+        for (Integer i = 0; i < cpgPosList.size(); i++) {
+            mbsNumList[i] = 0.0;
+        }
+        // Entropy
+        int[][] kmerList = new int[args.getK() * args.getK()][cpgPosList.size()];
+        int[] kmerAllList = new int[cpgPosList.size()];
+        // R2
+        int[][] N00List = new int[cpgPosList.size()][cpgPosList.size()];
+        int[][] N01List = new int[cpgPosList.size()][cpgPosList.size()];
+        int[][] N10List = new int[cpgPosList.size()][cpgPosList.size()];
+        int[][] N11List = new int[cpgPosList.size()][cpgPosList.size()];
 
         TabixReader tabixReader = new TabixReader(args.getMhapPath());
         TabixReader.Iterator mhapIterator = tabixReader.query(region.getChrom(), region.getStart() - 1, region.getEnd());
@@ -397,7 +413,7 @@ public class GenomeWide {
         Integer lineCnt = 0;
         while((mHapLine = mhapIterator.next()) != null) {
             lineCnt++;
-            if (lineCnt % 100000 == 0) {
+            if (lineCnt % 1000000 == 0) {
                 log.info("Calculate complete " + region.getChrom() + " " + lineCnt + " mhap lines.");
             }
             if ((args.getStrand().equals("plus") && mHapLine.split("\t")[5].equals("-")) ||
@@ -470,20 +486,88 @@ public class GenomeWide {
                     }
                 }
             }
+
+            if (args.getMetrics().contains("MBS")) {
+                Double mbsNum = 0.0;
+                if (cpgLen >= args.getK()) {
+                    for (int i = 0; i < cpgLen; i++) {
+                        String[] cpgStrList = cpgStr.split("0");
+                        Double temp = 0.0;
+                        for (String cpg : cpgStrList) {
+                            temp += Math.pow(cpg.length(), 2);
+                        }
+                        mbsNum = temp / Math.pow(cpgLen, 2) * readCnt;
+                        mbsNumList[cpgPosIndex + i] += mbsNum;
+                    }
+                }
+            }
+
+            if (args.getMetrics().contains("Entropy")) {
+                if (cpgLen >= args.getK()) {
+                    Map<String, Integer> kmerMap = new HashMap<>();
+                    if (cpgLen >= args.getK()) {
+                        for (int i = 0; i < cpgLen - args.getK() + 1; i++) {
+                            String kmerStr = cpgStr.substring(i, i + args.getK());
+                            if (kmerMap.containsKey(kmerStr)) {
+                                kmerMap.put(kmerStr, kmerMap.get(kmerStr) + readCnt);
+                            } else {
+                                kmerMap.put(kmerStr, readCnt);
+                            }
+                        }
+                    }
+
+                    for (int i = 0; i < cpgLen; i++) {
+                        Iterator<String> iterator = kmerMap.keySet().iterator();
+                        while (iterator.hasNext()) {
+                            String key = iterator.next();
+                            Double index = 0.0;
+                            for (int j = 0; j < key.length(); j++) {
+                                if (key.charAt(key.length() - 1 - j) == '1') {
+                                    index += Math.pow(2, j);
+                                }
+                            }
+                            kmerList[index.intValue()][cpgPosIndex + i] += kmerMap.get(key);
+                            kmerAllList[cpgPosIndex + i] += kmerMap.get(key);
+                        }
+                    }
+                }
+            }
+
+            if (args.getMetrics().contains("R2")) {
+                for (int i = 0; i < cpgLen; i++) {
+                    for (int j = i; j < cpgLen; j++) {
+                        if (mHapInfo.getCpg().charAt(i) == '0' && mHapInfo.getCpg().charAt(j) == '0') {
+                            N00List[cpgPosIndex + i][cpgPosIndex + j] += readCnt;
+                            N00List[cpgPosIndex + j][cpgPosIndex + i] += readCnt;
+                        } else if (mHapInfo.getCpg().charAt(i) == '0' && mHapInfo.getCpg().charAt(j) == '1') {
+                            N01List[cpgPosIndex + i][cpgPosIndex + j] += readCnt;
+                            N01List[cpgPosIndex + j][cpgPosIndex + i] += readCnt;
+                        } else if (mHapInfo.getCpg().charAt(i) == '1' && mHapInfo.getCpg().charAt(j) == '0') {
+                            N10List[cpgPosIndex + i][cpgPosIndex + j] += readCnt;
+                            N10List[cpgPosIndex + j][cpgPosIndex + i] += readCnt;
+                        } else if (mHapInfo.getCpg().charAt(i) == '1' && mHapInfo.getCpg().charAt(j) == '1') {
+                            N11List[cpgPosIndex + i][cpgPosIndex + j] += readCnt;
+                            N11List[cpgPosIndex + j][cpgPosIndex + i] += readCnt;
+                        }
+                    }
+                }
+            }
         }
         tabixReader.close();
 
         List<Integer> cpgPosListInRegion = util.getCpgPosListInRegion(cpgPosList, region);
+        Integer start = cpgPosList.indexOf(cpgPosListInRegion.get(0));
         for (Integer i = 0; i < cpgPosListInRegion.size(); i++) {
-            Integer nReads = nReadsList[i];
-            Integer mBase = mReadList[i];
-            Integer cBase = cBaseList[i];
-            Integer tBase = tBaseList[i];
-            Integer K4plus = K4plusList[i];
-            Integer nDR = nDRList[i];
-            Integer nMR = nMRList[i];
-            Integer minRead = minReadList[i];
-            Integer maxRead = maxReadList[i];
+            Integer nReads = nReadsList[start + i];
+            Integer mBase = mReadList[start + i];
+            Integer cBase = cBaseList[start + i];
+            Integer tBase = tBaseList[start + i];
+            Integer K4plus = K4plusList[start + i];
+            Integer nDR = nDRList[start + i];
+            Integer nMR = nMRList[start + i];
+            Integer minRead = minReadList[start + i];
+            Integer maxRead = maxReadList[start + i];
+            Double mbsNum = mbsNumList[start + i];
 
             if (args.getMetrics().contains("MM") && nReads < args.getCpgCov()) {
                 continue;
@@ -506,8 +590,8 @@ public class GenomeWide {
 
             BedGraphInfo bedGraphInfo = new BedGraphInfo();
             bedGraphInfo.setChrom(region.getChrom());
-            bedGraphInfo.setStart(cpgPosList.get(i) - 1);
-            bedGraphInfo.setEnd(cpgPosList.get(i));
+            bedGraphInfo.setStart(cpgPosListInRegion.get(i) - 1);
+            bedGraphInfo.setEnd(cpgPosListInRegion.get(i));
             if (args.getMetrics().contains("MM")) {
                 Double MM = mBase.doubleValue() / nReads.doubleValue();
                 if (MM.isNaN() || MM.isInfinite()) {
@@ -533,8 +617,8 @@ public class GenomeWide {
                 Double temp = 0.0;
                 Integer w = 0;
                 for (int j = args.getMinK() - 1; j < args.getMaxK(); j++) {
-                    Integer methKmers = methKmersList[j][i];
-                    Integer totalKmers = totalKmersList[j][i];
+                    Integer methKmers = methKmersList[j][start + i];
+                    Integer totalKmers = totalKmersList[j][start + i];
                     temp += methKmers.doubleValue() / totalKmers.doubleValue() * (j + 1);
                     w += (j + 1);
                 }
@@ -552,163 +636,82 @@ public class GenomeWide {
                 bedGraphInfo.setMCR(MCR.floatValue());
             }
             if (args.getMetrics().contains("MBS")) {
-
-            }
-            if (args.getMetrics().contains("Entropy")) {
-
-            }
-            if (args.getMetrics().contains("R2")) {
-
-            }
-            bedGraphInfoList.add(bedGraphInfo);
-        }
-
-        return bedGraphInfoList;
-    }
-
-    private List<BedGraphInfo> calculate2(List<Integer> cpgPosList, Region region) throws Exception {
-        List<BedGraphInfo> bedGraphInfoList = Lists.newArrayList();
-        
-        List<Integer> cpgPosListInRegion = util.getCpgPosListInRegion(cpgPosList, region);
-        Integer getCnt = 0;
-        for (Integer cpgPos : cpgPosListInRegion) {
-            getCnt++;
-            if (getCnt % 10000 == 0) {
-                log.info("calculate complete " + region.getChrom() + " " + getCnt + " positions.");
-            }
-
-            Region thisSiteRegion = new Region();
-            thisSiteRegion.setChrom(region.getChrom());
-            thisSiteRegion.setStart(cpgPos);
-            thisSiteRegion.setEnd(cpgPos);
-            // parse the mhap file
-            List<MHapInfo> mHapInfoListWithSite = util.parseMhapFile(args.getMhapPath(), thisSiteRegion, args.getStrand(), true);
-            if (mHapInfoListWithSite.size() < 1) {
-                continue;
-            }
-
-            // calculate some base calue
-            Integer nReads = 0; // 总read个数
-            Integer mBase = 0; // 甲基化位点个数
-            Integer cBase = 0; // 存在甲基化的read中的未甲基化位点个数
-            Integer tBase = 0; // 总位点个数
-            Integer K4plus = 0; // 长度大于等于K个位点的read个数
-            Integer nDR = 0; // 长度大于等于K个位点且同时含有甲基化和未甲基化位点的read个数
-            Integer nMR = 0; // 长度大于等于K个位点且含有甲基化位点的read个数
-
-            for(MHapInfo mHapInfo : mHapInfoListWithSite) {
-                if (args.getMetrics().contains("MM") || args.getMetrics().contains("PDR") || args.getMetrics().contains("CHALM") || args.getMetrics().contains("MHL") ||
-                        args.getMetrics().contains("MCR") || args.getMetrics().contains("MBS") || args.getMetrics().contains("Entropy")) {
-                    String cpg = mHapInfo.getCpg();
-                    Integer cnt = mHapInfo.getCnt();
-                    nReads += cnt;
-                    tBase += cpg.length() * cnt;
-
-                    // 计算该位点的MM
-                    Integer pos = cpgPosList.indexOf(cpgPos) - cpgPosList.indexOf(mHapInfo.getStart());
-                    if (mHapInfo.getCpg().charAt(pos) == '1') {
-                        mBase += cnt;
-                    }
-
-                    if (cpg.contains("1")) {
-                        for (int j = 0; j < cpg.length(); j++) {
-                            if (cpg.charAt(j) == '0') {
-                                cBase += cnt;
-                            }
-                        }
-                    }
-                    if (cpg.length() >= args.getK()) {
-                        K4plus += cnt;
-                        if (cpg.contains("1")) {
-                            nMR += cnt;
-                            if (cpg.contains("0")) {
-                                nDR += cnt;
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (args.getMetrics().contains("MM")) {
-                log.info("cpgPos:" + cpgPos + " | nReads:" + nReads + " mBase:" + mBase + " cBase:" + cBase + " tBase:" + tBase + " K4plus:" + K4plus + " nDR:" + nDR + " nMR:" + nMR);
-            }
-
-            BedGraphInfo bedGraphInfo = new BedGraphInfo();
-            bedGraphInfo.setChrom(region.getChrom());
-            bedGraphInfo.setStart(cpgPos - 1);
-            bedGraphInfo.setEnd(cpgPos);
-            if (args.getMetrics().contains("MM")) {
-                Double MM = mBase.doubleValue() / nReads.doubleValue();
-                if (MM.isNaN() || MM.isInfinite()) {
-                    continue;
-                }
-                bedGraphInfo.setMM(MM.floatValue());
-            } else if (args.getMetrics().contains("PDR")) {
-                Double PDR = nDR.doubleValue() / K4plus.doubleValue();
-                if (PDR.isNaN() || PDR.isInfinite()) {
-                    continue;
-                }
-                bedGraphInfo.setPDR(PDR.floatValue());
-            } else if (args.getMetrics().contains("CHALM")) {
-                Double CHALM = nMR.doubleValue() / K4plus.doubleValue();
-                if (CHALM.isNaN() || CHALM.isInfinite()) {
-                    continue;
-                }
-                bedGraphInfo.setCHALM(CHALM.floatValue());
-            } else if (args.getMetrics().contains("MHL")) {
-                Double MHL = util.calculateMHL(mHapInfoListWithSite, args.getMinK(), args.getMaxK());
-                if (MHL.isNaN() || MHL.isInfinite()) {
-                    continue;
-                }
-                bedGraphInfo.setMHL(MHL.floatValue());
-            } else if (args.getMetrics().contains("MCR")) {
-                Double MCR = cBase.doubleValue() / tBase.doubleValue();
-                if (MCR.isNaN() || MCR.isInfinite()) {
-                    continue;
-                }
-                bedGraphInfo.setMCR(MCR.floatValue());
-            } else if (args.getMetrics().contains("MBS")) {
-                Double MBS = util.calculateMBS(mHapInfoListWithSite, args.getK());
+                Double MBS = mbsNum / K4plus;
                 if (MBS.isNaN() || MBS.isInfinite()) {
                     continue;
                 }
                 bedGraphInfo.setMBS(MBS.floatValue());
-            } else if (args.getMetrics().contains("Entropy")) {
-                Double Entropy = util.calculateEntropy(mHapInfoListWithSite, args.getK());
-                if (Entropy.isNaN() || Entropy.isInfinite()) {
-                    continue;
-                }
-                bedGraphInfo.setEntropy(Entropy.floatValue());
-            } else if (args.getMetrics().contains("R2")) {
-                Double R2 = calculateR2(mHapInfoListWithSite, cpgPosListInRegion, cpgPos);
-                if (R2.isNaN() || R2.isInfinite()) {
-                    continue;
-                }
-                bedGraphInfo.setR2(R2.floatValue());
             }
+            if (args.getMetrics().contains("Entropy")) {
+                Integer kmerAll = kmerAllList[start + i];
+                Double temp = 0.0;
+                for (int j = 0; j < args.getK() * args.getK(); j++) {
+                    if (kmerList[j][i] > 0) {
+                        Integer cnt = kmerList[j][start + i];
+                        temp += cnt.doubleValue() / kmerAll.doubleValue() * Math.log(cnt.doubleValue() / kmerAll.doubleValue()) / Math.log(2);
+                    }
+                }
 
+                Double entropy = - 1 / args.getK().doubleValue() * temp;
+                if (entropy.isNaN() || entropy.isInfinite()) {
+                    continue;
+                }
+                bedGraphInfo.setEntropy(entropy.floatValue());
+            }
+            if (args.getMetrics().contains("R2")) {
+                Double r2Sum = 0.0;
+                Double r2Num = 0.0;
+                for (int j = i - 2; j < i + 3; j++) {
+                    if (j < 0 || j == i || j >= cpgPosListInRegion.size()) {
+                        continue;
+                    }
+
+                    Integer N00 = N00List[start + i][start + j];
+                    Integer N01 = N01List[start + i][start + j];
+                    Integer N10 = N10List[start + i][start + j];
+                    Integer N11 = N11List[start + i][start + j];
+
+                    if ((N00 + N01 + N10 + N11) < args.getR2Cov()) {
+                        continue;
+                    }
+
+                    // 计算r2
+                    Double r2 = 0.0;
+                    Double pvalue = 0.0;
+                    Double N = N00 + N01 + N10 + N11 + 0.0;
+                    if(N == 0) {
+                        r2 = Double.NaN;
+                        pvalue = Double.NaN;
+                    }
+                    Double PA = (N10 + N11) / N;
+                    Double PB = (N01 + N11) / N;
+                    Double D = N11 / N - PA * PB;
+                    Double Num = D * D;
+                    Double Den = PA * (1 - PA) * PB * (1 - PB);
+                    if (Den == 0.0) {
+                        r2 = Double.NaN;
+                    } else {
+                        r2 = Num / Den;
+                        if (D < 0) {
+                            r2 = -1 * r2;
+                        }
+                    }
+
+                    if (!r2.isNaN()) {
+                        r2Num++;
+                        r2Sum += r2;
+                    }
+                }
+
+                Double meanR2 = r2Sum / r2Num;
+                if (meanR2.isNaN() || meanR2.isInfinite()) {
+                    continue;
+                }
+                bedGraphInfo.setR2(meanR2.floatValue());
+            }
             bedGraphInfoList.add(bedGraphInfo);
         }
 
         return bedGraphInfoList;
-    }
-
-    public Double calculateR2(List<MHapInfo> mHapInfoList, List<Integer> cpgPosList, Integer cpgPos) {
-        Double r2Sum = 0.0;
-        Integer r2Num = 0;
-        Integer pos = cpgPosList.indexOf(cpgPos);
-        for (int j = pos - 2; j < pos + 3; j++) {
-            if (j < 0 || j == pos || j >= cpgPosList.size()) {
-                continue;
-            }
-
-            R2Info r2Info = util.getR2FromList(mHapInfoList, cpgPosList, cpgPos, cpgPosList.get(j), args.getR2Cov());
-            if (r2Info != null && !r2Info.getR2().isNaN()) {
-                r2Num++;
-                r2Sum += r2Info.getR2();
-            }
-        }
-
-        return r2Sum / r2Num;
     }
 }

@@ -121,7 +121,7 @@ public class MainTest extends TestCase {
         String arg5 = "-cpgPath";
         String arg6 = "hg19_CpG.gz";
         String arg7 = "-metrics";
-        String arg8 = "R2";
+        String arg8 = "MM PDR CHALM MHL MCR MBS Entropy R2";
         String arg9 = "-outputDir";
         String arg10 = "outputDir";
         String arg11 = "-minK";

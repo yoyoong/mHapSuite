@@ -264,18 +264,11 @@ public class GenomeWide {
         int[] nDRList = new int[cpgPosList.size()]; // 长度大于等于K个位点且同时含有甲基化和未甲基化位点的read个数
         int[] nMRList = new int[cpgPosList.size()]; // 长度大于等于K个位点且含有甲基化位点的read个数
         // MHL
-        int[] minReadList = new int[0]; // 最小cpg长度
-        int[] maxReadList = new int[0]; // 最大cpg长度
         int[][] methKmersList = new int[0][0]; // Number of fully methylated k-mers
         int[][] totalKmersList = new int[0][0]; // Number of fully methylated k-mers
         if (args.getMetrics().contains("MHL")) {
-            minReadList = new int[cpgPosList.size()]; // 最小cpg长度
-            for (Integer i = 0; i < cpgPosList.size(); i++) {
-                minReadList[i] = Integer.MAX_VALUE;
-            }
-            maxReadList = new int[cpgPosList.size()]; // 最大cpg长度
-            methKmersList = new int[100][cpgPosList.size()]; // Number of fully methylated k-mers
-            totalKmersList = new int[100][cpgPosList.size()]; // Number of fully methylated k-mers
+            methKmersList = new int[args.getMaxK() - args.getMinK() + 1][cpgPosList.size()]; // Number of fully methylated k-mers
+            totalKmersList = new int[args.getMaxK() - args.getMinK() + 1][cpgPosList.size()]; // Number of fully methylated k-mers
         }
         // MBS
         Double[] mbsNumList = new Double[0]; // MBS list
@@ -298,16 +291,11 @@ public class GenomeWide {
         int[][] N10List = new int[0][0];
         int[][] N11List = new int[0][0];
         if (args.getMetrics().contains("R2")) {
-            N00List = new int[cpgPosList.size()][cpgPosList.size()];
-            N01List = new int[cpgPosList.size()][cpgPosList.size()];
-            N10List = new int[cpgPosList.size()][cpgPosList.size()];
-            N11List = new int[cpgPosList.size()][cpgPosList.size()];
+            N00List = new int[4][cpgPosList.size()];
+            N01List = new int[4][cpgPosList.size()];
+            N10List = new int[4][cpgPosList.size()];
+            N11List = new int[4][cpgPosList.size()];
         }
-
-//        int[][] N00List = new int[4][cpgPosList.size()];
-//        int[][] N01List = new int[4][cpgPosList.size()];
-//        int[][] N10List = new int[4][cpgPosList.size()];
-//        int[][] N11List = new int[4][cpgPosList.size()];
 
         TabixReader tabixReader = new TabixReader(args.getMhapPath());
         TabixReader.Iterator mhapIterator = tabixReader.query(region.getChrom(), region.getStart() - 1, region.getEnd());
@@ -316,7 +304,7 @@ public class GenomeWide {
         Integer lineCnt = 0;
         while((mHapLine = mhapIterator.next()) != null) {
             lineCnt++;
-            if (lineCnt % 1000000 == 0) {
+            if (lineCnt % 100000 == 0) {
                 log.info("Calculate complete " + region.getChrom() + " " + lineCnt + " mhap lines.");
             }
             if ((args.getStrand().equals("plus") && mHapLine.split("\t")[5].equals("-")) ||
@@ -358,6 +346,12 @@ public class GenomeWide {
             }
 
             if (args.getMetrics().contains("MHL")) {
+                if (args.getMinK() > cpgLen) {
+                    log.error("calculate MHL Error: minK is too large.");
+                    continue;
+                }
+                Integer maxK = args.getMaxK() > cpgLen ? cpgLen : args.getMaxK();
+
                 int[] subMethKmersList = new int[cpgLen];
                 int[] subTotalKmersList = new int[cpgLen];
                 String fullMethStr = "1";
@@ -373,16 +367,12 @@ public class GenomeWide {
                     subTotalKmersList[i] = (cpgLen - i) * readCnt;
                     fullMethStr += "1";
                 }
-                for (int i = 0; i < cpgLen; i++) {
+
+                for (int i = args.getMinK() - 1; i < maxK; i++) {
+                    Integer row = i - args.getMinK() + 1;
                     for (int j = 0; j < cpgLen; j++) {
-                        methKmersList[i][cpgPosIndex + j] += subMethKmersList[i];
-                        totalKmersList[i][cpgPosIndex + j] += subTotalKmersList[i];
-                    }
-                    if (cpgLen < minReadList[cpgPosIndex + i]) {
-                        minReadList[cpgPosIndex + i] = cpgLen;
-                    }
-                    if (cpgLen > maxReadList[cpgPosIndex + i]) {
-                        maxReadList[cpgPosIndex + i] = cpgLen;
+                        methKmersList[row][cpgPosIndex + j] += subMethKmersList[i];
+                        totalKmersList[row][cpgPosIndex + j] += subTotalKmersList[i];
                     }
                 }
             }
@@ -435,19 +425,19 @@ public class GenomeWide {
 
             if (args.getMetrics().contains("R2")) {
                 for (int i = 0; i < cpgLen; i++) {
-                    for (int j = i; j < cpgLen; j++) {
+                    for (int j = i - 2; j < i + 3; j++) {
+                        if (j < 0 || j == i || j >= cpgLen) {
+                            continue;
+                        }
+                        Integer index = j - i > 0 ? j - i + 1 : j - i + 2;
                         if (mHapInfo.getCpg().charAt(i) == '0' && mHapInfo.getCpg().charAt(j) == '0') {
-                            N00List[cpgPosIndex + i][cpgPosIndex + j] += readCnt;
-                            N00List[cpgPosIndex + j][cpgPosIndex + i] += readCnt;
+                            N00List[index][cpgPosIndex + i] += readCnt;
                         } else if (mHapInfo.getCpg().charAt(i) == '0' && mHapInfo.getCpg().charAt(j) == '1') {
-                            N01List[cpgPosIndex + i][cpgPosIndex + j] += readCnt;
-                            N01List[cpgPosIndex + j][cpgPosIndex + i] += readCnt;
+                            N01List[index][cpgPosIndex + i] += readCnt;
                         } else if (mHapInfo.getCpg().charAt(i) == '1' && mHapInfo.getCpg().charAt(j) == '0') {
-                            N10List[cpgPosIndex + i][cpgPosIndex + j] += readCnt;
-                            N10List[cpgPosIndex + j][cpgPosIndex + i] += readCnt;
+                            N10List[index][cpgPosIndex + i] += readCnt;
                         } else if (mHapInfo.getCpg().charAt(i) == '1' && mHapInfo.getCpg().charAt(j) == '1') {
-                            N11List[cpgPosIndex + i][cpgPosIndex + j] += readCnt;
-                            N11List[cpgPosIndex + j][cpgPosIndex + i] += readCnt;
+                            N11List[index][cpgPosIndex + i] += readCnt;
                         }
                     }
                 }
@@ -465,8 +455,6 @@ public class GenomeWide {
             Integer K4plus = K4plusList[start + i];
             Integer nDR = nDRList[start + i];
             Integer nMR = nMRList[start + i];
-            Integer minRead = minReadList[start + i];
-            Integer maxRead = maxReadList[start + i];
             Double mbsNum = mbsNumList[start + i];
 
             if (args.getMetrics().contains("MM") && nReads < args.getCpgCov()) {
@@ -476,15 +464,6 @@ public class GenomeWide {
                     args.getMetrics().contains("MCR") || args.getMetrics().contains("MBS") || args.getMetrics().contains("Entropy")) {
                 if (K4plus < args.getK4Plus()) {
                     continue;
-                }
-            }
-            if (args.getMetrics().contains("MHL")) {
-                if (args.getMinK() > minRead) {
-                    log.error("calculate MHL Error: minK is too large.");
-                    continue;
-                }
-                if (args.getMaxK() > maxRead) {
-                    args.setMaxK(maxRead);
                 }
             }
 
@@ -517,8 +496,9 @@ public class GenomeWide {
                 Double temp = 0.0;
                 Integer w = 0;
                 for (int j = args.getMinK() - 1; j < args.getMaxK(); j++) {
-                    Integer methKmers = methKmersList[j][start + i];
-                    Integer totalKmers = totalKmersList[j][start + i];
+                    Integer row = j - args.getMinK() + 1;
+                    Integer methKmers = methKmersList[row][start + i];
+                    Integer totalKmers = totalKmersList[row][start + i];
                     temp += methKmers.doubleValue() / totalKmers.doubleValue() * (j + 1);
                     w += (j + 1);
                 }
@@ -565,11 +545,11 @@ public class GenomeWide {
                     if (j < 0 || j == i || j >= cpgPosListInRegion.size()) {
                         continue;
                     }
-
-                    Integer N00 = N00List[start + i][start + j];
-                    Integer N01 = N01List[start + i][start + j];
-                    Integer N10 = N10List[start + i][start + j];
-                    Integer N11 = N11List[start + i][start + j];
+                    Integer index = j - i > 0 ? j - i + 1 : j - i + 2;
+                    Integer N00 = N00List[index][start + i];
+                    Integer N01 = N01List[index][start + i];
+                    Integer N10 = N10List[index][start + i];
+                    Integer N11 = N11List[index][start + i];
 
                     if ((N00 + N01 + N10 + N11) < args.getR2Cov()) {
                         continue;

@@ -72,33 +72,6 @@ public class Tanghulu {
             mHapInfoList = mHapInfoList.subList(0, args.getMaxReads());
         }
 
-        // merge the same mhap after cut read
-        if (args.getCutReads()) {
-            List<MHapInfo> mHapInfoListCutReadsMerged = new ArrayList<>();
-            for (MHapInfo mHapInfo : mHapInfoList) {
-                // get cpg site list in region
-                List<Integer> cpgPosListInRegion = util.getCpgPosListInRegion(cpgPosList, region);
-                String cpg = util.cutReads(mHapInfo, cpgPosList, cpgPosListInRegion);
-                mHapInfo.setCpg(cpg);
-                if (mHapInfo.getStart() < cpgPosListInRegion.get(0)) {
-                    mHapInfo.setStart(cpgPosListInRegion.get(0));
-                }
-                if (mHapInfo.getEnd() > cpgPosListInRegion.get(cpgPosListInRegion.size() - 1)) {
-                    mHapInfo.setEnd(cpgPosListInRegion.get(cpgPosListInRegion.size() - 1));
-                }
-            }
-
-            mHapInfoList.parallelStream().collect(Collectors.groupingBy(o -> (o.index()), Collectors.toList())).forEach(
-                    (id, transfer) -> {transfer.stream().reduce((a, b) ->
-                         new MHapInfo(a.getChrom(), a.getStart(), a.getEnd(), a.getCpg(), a.getCnt() + b.getCnt(), a.getStrand()))
-                            .ifPresent(mHapInfoListCutReadsMerged::add);
-                    }
-            );
-            mHapInfoListCutReadsMerged.sort(Comparator.comparing(MHapInfo::getStart));
-
-            mHapInfoList = mHapInfoListCutReadsMerged;
-        }
-
         if (args.getSimulation()) {
             boolean simulationResult = simulation(mHapInfoList, cpgPosList, region);
             if (!simulationResult) {
@@ -106,6 +79,33 @@ public class Tanghulu {
                 return;
             }
         } else {
+            // merge the same mhap after cut read
+            if (args.getCutReads()) {
+                List<MHapInfo> mHapInfoListCutReadsMerged = new ArrayList<>();
+                for (MHapInfo mHapInfo : mHapInfoList) {
+                    // get cpg site list in region
+                    List<Integer> cpgPosListInRegion = util.getCpgPosListInRegion(cpgPosList, region);
+                    String cpg = util.cutReads(mHapInfo, cpgPosList, cpgPosListInRegion);
+                    mHapInfo.setCpg(cpg);
+                    if (mHapInfo.getStart() < cpgPosListInRegion.get(0)) {
+                        mHapInfo.setStart(cpgPosListInRegion.get(0));
+                    }
+                    if (mHapInfo.getEnd() > cpgPosListInRegion.get(cpgPosListInRegion.size() - 1)) {
+                        mHapInfo.setEnd(cpgPosListInRegion.get(cpgPosListInRegion.size() - 1));
+                    }
+                }
+
+                mHapInfoList.parallelStream().collect(Collectors.groupingBy(o -> (o.index()), Collectors.toList())).forEach(
+                        (id, transfer) -> {transfer.stream().reduce((a, b) ->
+                                        new MHapInfo(a.getChrom(), a.getStart(), a.getEnd(), a.getCpg(), a.getCnt() + b.getCnt(), a.getStrand()))
+                                .ifPresent(mHapInfoListCutReadsMerged::add);
+                        }
+                );
+                mHapInfoListCutReadsMerged.sort(Comparator.comparing(MHapInfo::getStart));
+
+                mHapInfoList = mHapInfoListCutReadsMerged;
+            }
+
             boolean tanghuluResult = paintTanghulu(mHapInfoList, cpgPosList, region);
             if (!tanghuluResult) {
                 log.error("tanghulu fail, please check the command.");

@@ -147,10 +147,10 @@ public class MHapView {
         // 输出到文件
         String outputPath = "";
         if (args.getOutFormat().equals("pdf")) {
-            outputPath = args.getTag() + "_" + region.toFileString() + ".mHapView.pdf";
+            outputPath = args.getTag() + ".mHapView.pdf";
             saveAsPdf(plotList, outputPath, width, heightList, cpgPosListInRegion);
         } else if (args.getOutFormat().equals("png")) {
-            outputPath = args.getTag() + "_" + region.toFileString() + ".mHapView.png";
+            outputPath = args.getTag() + ".mHapView.png";
             saveAsPng(plotList, outputPath, width, heightList, cpgPosListInRegion);
         }
 

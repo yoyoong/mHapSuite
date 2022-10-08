@@ -8,11 +8,13 @@ import htsjdk.samtools.util.StringUtil;
 import htsjdk.tribble.readers.TabixReader;
 import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.math3.distribution.BinomialDistribution;
+import org.jfree.chart.text.TextUtils;
 import org.jfree.chart.util.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Timestamp;
@@ -54,31 +56,6 @@ public class GenomeWide {
             return;
         }
 
-        if (args.getMetrics().contains("MM")) {
-            bufferedWriterMM = util.createOutputFile(args.getOutputDir(), args.getTag() + ".MM.bedGraph");
-        }
-        if (args.getMetrics().contains("PDR")) {
-            bufferedWriterPDR = util.createOutputFile(args.getOutputDir(), args.getTag() + ".PDR.bedGraph");
-        }
-        if (args.getMetrics().contains("CHALM")) {
-            bufferedWriterCHALM = util.createOutputFile(args.getOutputDir(), args.getTag() + ".CHALM.bedGraph");
-        }
-        if (args.getMetrics().contains("MHL")) {
-            bufferedWriterMHL = util.createOutputFile(args.getOutputDir(), args.getTag() + ".MHL.bedGraph");
-        }
-        if (args.getMetrics().contains("MCR")) {
-            bufferedWriterMCR = util.createOutputFile(args.getOutputDir(), args.getTag() + ".MCR.bedGraph");
-        }
-        if (args.getMetrics().contains("MBS")) {
-            bufferedWriterMBS = util.createOutputFile(args.getOutputDir(), args.getTag() + ".MBS.bedGraph");
-        }
-        if (args.getMetrics().contains("Entropy")) {
-            bufferedWriterEntropy = util.createOutputFile(args.getOutputDir(), args.getTag() + ".Entropy.bedGraph");
-        }
-        if (args.getMetrics().contains("R2")) {
-            bufferedWriterR2 = util.createOutputFile(args.getOutputDir(), args.getTag() + ".R2.bedGraph");
-        }
-
         if (args.getRegion() != null && !args.getRegion().equals("")) {
             Region region = util.parseRegion(args.getRegion());
             List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
@@ -106,31 +83,6 @@ public class GenomeWide {
             }
         }
 
-        if (args.getMetrics().contains("MM")) {
-            bufferedWriterMM.close();
-        }
-        if (args.getMetrics().contains("PDR")) {
-            bufferedWriterPDR.close();
-        }
-        if (args.getMetrics().contains("CHALM")) {
-            bufferedWriterCHALM.close();
-        }
-        if (args.getMetrics().contains("MHL")) {
-            bufferedWriterMHL.close();
-        }
-        if (args.getMetrics().contains("MCR")) {
-            bufferedWriterMCR.close();
-        }
-        if (args.getMetrics().contains("MBS")) {
-            bufferedWriterMBS.close();
-        }
-        if (args.getMetrics().contains("Entropy")) {
-            bufferedWriterEntropy.close();
-        }
-        if (args.getMetrics().contains("R2")) {
-            bufferedWriterR2.close();
-        }
-
         log.info("GenomeWide end!");
     }
 
@@ -155,35 +107,89 @@ public class GenomeWide {
         return true;
     }
 
-    private boolean calculateRegion(List<Integer> cpgPosList, Region region) throws Exception {
-        List<BedGraphInfo> calculateResult = genomeWide(cpgPosList, region);
-        if (calculateResult.size() > 0) {
-            for (BedGraphInfo bedGraphInfo : calculateResult) {
-                if (args.getMetrics().contains("MM")) {
-                    bufferedWriterMM.write(bedGraphInfo.printMM());
-                }
-                if (args.getMetrics().contains("PDR")) {
-                    bufferedWriterPDR.write(bedGraphInfo.printPDR());
-                }
-                if (args.getMetrics().contains("CHALM")) {
-                    bufferedWriterCHALM.write(bedGraphInfo.printCHALM());
-                }
-                if (args.getMetrics().contains("MHL")) {
-                    bufferedWriterMHL.write(bedGraphInfo.printMHL());
-                }
-                if (args.getMetrics().contains("MCR")) {
-                    bufferedWriterMCR.write(bedGraphInfo.printMCR());
-                }
-                if (args.getMetrics().contains("MBS")) {
-                    bufferedWriterMBS.write(bedGraphInfo.printMBS());
-                }
-                if (args.getMetrics().contains("Entropy")) {
-                    bufferedWriterEntropy.write(bedGraphInfo.printEntropy());
-                }
-                if (args.getMetrics().contains("R2")) {
-                    bufferedWriterR2.write(bedGraphInfo.printR2());
+    private boolean calculateRegion(List<Integer> cpgPosList, Region region) {
+        try {
+            if (args.getMetrics().contains("MM")) {
+                bufferedWriterMM = util.createOutputFile(args.getOutputDir(), args.getTag() + ".MM.bedGraph");
+            }
+            if (args.getMetrics().contains("PDR")) {
+                bufferedWriterPDR = util.createOutputFile(args.getOutputDir(), args.getTag() + ".PDR.bedGraph");
+            }
+            if (args.getMetrics().contains("CHALM")) {
+                bufferedWriterCHALM = util.createOutputFile(args.getOutputDir(), args.getTag() + ".CHALM.bedGraph");
+            }
+            if (args.getMetrics().contains("MHL")) {
+                bufferedWriterMHL = util.createOutputFile(args.getOutputDir(), args.getTag() + ".MHL.bedGraph");
+            }
+            if (args.getMetrics().contains("MCR")) {
+                bufferedWriterMCR = util.createOutputFile(args.getOutputDir(), args.getTag() + ".MCR.bedGraph");
+            }
+            if (args.getMetrics().contains("MBS")) {
+                bufferedWriterMBS = util.createOutputFile(args.getOutputDir(), args.getTag() + ".MBS.bedGraph");
+            }
+            if (args.getMetrics().contains("Entropy")) {
+                bufferedWriterEntropy = util.createOutputFile(args.getOutputDir(), args.getTag() + ".Entropy.bedGraph");
+            }
+            if (args.getMetrics().contains("R2")) {
+                bufferedWriterR2 = util.createOutputFile(args.getOutputDir(), args.getTag() + ".R2.bedGraph");
+            }
+
+            List<BedGraphInfo> calculateResult = genomeWide(cpgPosList, region);
+            if (calculateResult.size() > 0) {
+                for (BedGraphInfo bedGraphInfo : calculateResult) {
+                    if (args.getMetrics().contains("MM")) {
+                        bufferedWriterMM.write(bedGraphInfo.printMM());
+                    }
+                    if (args.getMetrics().contains("PDR")) {
+                        bufferedWriterPDR.write(bedGraphInfo.printPDR());
+                    }
+                    if (args.getMetrics().contains("CHALM")) {
+                        bufferedWriterCHALM.write(bedGraphInfo.printCHALM());
+                    }
+                    if (args.getMetrics().contains("MHL")) {
+                        bufferedWriterMHL.write(bedGraphInfo.printMHL());
+                    }
+                    if (args.getMetrics().contains("MCR")) {
+                        bufferedWriterMCR.write(bedGraphInfo.printMCR());
+                    }
+                    if (args.getMetrics().contains("MBS")) {
+                        bufferedWriterMBS.write(bedGraphInfo.printMBS());
+                    }
+                    if (args.getMetrics().contains("Entropy")) {
+                        bufferedWriterEntropy.write(bedGraphInfo.printEntropy());
+                    }
+                    if (args.getMetrics().contains("R2")) {
+                        bufferedWriterR2.write(bedGraphInfo.printR2());
+                    }
                 }
             }
+
+            if (args.getMetrics().contains("MM")) {
+                bufferedWriterMM.close();
+            }
+            if (args.getMetrics().contains("PDR")) {
+                bufferedWriterPDR.close();
+            }
+            if (args.getMetrics().contains("CHALM")) {
+                bufferedWriterCHALM.close();
+            }
+            if (args.getMetrics().contains("MHL")) {
+                bufferedWriterMHL.close();
+            }
+            if (args.getMetrics().contains("MCR")) {
+                bufferedWriterMCR.close();
+            }
+            if (args.getMetrics().contains("MBS")) {
+                bufferedWriterMBS.close();
+            }
+            if (args.getMetrics().contains("Entropy")) {
+                bufferedWriterEntropy.close();
+            }
+            if (args.getMetrics().contains("R2")) {
+                bufferedWriterR2.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         return true;
@@ -225,12 +231,91 @@ public class GenomeWide {
                 @Override
                 public void run() {
                     log.info("Calculate " + cpgPosListMap.getKey() + " start!");
-                    Boolean calculateRegionResult = null;
                     try {
-                        calculateRegionResult = calculateRegion(cpgPosList, region);
-                        if (!calculateRegionResult) {
-                            log.error("Calculate " + region.getChrom() + " fail!");
-                            return;
+                        BufferedWriter bufferedWriterMM = null;
+                        BufferedWriter bufferedWriterPDR = null;
+                        BufferedWriter bufferedWriterCHALM = null;
+                        BufferedWriter bufferedWriterMHL = null;
+                        BufferedWriter bufferedWriterMCR = null;
+                        BufferedWriter bufferedWriterMBS = null;
+                        BufferedWriter bufferedWriterEntropy = null;
+                        BufferedWriter bufferedWriterR2 = null;
+                        if (args.getMetrics().contains("MM")) {
+                            bufferedWriterMM = util.createOutputFile(args.getOutputDir(), args.getTag() + ".MM.bedGraph" + cpgPosListMap.getKey());
+                        }
+                        if (args.getMetrics().contains("PDR")) {
+                            bufferedWriterPDR = util.createOutputFile(args.getOutputDir(), args.getTag() + ".PDR.bedGraph" + cpgPosListMap.getKey());
+                        }
+                        if (args.getMetrics().contains("CHALM")) {
+                            bufferedWriterCHALM = util.createOutputFile(args.getOutputDir(), args.getTag() + ".CHALM.bedGraph" + cpgPosListMap.getKey());
+                        }
+                        if (args.getMetrics().contains("MHL")) {
+                            bufferedWriterMHL = util.createOutputFile(args.getOutputDir(), args.getTag() + ".MHL.bedGraph" + cpgPosListMap.getKey());
+                        }
+                        if (args.getMetrics().contains("MCR")) {
+                            bufferedWriterMCR = util.createOutputFile(args.getOutputDir(), args.getTag() + ".MCR.bedGraph" + cpgPosListMap.getKey());
+                        }
+                        if (args.getMetrics().contains("MBS")) {
+                            bufferedWriterMBS = util.createOutputFile(args.getOutputDir(), args.getTag() + ".MBS.bedGraph" + cpgPosListMap.getKey());
+                        }
+                        if (args.getMetrics().contains("Entropy")) {
+                            bufferedWriterEntropy = util.createOutputFile(args.getOutputDir(), args.getTag() + ".Entropy.bedGraph" + cpgPosListMap.getKey());
+                        }
+                        if (args.getMetrics().contains("R2")) {
+                            bufferedWriterR2 = util.createOutputFile(args.getOutputDir(), args.getTag() + ".R2.bedGraph" + cpgPosListMap.getKey());
+                        }
+                        List<BedGraphInfo> calculateResult = genomeWide(cpgPosList, region);
+                        if (calculateResult.size() > 0) {
+                            for (BedGraphInfo bedGraphInfo : calculateResult) {
+                                if (args.getMetrics().contains("MM")) {
+                                    bufferedWriterMM.write(bedGraphInfo.printMM());
+                                }
+                                if (args.getMetrics().contains("PDR")) {
+                                    bufferedWriterPDR.write(bedGraphInfo.printPDR());
+                                }
+                                if (args.getMetrics().contains("CHALM")) {
+                                    bufferedWriterCHALM.write(bedGraphInfo.printCHALM());
+                                }
+                                if (args.getMetrics().contains("MHL")) {
+                                    bufferedWriterMHL.write(bedGraphInfo.printMHL());
+                                }
+                                if (args.getMetrics().contains("MCR")) {
+                                    bufferedWriterMCR.write(bedGraphInfo.printMCR());
+                                }
+                                if (args.getMetrics().contains("MBS")) {
+                                    bufferedWriterMBS.write(bedGraphInfo.printMBS());
+                                }
+                                if (args.getMetrics().contains("Entropy")) {
+                                    bufferedWriterEntropy.write(bedGraphInfo.printEntropy());
+                                }
+                                if (args.getMetrics().contains("R2")) {
+                                    bufferedWriterR2.write(bedGraphInfo.printR2());
+                                }
+                            }
+                        }
+                        if (args.getMetrics().contains("MM")) {
+                            bufferedWriterMM.close();
+                        }
+                        if (args.getMetrics().contains("PDR")) {
+                            bufferedWriterPDR.close();
+                        }
+                        if (args.getMetrics().contains("CHALM")) {
+                            bufferedWriterCHALM.close();
+                        }
+                        if (args.getMetrics().contains("MHL")) {
+                            bufferedWriterMHL.close();
+                        }
+                        if (args.getMetrics().contains("MCR")) {
+                            bufferedWriterMCR.close();
+                        }
+                        if (args.getMetrics().contains("MBS")) {
+                            bufferedWriterMBS.close();
+                        }
+                        if (args.getMetrics().contains("Entropy")) {
+                            bufferedWriterEntropy.close();
+                        }
+                        if (args.getMetrics().contains("R2")) {
+                            bufferedWriterR2.close();
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -249,6 +334,59 @@ public class GenomeWide {
             e.printStackTrace();
         }
         executorService.shutdown();// 关闭线程池
+
+        String[] metrics = args.getMetrics().split(" ");
+        for (String metric : metrics) {
+            if (metric.isEmpty()) {
+                continue;
+            }
+            String[] fpaths = new String[cpgPosListMapList.size()];
+            for (int i = 0; i < cpgPosListMapList.size(); i++) {
+                fpaths[i] = args.getOutputDir() + "/" + args.getTag() + "." + metric + ".bedGraph" + cpgPosListMapList.get(i).getKey();
+            }
+            String resultPath = args.getOutputDir() + "/" + args.getTag() + "." + metric + ".bedGraph";
+            mergeFiles(fpaths, resultPath);
+        }
+
+        return true;
+    }
+
+    public static boolean mergeFiles(String[] fpaths, String resultPath) {
+        if (fpaths == null || fpaths.length < 1 || resultPath.isEmpty()) {
+            return false;
+        }
+        if (fpaths.length == 1) {
+            return new File(fpaths[0]).renameTo(new File(resultPath));
+        }
+
+        File[] files = new File[fpaths.length];
+        for (int i = 0; i < fpaths.length; i++) {
+            files[i] = new File(fpaths[i]);
+            if (fpaths[i].isEmpty() || !files[i].exists() || !files[i].isFile()) {
+                return false;
+            }
+        }
+
+        File resultFile = new File(resultPath);
+        try {
+            FileChannel resultFileChannel = new FileOutputStream(resultFile, true).getChannel();
+            for (int i = 0; i < fpaths.length; i ++) {
+                FileChannel blk = new FileInputStream(files[i]).getChannel();
+                resultFileChannel.transferFrom(blk, resultFileChannel.size(), blk.size());
+                blk.close();
+            }
+            resultFileChannel.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return false;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        for (int i = 0; i < fpaths.length; i ++) {
+            files[i].delete();
+        }
 
         return true;
     }
@@ -304,7 +442,7 @@ public class GenomeWide {
         Integer lineCnt = 0;
         while((mHapLine = mhapIterator.next()) != null) {
             lineCnt++;
-            if (lineCnt % 1000000 == 0) {
+            if (lineCnt % 10000 == 0) {
                 log.info("Calculate complete " + region.getChrom() + " " + lineCnt + " mhap lines.");
             }
             if ((args.getStrand().equals("plus") && mHapLine.split("\t")[5].equals("-")) ||

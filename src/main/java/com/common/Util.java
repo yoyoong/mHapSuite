@@ -73,6 +73,7 @@ public class Util {
                 cpgLine = tabixReader.readLine();
             }
         }
+        cpgPosListMap.put(lastChr, cpgPosList);
         log.info("Read cpg file success.");
 
         tabixReader.close();

@@ -304,7 +304,7 @@ public class GenomeWide {
         Integer lineCnt = 0;
         while((mHapLine = mhapIterator.next()) != null) {
             lineCnt++;
-            if (lineCnt % 100000 == 0) {
+            if (lineCnt % 1000000 == 0) {
                 log.info("Calculate complete " + region.getChrom() + " " + lineCnt + " mhap lines.");
             }
             if ((args.getStrand().equals("plus") && mHapLine.split("\t")[5].equals("-")) ||
@@ -455,7 +455,6 @@ public class GenomeWide {
             Integer K4plus = K4plusList[start + i];
             Integer nDR = nDRList[start + i];
             Integer nMR = nMRList[start + i];
-            Double mbsNum = mbsNumList[start + i];
 
             if (args.getMetrics().contains("MM") && nReads < args.getCpgCov()) {
                 continue;
@@ -516,6 +515,7 @@ public class GenomeWide {
                 bedGraphInfo.setMCR(MCR.floatValue());
             }
             if (args.getMetrics().contains("MBS")) {
+                Double mbsNum = mbsNumList[start + i];
                 Double MBS = mbsNum / K4plus;
                 if (MBS.isNaN() || MBS.isInfinite()) {
                     continue;

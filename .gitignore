@@ -34,7 +34,9 @@ target/
 *.txt
 *.tsv
 *.tbi
+*.bam
 *.mhap
+*.bai
 *.bed
 *.bedGraph
 *.wig

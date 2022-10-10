@@ -5,6 +5,36 @@ import org.junit.Test;
 public class MainTest extends TestCase {
 
     @Test
+    public void test_convert() throws Exception {
+        Main main = new Main();
+        String arg0 = "convert";
+        String arg1 = "-inputFile";
+        String arg2 = "HUES64_BISMARK_SRX759486.bam";
+        String arg3 = "-cpgPath";
+        String arg4 = "hg19_CpG.gz";
+        String arg5 = "-region";
+        String arg6 = "chr1:1-240000";
+        //        String arg5 = "-b";
+//        String arg6 = "hg19_cpgisland.bed";
+        String arg7 = "-non-directional";
+        String arg8 = "-outPutFile";
+        String arg9 = "test.mhap.gz";
+        String arg10 = "-mode";
+        String arg11 = "BS";
+
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg8, arg9, arg10, arg11};
+        //String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11};
+
+        String argsStr = "";
+        for (int i = 0; i < args.length; i++) {
+            argsStr += args[i] + " ";
+        }
+        System.out.println(argsStr);
+
+        main.main(args);
+    }
+
+    @Test
     public void test_tanghulu() throws Exception {
         Main main = new Main();
         String arg0 = "tanghulu";

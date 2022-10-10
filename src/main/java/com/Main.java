@@ -6,6 +6,7 @@ import org.apache.commons.cli.*;
 import java.util.*;
 
 public class Main {
+    static Convert convert = new Convert();
     static Tanghulu tanghulu = new Tanghulu();
     static MHapView mHapView = new MHapView();
     static Stat stat = new Stat();
@@ -16,7 +17,12 @@ public class Main {
         System.setProperty("java.awt.headless", "true");
 
         if (args != null && args[0] != null && !"".equals(args[0])) {
-            if (args[0].equals("tanghulu")) {
+            if (args[0].equals("convert")) {
+                ConvertArgs convertArgs = parseConvert(args);
+                if (convertArgs != null) {
+                    convert.convert(convertArgs);
+                }
+            } else if (args[0].equals("tanghulu")) {
                 TanghuluArgs tanghuluArgs = parseTanghulu(args);
                 if (tanghuluArgs != null) {
                     tanghulu.tanghulu(tanghuluArgs);
@@ -47,6 +53,61 @@ public class Main {
         } else { // show the help message
 
         }
+    }
+
+    private static ConvertArgs parseConvert(String[] args) throws ParseException {
+        String inputFile_Description = "input file, SAM/BAM format, should be sorted by samtools";
+        String cpgPath_Description = "genomic CpG file, gz format and indexed";
+        String region_Description = "one region, in the format of chr:start-end";
+        String bedPath_Description = "bed file, one query region per line";
+        String non_directional_Description = "output file";
+        String outPutFile_Description = "output filename. (default: out.mhap.gz)";
+        String mode_Description = "sequencing mode. ( TAPS | BS (default) )";
+
+        Options options = new Options();
+        Option option0 = OptionBuilder.withLongOpt("help").withDescription("help").create("h");
+        Option option1 = OptionBuilder.withArgName("args").withLongOpt("inputFile").isRequired().hasArg().withDescription(inputFile_Description).create("inputFile");
+        Option option2 = OptionBuilder.withArgName("args").withLongOpt("cpgPath").isRequired().hasArg().withDescription(cpgPath_Description).create("cpgPath");
+        Option option3 = OptionBuilder.withArgName("args").withLongOpt("region").hasArg().withDescription(region_Description).create("region");
+        Option option4 = OptionBuilder.withArgName("args").withLongOpt("bedPath").hasArg().withDescription(bedPath_Description).create("bedPath");
+        Option option5 = OptionBuilder.withArgName("args").withLongOpt("non-directional").withDescription(non_directional_Description).create("n");
+        Option option6 = OptionBuilder.withArgName("args").withLongOpt("outPutFile").hasArg().withDescription(outPutFile_Description).create("outPutFile");
+        Option option7 = OptionBuilder.withArgName("args").withLongOpt("mode").hasArg().withDescription(mode_Description).create("mode");
+        options.addOption(option0).addOption(option1).addOption(option2).addOption(option3).addOption(option4)
+                .addOption(option5).addOption(option6).addOption(option7);
+
+        BasicParser parser = new BasicParser();
+        ConvertArgs convertArgs = new ConvertArgs();
+
+        CommandLine commandLine = parser.parse(options, args);
+        if (commandLine.getOptions().length > 0) {
+            if (commandLine.hasOption('h')) {
+                HelpFormatter hf = new HelpFormatter();
+                hf.printHelp("Options", options);
+            } else {
+                convertArgs.setInputFile(commandLine.getOptionValue("inputFile"));
+                convertArgs.setCpgPath(commandLine.getOptionValue("cpgPath"));
+                if (commandLine.hasOption("region")) {
+                    convertArgs.setRegion(commandLine.getOptionValue("region"));
+                }
+                if (commandLine.hasOption("bedPath")) {
+                    convertArgs.setBedFile(commandLine.getOptionValue("bedPath"));
+                }
+                if (commandLine.hasOption("non-directional")) {
+                    convertArgs.setNon_directional(true);
+                }
+                if (commandLine.hasOption("outPutFile")) {
+                    convertArgs.setOutPutFile(commandLine.getOptionValue("outPutFile"));
+                }
+                if (commandLine.hasOption("mode")) {
+                    convertArgs.setMode(commandLine.getOptionValue("mode"));
+                }
+            }
+        } else {
+            System.out.println("The paramter is null");
+        }
+
+        return convertArgs;
     }
 
     private static TanghuluArgs parseTanghulu(String[] args) throws ParseException {

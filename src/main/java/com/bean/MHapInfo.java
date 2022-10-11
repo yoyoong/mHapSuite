@@ -75,6 +75,10 @@ public class MHapInfo implements Serializable {
         return this.chrom + this.start+ this.end + this.cpg;
     }
 
+    public String indexByReadAndStrand() {
+        return this.chrom + this.start+ this.end + this.cpg + this.strand;
+    }
+
     public String index() {
         return this.chrom + this.start+ this.end + this.cpg + this.strand;
     }

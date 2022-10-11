@@ -9,7 +9,7 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "convert";
         String arg1 = "-inputFile";
-        String arg2 = "HUES64_BISMARK_SRX759486.bam";
+        String arg2 = "SRX8472828.bam";
         String arg3 = "-cpgPath";
         String arg4 = "hg19_CpG.gz";
         String arg5 = "-region";
@@ -22,7 +22,8 @@ public class MainTest extends TestCase {
         String arg10 = "-mode";
         String arg11 = "BS";
 
-        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg8, arg9, arg10, arg11};
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg8, arg9, arg10, arg11};
+        //String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg8, arg9, arg10, arg11};
         //String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11};
 
         String argsStr = "";

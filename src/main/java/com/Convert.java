@@ -27,6 +27,7 @@ public class Convert {
     Util util = new Util();
     public RegionType regionType; // 区域类型
     public File inputFile; // sam/bam文件
+    BufferedWriter bufferedWriter = null;
 
     public void convert(ConvertArgs convertArgs) throws Exception {
         log.info("command.Convert start!");
@@ -46,29 +47,38 @@ public class Convert {
             return;
         }
 
+        String outputFileName = "";
+        if (args.getOutPutFile() == null || args.getOutPutFile().equals("")) {
+            outputFileName = "out.mhap";
+        } else {
+            outputFileName = args.getOutPutFile().substring(0, args.getOutPutFile().length() - 3);
+        }
+        bufferedWriter = util.createOutputFile("", outputFileName);
+
         // 生成mHap文件数据
         if (regionType == RegionType.SINGLE_REGION) { // 单区间
             // 解析region
             Region region = util.parseRegion(args.getRegion());
-            boolean getSingleRegionDataResult = getSingleRegionData(region);
+            boolean getSingleRegionDataResult = getSingleRegionData(region, bufferedWriter);
             if (!getSingleRegionDataResult) {
                 log.error("getSingleRegionData fail, please check the command.");
                 return;
             }
         } else if (regionType == RegionType.WHOLE_FILE) { // 整个文件
-            boolean getWholeFileDataResult = getWholeFileData();
+            boolean getWholeFileDataResult = getWholeFileData(bufferedWriter);
             if (!getWholeFileDataResult) {
                 log.error("getWholeFileData fail, please check the command.");
                 return;
             }
         } else if (regionType == RegionType.MULTI_REGION) { // bed文件的基因
-            boolean getWholeFileDataResult = getMultiRegionData();
+            boolean getWholeFileDataResult = getMultiRegionData(bufferedWriter);
             if (!getWholeFileDataResult) {
                 log.error("getWholeFileData fail, please check the command.");
                 return;
             }
         }
-        
+
+        bufferedWriter.close();
         log.info("command.Convert end! ");
     }
 
@@ -123,7 +133,7 @@ public class Convert {
         return true;
     }
 
-    private boolean getWholeFileData() throws IOException {
+    private boolean getWholeFileData(BufferedWriter bufferedWriter) throws Exception {
         SamReader samReader = SamReaderFactory.makeDefault().open(inputFile);
         SAMFileHeader samFileHeader = samReader.getFileHeader(); // sam文件头
         List<SAMSequenceRecord> samFileHeaderList = samFileHeader.getSequenceDictionary().getSequences();
@@ -134,17 +144,22 @@ public class Convert {
             region.setChrom(samSequenceRecord.getSequenceName());
             region.setStart(samSequenceRecord.getStart());
             region.setEnd(samSequenceRecord.getEnd());
-            boolean getSingleRegionDataResult = getSingleRegionData(region);
+
+            if (!region.getChrom().equals("chr1")) {
+                continue;
+            }
+            boolean getSingleRegionDataResult = getSingleRegionData(region, bufferedWriter);
             if (!getSingleRegionDataResult) {
                 log.error("getSingleRegionData fail, please check the command.");
                 return false;
             }
+            log.info("Convert " + region.getChrom() + " completed!");
         }
 
         return true;
     }
 
-    private boolean getMultiRegionData() throws IOException {
+    private boolean getMultiRegionData(BufferedWriter bufferedWriter) throws Exception {
         File bedFile = new File(args.getBedFile()); // 打开bed文件
         InputStream inputStream = new FileInputStream(bedFile);  // 文件流
         AsciiLineReader asciiLineReader = new AsciiLineReader(inputStream); // 行阅读器
@@ -156,39 +171,32 @@ public class Convert {
             region.setChrom(bedFeature.getContig());
             region.setStart(bedFeature.getStart());
             region.setEnd(bedFeature.getEnd());
-            boolean getSingleRegionDataResult = getSingleRegionData(region);
+            boolean getSingleRegionDataResult = getSingleRegionData(region, bufferedWriter);
             if (!getSingleRegionDataResult) {
-                log.error("getSingleRegionData fail, please check the command.");
+                log.info("getSingleRegionData fail, please check the command.");
                 return false;
             }
         }
         return true;
     }
 
-    private boolean getSingleRegionData(Region region) throws IOException {
-        String outputFileName = "";
-        if (args.getOutPutFile() == null || args.getOutPutFile().equals("")) {
-            outputFileName = "out.mhap";
-        } else {
-            outputFileName = args.getOutPutFile().substring(0, args.getOutPutFile().length() - 3);
-        }
-        BufferedWriter bufferedWriter = util.createOutputFile("", outputFileName);
+    private boolean getSingleRegionData(Region region, BufferedWriter bufferedWriter) throws Exception {
 
+        // get cpg position list
+        List<Integer> cpgPosList = util.parseCpgFile(args.getCpgPath(), region);
+        if (cpgPosList.size() < 1) {
+            log.info("remove chrome:" + region.getChrom() + " due to the size of cpg is 0.");
+            return true;
+        }
+        Integer cpgStartIndex = 0;
         SamReader samReader = SamReaderFactory.makeDefault().open(inputFile);
         SAMRecordIterator samRecordIterator = samReader.query(region.getChrom(), region.getStart(), region.getEnd(),true);
         Map<String, MHapInfo> mHapMap = new HashMap<>();
-        MHapInfo mHapNewLine = new MHapInfo("", 0, 0, "", 0, "");
-        MHapInfo mHapFrontLine = new MHapInfo("", 0, 0, "", 0, "");
         long samCnt = 0l; // 处理的sam数量
         while (samRecordIterator.hasNext()) {
-            // 保存上一行的数据
-            mHapFrontLine.setChrom(mHapNewLine.getChrom());
-            mHapFrontLine.setStart(mHapNewLine.getStart());
-            mHapNewLine = new MHapInfo("", 0, 0, "", 0, ""); // 清空新行
-
             samCnt++;
-            if (samCnt % 10000 == 0) { // 每一万条打印进度
-                log.info(samCnt + " reads processed.");
+            if (samCnt % 1000000 == 0) { // 每一百万条打印进度
+                log.info("Read sam/bam "  + region.getChrom() + " completed "+ samCnt + " reads.");
             }
 
             // 获取sam下一行
@@ -199,22 +207,22 @@ public class Convert {
             }
 
             // 获取sam的甲基化信息
-            String samHaploInfo = "";
-            List<SAMRecord.SAMTagAndValue> samTagAndValueList = samRecord.getAttributes();
-            for (SAMRecord.SAMTagAndValue samTagAndValue : samTagAndValueList) {
-                if (samTagAndValue.tag.equals("XM")) {
-                    samHaploInfo = (String) samTagAndValue.value;
-                }
-            }
-            if (samHaploInfo.equals("")) {
-                log.error("The XM string is null.");
-                continue;
-            }
-            for (int i = 0; i < samHaploInfo.length(); i++) {
-                if (samHaploInfo.charAt(i) == 'C' || samHaploInfo.charAt(i) == 'H' || samHaploInfo.charAt(i) == 'U') {
-                    continue;
-                }
-            }
+//            String samHaploInfo = "";
+//            List<SAMRecord.SAMTagAndValue> samTagAndValueList = samRecord.getAttributes();
+//            for (SAMRecord.SAMTagAndValue samTagAndValue : samTagAndValueList) {
+//                if (samTagAndValue.tag.equals("Z") || samTagAndValue.tag.equals("H")) {
+//                    samHaploInfo = (String) samTagAndValue.tag;
+//                }
+//            }
+//            if (samHaploInfo.equals("")) {
+//                //log.error("The XM string is null.");
+//                continue;
+//            }
+//            for (int i = 0; i < samHaploInfo.length(); i++) {
+//                if (samHaploInfo.charAt(i) == 'X' || samHaploInfo.charAt(i) == 'H' || samHaploInfo.charAt(i) == 'U') {
+//                    continue;
+//                }
+//            }
 
             // 获取正负链信息
             StrandType strand = StrandType.UNKNOWN;
@@ -245,40 +253,36 @@ public class Convert {
                 }
             }
 
-            // 查询cpg文件的甲基化位点信息
-            TabixReader tabixReader = new TabixReader(args.getCpgPath());
-            TabixReader.Iterator iterator = tabixReader.query(region.getChrom(), samRecord.getStart(), samRecord.getEnd());
-            String cpgPosition = ""; // 每一个甲基化位点最左侧位置
-            Integer[] cpgPosList = new Integer[samRecord.getReadLength()]; // 在该read内所有甲基化位点最左侧位置（初始化长度为read的长度）
+            List<Integer> cpgPosListInRegion = new ArrayList<>();
+            while (cpgStartIndex < cpgPosList.size() - 1 && cpgPosList.get(cpgStartIndex) < samRecord.getStart()) {
+                cpgStartIndex++;
+            }
             Integer cpgCnt = 0;
-            while((cpgPosition = iterator.next()) != null) {
-                cpgPosList[cpgCnt] = Integer.valueOf(cpgPosition.split("\t")[1]);
+            while (cpgStartIndex + cpgCnt < cpgPosList.size() &&
+                    cpgPosList.get(cpgStartIndex + cpgCnt) < samRecord.getEnd()) {
+                cpgPosListInRegion.add(cpgPosList.get(cpgStartIndex + cpgCnt));
                 cpgCnt++;
             }
             if (cpgCnt == 0) {
-                log.info("remove read:" + samRecord.getReadName() + " due to the size of cpg is 0.");
+                log.error("remove read:" + samRecord.getReadName() + " due to the size of cpg is 0.");
                 continue;
             }
 
             // 获取甲基化位点信息
-            String haplotype = getHaplotype(samRecord, cpgPosList, cpgCnt, strand);
+            String haplotype = getHaplotype(samRecord, cpgPosListInRegion, cpgCnt, strand);
             if (haplotype.matches(".*[a-zA-z].*")) {
                 continue;
             }
 
             // mHap数据赋值
-            mHapNewLine.setChrom(region.getChrom());
-            mHapNewLine.setStart(cpgPosList[0]);
-            mHapNewLine.setEnd(cpgPosList[cpgCnt - 1]);
-            mHapNewLine.setCpg(haplotype);
-            mHapNewLine.setCnt(1);
-            mHapNewLine.setStrand(strand.getStrandFlag());
+            MHapInfo mHapLine = new MHapInfo(region.getChrom(), cpgPosListInRegion.get(0),
+                    cpgPosListInRegion.get(cpgPosListInRegion.size() -1), haplotype, 1, strand.getStrandFlag());
 
             // 合并索引相同的行
-            if (mHapMap.containsKey(mHapNewLine.indexByRead())) {
-                mHapMap.get(mHapNewLine.indexByRead()).setCnt(mHapMap.get(mHapNewLine.indexByRead()).getCnt() + 1);
+            if (mHapMap.containsKey(mHapLine.indexByReadAndStrand())) {
+                mHapMap.get(mHapLine.indexByReadAndStrand()).setCnt(mHapMap.get(mHapLine.indexByReadAndStrand()).getCnt() + 1);
             } else {
-                mHapMap.put(mHapNewLine.indexByRead(), mHapNewLine);
+                mHapMap.put(mHapLine.indexByReadAndStrand(), mHapLine);
             }
         }
 
@@ -287,61 +291,38 @@ public class Convert {
         Collections.sort(mHapList, new Comparator<Map.Entry<String, MHapInfo>>() { //升序排序
             public int compare(Map.Entry<String, MHapInfo> o1, Map.Entry<String, MHapInfo> o2) {
                 return o1.getValue().getChrom().compareTo(o2.getValue().getChrom())
-                        + o1.getValue().getStart().compareTo(o2.getValue().getStart());
+                        + o1.getValue().getStart().compareTo(o2.getValue().getStart())
+                        + o1.getValue().getEnd().compareTo(o2.getValue().getEnd());
             }
         });
 
-        for(int i = 0; i < mHapList.size(); i++) {
-            bufferedWriter.write(mHapList.get(i).getValue().print() + "\n");
+        for(Map.Entry<String, MHapInfo> mHapInfo : mHapList) {
+            bufferedWriter.write(mHapInfo.getValue().print() + "\n");
         }
-
-        bufferedWriter.close();
 
         return true;
     }
 
-    private String getHaplotype(SAMRecord samRecord, Integer[] cpgPosList, Integer cpgCnt, StrandType strand) {
+    private String getHaplotype(SAMRecord samRecord, List<Integer> cpgPosList, Integer cpgCnt, StrandType strand) {
         // 获取read甲基化位点的碱基序列
         String haploString = ""; // read甲基化位点的碱基序列
         String readString = samRecord.getReadString();
         for (int i = 0; i < cpgCnt; i++) {
-            if (cpgPosList[0].equals(102988)) {
-                Integer pos = 0; // 偏移量
-                if (strand == StrandType.UNKNOWN || strand == StrandType.PLUS) {
-                    if (cpgPosList[i] < samRecord.getStart()) {
-                        continue;
-                    } else if (cpgPosList[i] > samRecord.getEnd()) {
-                        break;
-                    }
-                    pos = cpgPosList[i] - samRecord.getStart();
-                } else {
-                    if (cpgPosList[i] < samRecord.getStart() - 1) {
-                        continue;
-                    } else if (cpgPosList[i] > samRecord.getEnd() - 1) {
-                        break;
-                    }
-                    pos = cpgPosList[i] - samRecord.getStart() + 1;
-                }
-
-                if (pos >= samRecord.getReadLength() || pos < 0) {
-                    continue;
-                }
-            }
             Integer pos = 0; // 偏移量
             if (strand == StrandType.UNKNOWN || strand == StrandType.PLUS) {
-                if (cpgPosList[i] < samRecord.getStart()) {
+                if (cpgPosList.get(i) < samRecord.getStart()) {
                     continue;
-                } else if (cpgPosList[i] > samRecord.getEnd()) {
+                } else if (cpgPosList.get(i) > samRecord.getEnd()) {
                     break;
                 }
-                pos = cpgPosList[i] - samRecord.getStart();
+                pos = cpgPosList.get(i) - samRecord.getStart();
             } else {
-                if (cpgPosList[i] < samRecord.getStart() - 1) {
+                if (cpgPosList.get(i) < samRecord.getStart() - 1) {
                     continue;
-                } else if (cpgPosList[i] > samRecord.getEnd() - 1) {
+                } else if (cpgPosList.get(i) > samRecord.getEnd() - 1) {
                     break;
                 }
-                pos = cpgPosList[i] - samRecord.getStart() + 1;
+                pos = cpgPosList.get(i) - samRecord.getStart() + 1;
             }
 
             if (pos >= samRecord.getReadLength() || pos < 0) {
@@ -392,6 +373,7 @@ public class Convert {
                 }
             }
         }
+
         return haplotype;
     }
     

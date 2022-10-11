@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
+import java.util.zip.GZIPOutputStream;
 
 import static htsjdk.samtools.SamFiles.findIndex;
 
@@ -47,13 +48,13 @@ public class Convert {
             return;
         }
 
-        String outputFileName = "";
+        String mhapFileName = "";
         if (args.getOutPutFile() == null || args.getOutPutFile().equals("")) {
-            outputFileName = "out.mhap";
+            mhapFileName = "out.mhap";
         } else {
-            outputFileName = args.getOutPutFile().substring(0, args.getOutPutFile().length() - 3);
+            mhapFileName = args.getOutPutFile().substring(0, args.getOutPutFile().length() - 3);
         }
-        bufferedWriter = util.createOutputFile("", outputFileName);
+        bufferedWriter = util.createOutputFile("", mhapFileName);
 
         // 生成mHap文件数据
         if (regionType == RegionType.SINGLE_REGION) { // 单区间
@@ -77,8 +78,22 @@ public class Convert {
                 return;
             }
         }
-
         bufferedWriter.close();
+
+        // generate the .gz file
+        String gzFileName = mhapFileName + ".gz";
+        GZIPOutputStream gzipOutputStream = new GZIPOutputStream(new FileOutputStream(gzFileName));
+        FileInputStream fileInputStream = new FileInputStream(mhapFileName);
+        byte[] buffer = new byte[1024];
+        int len;
+        while ((len = fileInputStream.read(buffer)) > 0) {
+            gzipOutputStream.write(buffer, 0, len);
+        }
+        fileInputStream.close();
+        gzipOutputStream.finish();
+        gzipOutputStream.close();
+        new File(mhapFileName).delete();
+
         log.info("command.Convert end! ");
     }
 
@@ -144,10 +159,7 @@ public class Convert {
             region.setChrom(samSequenceRecord.getSequenceName());
             region.setStart(samSequenceRecord.getStart());
             region.setEnd(samSequenceRecord.getEnd());
-
-            if (!region.getChrom().equals("chr1")) {
-                continue;
-            }
+            
             boolean getSingleRegionDataResult = getSingleRegionData(region, bufferedWriter);
             if (!getSingleRegionDataResult) {
                 log.error("getSingleRegionData fail, please check the command.");

@@ -159,7 +159,7 @@ public class Convert {
             region.setChrom(samSequenceRecord.getSequenceName());
             region.setStart(samSequenceRecord.getStart());
             region.setEnd(samSequenceRecord.getEnd());
-            
+
             boolean getSingleRegionDataResult = getSingleRegionData(region, bufferedWriter);
             if (!getSingleRegionDataResult) {
                 log.error("getSingleRegionData fail, please check the command.");

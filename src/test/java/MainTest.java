@@ -5,6 +5,29 @@ import org.junit.Test;
 public class MainTest extends TestCase {
 
     @Test
+    public void test_merge() throws Exception {
+        Main main = new Main();
+        String arg0 = "merge";
+        String arg1 = "-inputFile";
+        String arg2 = "SRX8472819.mhap.gz SRX8472820.mhap.gz SRX8472821.mhap.gz SRX8472822.mhap.gz SRX8472823.mhap.gz " +
+                "SRX8472824.mhap.gz SRX8472825.mhap.gz SRX8472826.mhap.gz SRX8472827.mhap.gz SRX8472828.mhap.gz";
+        String arg3 = "-cpgPath";
+        String arg4 = "hg19_CpG.gz";
+        String arg5 = "-outPutFile";
+        String arg6 = "test.mhap.gz";
+
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6};
+
+        String argsStr = "";
+        for (int i = 0; i < args.length; i++) {
+            argsStr += args[i] + " ";
+        }
+        System.out.println(argsStr);
+
+        main.main(args);
+    }
+
+    @Test
     public void test_convert() throws Exception {
         Main main = new Main();
         String arg0 = "convert";

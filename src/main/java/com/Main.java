@@ -7,6 +7,7 @@ import java.util.*;
 
 public class Main {
     static Convert convert = new Convert();
+    static Merge merge = new Merge();
     static Tanghulu tanghulu = new Tanghulu();
     static MHapView mHapView = new MHapView();
     static Stat stat = new Stat();
@@ -21,6 +22,11 @@ public class Main {
                 ConvertArgs convertArgs = parseConvert(args);
                 if (convertArgs != null) {
                     convert.convert(convertArgs);
+                }
+            } else if (args[0].equals("merge")) {
+                MergeArgs mergeArgs = parseMerge(args);
+                if (mergeArgs != null) {
+                    merge.merge(mergeArgs);
                 }
             } else if (args[0].equals("tanghulu")) {
                 TanghuluArgs tanghuluArgs = parseTanghulu(args);
@@ -108,6 +114,40 @@ public class Main {
         }
 
         return convertArgs;
+    }
+
+    private static MergeArgs parseMerge(String[] args) throws ParseException {
+        String inputFile_Description = "input files, multiple .mhap.gz files to merge";
+        String cpgPath_Description = "genomic CpG file, gz format and indexed";
+        String outPutFile_Description = "output filename. (default: out.mhap.gz)";
+
+        Options options = new Options();
+        Option option0 = OptionBuilder.withLongOpt("help").withDescription("help").create("h");
+        Option option1 = OptionBuilder.withArgName("args").withLongOpt("inputFile").isRequired().hasArg().withDescription(inputFile_Description).create("inputFile");
+        Option option2 = OptionBuilder.withArgName("args").withLongOpt("cpgPath").isRequired().hasArg().withDescription(cpgPath_Description).create("cpgPath");
+        Option option3 = OptionBuilder.withArgName("args").withLongOpt("outPutFile").hasArg().withDescription(outPutFile_Description).create("outPutFile");
+        options.addOption(option0).addOption(option1).addOption(option2).addOption(option3);
+
+        BasicParser parser = new BasicParser();
+        MergeArgs mergeArgs = new MergeArgs();
+
+        CommandLine commandLine = parser.parse(options, args);
+        if (commandLine.getOptions().length > 0) {
+            if (commandLine.hasOption('h')) {
+                HelpFormatter hf = new HelpFormatter();
+                hf.printHelp("Options", options);
+            } else {
+                mergeArgs.setInputFile(commandLine.getOptionValue("inputFile"));
+                mergeArgs.setCpgPath(commandLine.getOptionValue("cpgPath"));
+                if (commandLine.hasOption("outPutFile")) {
+                    mergeArgs.setOutPutFile(commandLine.getOptionValue("outPutFile"));
+                }
+            }
+        } else {
+            System.out.println("The paramter is null");
+        }
+
+        return mergeArgs;
     }
 
     private static TanghuluArgs parseTanghulu(String[] args) throws ParseException {

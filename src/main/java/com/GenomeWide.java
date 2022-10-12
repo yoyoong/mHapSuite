@@ -5,7 +5,7 @@ import com.bean.BedGraphInfo;
 import com.bean.MHapInfo;
 import com.bean.Region;
 import com.common.Util;
-import com.rewrite.BigFileReader;
+import com.common.BigFileReader;
 import htsjdk.tribble.readers.TabixReader;
 import org.apache.commons.compress.utils.Lists;
 import org.slf4j.Logger;

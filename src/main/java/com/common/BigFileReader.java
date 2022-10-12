@@ -1,6 +1,5 @@
-package com.rewrite;
+package com.common;
 
-import com.GenomeWide;
 import com.args.GenomeWideArgs;
 import com.bean.MHapInfo;
 import org.slf4j.Logger;

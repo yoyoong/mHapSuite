@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
 public class Merge {
@@ -35,8 +36,8 @@ public class Merge {
         }
         BufferedWriter outputWriter = util.createOutputFile("", mhapFileName);
 
-        List<BufferedReader> readerList = new ArrayList<>();
-        List<MHapInfo> newLineList = new ArrayList<>();
+        ArrayList<BufferedReader> readerList = new ArrayList<>();
+        ArrayList<MHapInfo> newLineList = new ArrayList<>();
         String[] fileList = args.getInputFile().split(" ");
         for (String fileName : fileList) {
             FileInputStream fileInputStream = new FileInputStream(fileName);
@@ -52,73 +53,67 @@ public class Merge {
         }
 
         long lineCnt = 0;
+        String lastChrom = newLineList.get(0).getChrom();
+        String nextChrom = newLineList.get(0).getChrom();
         while (readerList.size() > 0) {
             lineCnt++;
             if (lineCnt % 1000000 == 0) {
-                log.info("read complete "  + lineCnt + " lines");
+                log.info("read complete "  + lineCnt + " lines. Now in " + newLineList.get(0).getChrom());
             }
 
-            MHapInfo minLine = newLineList.get(0);
-            List<Integer> minIndex = new ArrayList<>();
-            for (int i = 0; i < newLineList.size(); i++) {
-                if (newLineList.get(i).indexByReadAndStrand().compareTo(minLine.indexByReadAndStrand()) < 0) {
-                    minIndex.clear();
-                    minIndex.add(i);
-                } else if (newLineList.get(i).indexByReadAndStrand().compareTo(minLine.indexByReadAndStrand()) == 0) {
-                    minIndex.add(i);
+            List<MHapInfo> newLineListSorted = new ArrayList<>();
+            for (MHapInfo mHapInfo : newLineList) {
+                if (mHapInfo.getChrom().equals(lastChrom)) {
+                    newLineListSorted.add(mHapInfo);
+                }
+            }
+            newLineListSorted.sort(Comparator.comparing(MHapInfo::sort));
+
+            MHapInfo writeLine = newLineListSorted.get(0);
+            ArrayList<Integer> moveIndexs = new ArrayList<>();
+            moveIndexs.add(newLineList.indexOf(newLineListSorted.get(0)));
+            for (int i = 1; i < newLineListSorted.size(); i++) {
+                if (newLineListSorted.get(i).index().equals(writeLine.index())) {
+                    writeLine.setCnt(writeLine.getCnt() + newLineListSorted.get(i).getCnt());
+                    moveIndexs.add(newLineList.indexOf(newLineListSorted.get(i)));
                 }
             }
 
-            MHapInfo writeLine = newLineList.get(minIndex.get(0));
-            String firstNewLine = readerList.get(minIndex.get(0)).readLine();
-            if (firstNewLine == null || firstNewLine.equals("")) {
-                List<BufferedReader> newReadList = new ArrayList<>();
-                List<MHapInfo> newNewLineList = new ArrayList<>();
-                for(int i = 0; i < readerList.size(); i++){
-                    if (i != minIndex.get(0)) {
-                        newReadList.add(readerList.get(i));
-                        newNewLineList.add(newLineList.get(i));
-                    } else {
-                        for (int j = 0; j < minIndex.size(); j++) {
-                            minIndex.set(j, minIndex.get(j) - 1);
-                        }
+            for (int i = 0; i < moveIndexs.size(); i++) {
+                String newLine = readerList.get(moveIndexs.get(i)).readLine();
+                if (newLine == null || newLine.equals("")) {
+                    readerList.get(moveIndexs.get(i)).close();
+                    readerList.remove((int) moveIndexs.get(i));
+                    newLineList.remove((int) moveIndexs.get(i));
+                    moveIndexs.remove(i);
+                    for (int j = i; j < moveIndexs.size(); j++) {
+                        moveIndexs.set(j, moveIndexs.get(j) - 1);
                     }
-                }
-                readerList = newReadList;
-                newLineList = newNewLineList;
-            } else {
-                MHapInfo firstNewMhap = new MHapInfo(firstNewLine.split("\t")[0], Integer.valueOf(firstNewLine.split("\t")[1]),
-                        Integer.valueOf(firstNewLine.split("\t")[2]), firstNewLine.split("\t")[3],
-                        Integer.valueOf(firstNewLine.split("\t")[4]), firstNewLine.split("\t")[5]);
-                newLineList.set(minIndex.get(0), firstNewMhap);
-            }
-
-            for (int i = 1; i < minIndex.size(); i++) {
-                writeLine.setCnt(writeLine.getCnt() + newLineList.get(minIndex.get(i)).getCnt());
-                String nextNewLine = readerList.get(minIndex.get(i)).readLine();
-                if (nextNewLine == null || nextNewLine.equals("")) {
-                    List<BufferedReader> newReadList = new ArrayList<>();
-                    List<MHapInfo> newNewLineList = new ArrayList<>();
-                    for(int j = 0; j < readerList.size(); j++){
-                        if (j != minIndex.get(i)) {
-                            newReadList.add(readerList.get(j));
-                            newNewLineList.add(newLineList.get(j));
-                        } else {
-                            for (int k = 0; k < minIndex.size(); k++) {
-                                minIndex.set(k, minIndex.get(k) - 1);
-                            }
-                        }
-                    }
-                    readerList = newReadList;
-                    newLineList = newNewLineList;
+                    i--;
                 } else {
-                    MHapInfo nextNewMhap = new MHapInfo(nextNewLine.split("\t")[0], Integer.valueOf(nextNewLine.split("\t")[1]),
-                            Integer.valueOf(nextNewLine.split("\t")[2]), nextNewLine.split("\t")[3],
-                            Integer.valueOf(nextNewLine.split("\t")[4]), nextNewLine.split("\t")[5]);
-                    newLineList.set(minIndex.get(i), nextNewMhap);
+                    MHapInfo mHapInfo = new MHapInfo(newLine.split("\t")[0], Integer.valueOf(newLine.split("\t")[1]),
+                            Integer.valueOf(newLine.split("\t")[2]), newLine.split("\t")[3],
+                            Integer.valueOf(newLine.split("\t")[4]), newLine.split("\t")[5]);
+                    newLineList.set(moveIndexs.get(i), mHapInfo);
                 }
             }
-            //log.info(writeLine.print());
+
+            for (MHapInfo mHapInfo : newLineList) {
+                if (!mHapInfo.getChrom().equals(lastChrom)) {
+                    nextChrom = mHapInfo.getChrom();
+                }
+            }
+            boolean nextChrFlag = true;
+            for (MHapInfo mHapInfo : newLineList) {
+                if (!mHapInfo.getChrom().equals(nextChrom)) {
+                    nextChrFlag = false;
+                }
+            }
+            if (nextChrFlag) {
+                lastChrom = nextChrom;
+            }
+
+            //log.info("writeLine: " + writeLine.print());
             outputWriter.write(writeLine.print() + "\n");
         }
         log.info("read complete "  + lineCnt + " lines");

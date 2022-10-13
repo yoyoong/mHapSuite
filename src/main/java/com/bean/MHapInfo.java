@@ -1,6 +1,7 @@
 package com.bean;
 
 import java.io.Serializable;
+import java.text.DecimalFormat;
 
 public class MHapInfo implements Serializable {
     public String chrom;
@@ -81,6 +82,13 @@ public class MHapInfo implements Serializable {
 
     public String index() {
         return this.chrom + this.start+ this.end + this.cpg + this.strand;
+    }
+
+    public String sort() {
+        DecimalFormat decimalFormat = new DecimalFormat("0000000000");
+        String startFormat = decimalFormat.format(this.start);
+        String endFormat = decimalFormat.format(this.end);
+        return this.chrom + startFormat + endFormat + this.cpg + this.strand;
     }
 
     public String print() {

@@ -589,4 +589,22 @@ public class Util {
         }
         return true;
     }
+
+    public Integer indexOfList(List<Integer> list, Integer start, Integer end, Integer findValue) {
+        if(start <= end){
+            Integer middle = (start + end) / 2;
+            Integer middleValue = list.get(middle);//中间值
+            if (findValue.equals(middleValue)) {
+                //查找值等于中间值直接返回
+                return  middle;
+            } else if (findValue < middleValue) {
+                //小于中间值，在中间值之前的数据中查找
+                return indexOfList(list, start, middle - 1, findValue);
+            } else {
+                //大于中间值，在中间值之后的数据中查找
+                return indexOfList(list, middle + 1, end, findValue);
+            }
+        }
+        return -1;
+    }
 }

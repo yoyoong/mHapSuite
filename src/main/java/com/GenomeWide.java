@@ -1,34 +1,16 @@
 package com;
 
-import ai.djl.modality.Classifications;
-import ai.djl.modality.cv.Image;
-import ai.djl.modality.cv.transform.CenterCrop;
-import ai.djl.modality.cv.transform.Normalize;
-import ai.djl.modality.cv.transform.Resize;
-import ai.djl.modality.cv.transform.ToTensor;
-import ai.djl.modality.cv.translator.ImageClassificationTranslator;
-import ai.djl.ndarray.NDArray;
-import ai.djl.ndarray.NDManager;
-import ai.djl.ndarray.types.Shape;
-import ai.djl.translate.Pipeline;
-import ai.djl.translate.Translator;
-import ai.djl.translate.TranslatorContext;
 import com.args.GenomeWideArgs;
 import com.bean.BedGraphInfo;
 import com.bean.MHapInfo;
 import com.bean.Region;
 import com.common.Util;
-import com.common.BigFileReader;
 import htsjdk.tribble.readers.TabixReader;
-import org.apache.commons.compress.utils.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.io.BufferedWriter;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.zip.GZIPInputStream;
 
 public class GenomeWide {
     public final Logger log = LoggerFactory.getLogger(GenomeWide.class);

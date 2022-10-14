@@ -10,6 +10,7 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 public class Merge {
     public static final Logger log = LoggerFactory.getLogger(Merge.class);
@@ -38,7 +39,7 @@ public class Merge {
 
         ArrayList<BufferedReader> readerList = new ArrayList<>();
         ArrayList<MHapInfo> newLineList = new ArrayList<>();
-        String[] fileList = args.getInputFile().split(" ");
+        String[] fileList = args.getInputFile().trim().split(" ");
         for (String fileName : fileList) {
             FileInputStream fileInputStream = new FileInputStream(fileName);
             GZIPInputStream gzipInputStream = new GZIPInputStream(fileInputStream);
@@ -53,7 +54,7 @@ public class Merge {
         }
 
         long lineCnt = 0;
-        String lastChrom = newLineList.get(0).getChrom();
+        String thisChrom = newLineList.get(0).getChrom();
         String nextChrom = newLineList.get(0).getChrom();
         while (readerList.size() > 0) {
             lineCnt++;
@@ -63,7 +64,7 @@ public class Merge {
 
             List<MHapInfo> newLineListSorted = new ArrayList<>();
             for (MHapInfo mHapInfo : newLineList) {
-                if (mHapInfo.getChrom().equals(lastChrom)) {
+                if (mHapInfo.getChrom().equals(thisChrom)) {
                     newLineListSorted.add(mHapInfo);
                 }
             }
@@ -79,6 +80,7 @@ public class Merge {
                 }
             }
 
+            boolean changeChrFlag = true;
             for (int i = 0; i < moveIndexs.size(); i++) {
                 String newLine = readerList.get(moveIndexs.get(i)).readLine();
                 if (newLine == null || newLine.equals("")) {
@@ -94,23 +96,18 @@ public class Merge {
                     MHapInfo mHapInfo = new MHapInfo(newLine.split("\t")[0], Integer.valueOf(newLine.split("\t")[1]),
                             Integer.valueOf(newLine.split("\t")[2]), newLine.split("\t")[3],
                             Integer.valueOf(newLine.split("\t")[4]), newLine.split("\t")[5]);
+                    if (!mHapInfo.getChrom().equals(thisChrom)) {
+                        nextChrom = mHapInfo.getChrom();
+                    }
+                    if (!mHapInfo.getChrom().equals(nextChrom)) {
+                        changeChrFlag = false;
+                    }
                     newLineList.set(moveIndexs.get(i), mHapInfo);
                 }
             }
 
-            for (MHapInfo mHapInfo : newLineList) {
-                if (!mHapInfo.getChrom().equals(lastChrom)) {
-                    nextChrom = mHapInfo.getChrom();
-                }
-            }
-            boolean nextChrFlag = true;
-            for (MHapInfo mHapInfo : newLineList) {
-                if (!mHapInfo.getChrom().equals(nextChrom)) {
-                    nextChrFlag = false;
-                }
-            }
-            if (nextChrFlag) {
-                lastChrom = nextChrom;
+            if (changeChrFlag) {
+                thisChrom = nextChrom;
             }
 
             //log.info("writeLine: " + writeLine.print());
@@ -119,10 +116,27 @@ public class Merge {
         log.info("read complete "  + lineCnt + " lines");
         outputWriter.close();
 
+        // generate the .gz file
+        String gzFileName = mhapFileName + ".gz";
+        GZIPOutputStream gzipOutputStream = new GZIPOutputStream(new FileOutputStream(gzFileName));
+        FileInputStream fileInputStream = new FileInputStream(mhapFileName);
+        byte[] buffer = new byte[1024];
+        int len;
+        while ((len = fileInputStream.read(buffer)) > 0) {
+            gzipOutputStream.write(buffer, 0, len);
+        }
+        fileInputStream.close();
+        gzipOutputStream.finish();
+        gzipOutputStream.close();
+        new File(mhapFileName).delete();
+
         log.info("command.Merge end! ");
     }
 
     private boolean checkArgs() {
+        if (args.getInputFile().equals("")) {
+            log.error("The input file cannot be empty.");
+        }
 
         return true;
     }

@@ -137,7 +137,26 @@ public class Main {
                 HelpFormatter hf = new HelpFormatter();
                 hf.printHelp("Options", options);
             } else {
-                mergeArgs.setInputFile(commandLine.getOptionValue("inputFile"));
+                if (commandLine.hasOption("inputFile")) {
+                    String inputFile = commandLine.getOptionValue("inputFile");
+                    if (commandLine.getArgs().length > 1) {
+                        for (int i = 1; i < commandLine.getArgs().length; i++) {
+                            inputFile += " " + commandLine.getArgs()[i];
+                        }
+                    }
+                    // 去除重复的metrics
+                    String[] inputFileList = inputFile.split(" ");
+                    Set<Object> haoma = new LinkedHashSet<Object>();
+                    for (int i = 0; i < inputFileList.length; i++) {
+                        haoma.add(inputFileList[i]);
+                    }
+
+                    String realInputFile = "";
+                    for (int i = 0; i < haoma.size(); i++) {
+                        realInputFile += " " + haoma.toArray()[i];
+                    }
+                    mergeArgs.setInputFile(realInputFile);
+                }
                 mergeArgs.setCpgPath(commandLine.getOptionValue("cpgPath"));
                 if (commandLine.hasOption("outPutFile")) {
                     mergeArgs.setOutPutFile(commandLine.getOptionValue("outPutFile"));

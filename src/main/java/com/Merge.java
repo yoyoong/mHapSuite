@@ -6,6 +6,7 @@ import com.common.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.management.remote.rmi._RMIConnection_Stub;
 import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -80,7 +81,6 @@ public class Merge {
                 }
             }
 
-            boolean changeChrFlag = true;
             for (int i = 0; i < moveIndexs.size(); i++) {
                 String newLine = readerList.get(moveIndexs.get(i)).readLine();
                 if (newLine == null || newLine.equals("")) {
@@ -99,13 +99,16 @@ public class Merge {
                     if (!mHapInfo.getChrom().equals(thisChrom)) {
                         nextChrom = mHapInfo.getChrom();
                     }
-                    if (!mHapInfo.getChrom().equals(nextChrom)) {
-                        changeChrFlag = false;
-                    }
                     newLineList.set(moveIndexs.get(i), mHapInfo);
                 }
             }
 
+            boolean changeChrFlag = true;
+            for (MHapInfo mHapInfo : newLineList) {
+                if (!mHapInfo.getChrom().equals(nextChrom)) {
+                    changeChrFlag = false;
+                }
+            }
             if (changeChrFlag) {
                 thisChrom = nextChrom;
             }

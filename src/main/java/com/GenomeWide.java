@@ -371,7 +371,7 @@ public class GenomeWide {
         tabixReader.close();
 
         List<Integer> cpgPosListInRegion = util.getCpgPosListInRegion(cpgPosList, region);
-        Integer start = cpgPosList.indexOf(cpgPosListInRegion.get(0));
+        Integer start = util.indexOfList(cpgPosList, 0, cpgPosList.size(), cpgPosListInRegion.get(0));
         Integer cpgPosCnt = 0;
         for (Integer i = 0; i < cpgPosListInRegion.size(); i++) {
             cpgPosCnt++;
@@ -423,7 +423,7 @@ public class GenomeWide {
                     continue;
                 }
                 bedGraphInfo.setCHALM(CHALM.floatValue());
-                bufferedWriterPDR.write(bedGraphInfo.printPDR());
+                bufferedWriterCHALM.write(bedGraphInfo.printCHALM());
             }
             if (args.getMetrics().contains("MHL")) {
                 Double temp = 0.0;
@@ -440,7 +440,7 @@ public class GenomeWide {
                     continue;
                 }
                 bedGraphInfo.setMHL(MHL.floatValue());
-                bufferedWriterPDR.write(bedGraphInfo.printPDR());
+                bufferedWriterMHL.write(bedGraphInfo.printMHL());
             }
             if (args.getMetrics().contains("MCR")) {
                 Double MCR = cBase.doubleValue() / tBase.doubleValue();
@@ -448,7 +448,7 @@ public class GenomeWide {
                     continue;
                 }
                 bedGraphInfo.setMCR(MCR.floatValue());
-                bufferedWriterPDR.write(bedGraphInfo.printPDR());
+                bufferedWriterMCR.write(bedGraphInfo.printMCR());
             }
             if (args.getMetrics().contains("MBS")) {
                 Double mbsNum = mbsNumList[start + i];
@@ -457,7 +457,7 @@ public class GenomeWide {
                     continue;
                 }
                 bedGraphInfo.setMBS(MBS.floatValue());
-                bufferedWriterPDR.write(bedGraphInfo.printPDR());
+                bufferedWriterMBS.write(bedGraphInfo.printMBS());
             }
             if (args.getMetrics().contains("Entropy")) {
                 Integer kmerAll = kmerAllList[start + i];
@@ -474,7 +474,7 @@ public class GenomeWide {
                     continue;
                 }
                 bedGraphInfo.setEntropy(entropy.floatValue());
-                bufferedWriterPDR.write(bedGraphInfo.printPDR());
+                bufferedWriterEntropy.write(bedGraphInfo.printEntropy());
             }
             if (args.getMetrics().contains("R2")) {
                 Double r2Sum = 0.0;
@@ -526,7 +526,7 @@ public class GenomeWide {
                     continue;
                 }
                 bedGraphInfo.setR2(meanR2.floatValue());
-                bufferedWriterPDR.write(bedGraphInfo.printPDR());
+                bufferedWriterR2.write(bedGraphInfo.printR2());
             }
         }
 

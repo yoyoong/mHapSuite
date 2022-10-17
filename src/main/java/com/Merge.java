@@ -23,13 +23,14 @@ public class Merge {
         log.info("command.Merge start!");
         args = mergeArgs;
 
-        // 校验命令正确性
+        // check the command
         boolean checkResult = checkArgs();
         if (!checkResult) {
             log.error("Checkargs fail, please check the command.");
             return;
         }
 
+        // create the output file bufferWriter
         String mhapFileName = "";
         if (args.getOutPutFile() == null || args.getOutPutFile().equals("")) {
             mhapFileName = "out.mhap";
@@ -38,6 +39,7 @@ public class Merge {
         }
         BufferedWriter outputWriter = util.createOutputFile("", mhapFileName);
 
+        // get the file and bufferReader list
         ArrayList<BufferedReader> readerList = new ArrayList<>();
         ArrayList<MHapInfo> newLineList = new ArrayList<>();
         String[] fileList = args.getInputFile().trim().split(" ");
@@ -60,30 +62,40 @@ public class Merge {
         while (readerList.size() > 0) {
             lineCnt++;
             if (lineCnt % 1000000 == 0) {
-                log.info("read complete "  + lineCnt + " lines. Now in " + newLineList.get(0).getChrom());
+                log.info("read complete "  + lineCnt + " lines. Now in " + thisChrom);
             }
 
-            List<MHapInfo> newLineListSorted = new ArrayList<>();
+            List<MHapInfo> newLineListFiltered = new ArrayList<>();
             for (MHapInfo mHapInfo : newLineList) {
                 if (mHapInfo.getChrom().equals(thisChrom)) {
-                    newLineListSorted.add(mHapInfo);
+                    newLineListFiltered.add(mHapInfo);
                 }
             }
-            newLineListSorted.sort(Comparator.comparing(MHapInfo::sort));
 
-            MHapInfo writeLine = newLineListSorted.get(0);
-            ArrayList<Integer> moveIndexs = new ArrayList<>();
-            moveIndexs.add(newLineList.indexOf(newLineListSorted.get(0)));
-            for (int i = 1; i < newLineListSorted.size(); i++) {
-                if (newLineListSorted.get(i).index().equals(writeLine.index())) {
-                    writeLine.setCnt(writeLine.getCnt() + newLineListSorted.get(i).getCnt());
-                    moveIndexs.add(newLineList.indexOf(newLineListSorted.get(i)));
+            // find the minimum line index
+            int minIndex = 0; // first minimum line index
+            for (int i = 0; i < newLineListFiltered.size(); i++) {
+                if (newLineListFiltered.get(minIndex).compareTo(newLineListFiltered.get(i)) > 0) {
+                    minIndex = i;
                 }
             }
+
+            // summarize the cnt same minimum line and the bufferReader index should be move
+            Integer minLineCnt = newLineListFiltered.get(minIndex).getCnt();
+            MHapInfo writeLine = newLineListFiltered.get(minIndex);
+            ArrayList<Integer> moveIndexs = new ArrayList<>();
+            for (int i = 0; i < newLineListFiltered.size(); i++) {
+                MHapInfo mHapInfo = newLineListFiltered.get(i);
+                if (mHapInfo != null && newLineListFiltered.get(minIndex).compareTo(mHapInfo) == 0) {
+                    writeLine.setCnt(writeLine.getCnt() + newLineListFiltered.get(i).getCnt());
+                    moveIndexs.add(newLineList.indexOf(mHapInfo));
+                }
+            }
+            writeLine.setCnt(writeLine.getCnt() - minLineCnt);
 
             for (int i = 0; i < moveIndexs.size(); i++) {
                 String newLine = readerList.get(moveIndexs.get(i)).readLine();
-                if (newLine == null || newLine.equals("")) {
+                if (newLine == null || newLine.equals("")) { // if file move to end, remove this from list
                     readerList.get(moveIndexs.get(i)).close();
                     readerList.remove((int) moveIndexs.get(i));
                     newLineList.remove((int) moveIndexs.get(i));
@@ -92,7 +104,7 @@ public class Merge {
                         moveIndexs.set(j, moveIndexs.get(j) - 1);
                     }
                     i--;
-                } else {
+                } else { // get the next line
                     MHapInfo mHapInfo = new MHapInfo(newLine.split("\t")[0], Integer.valueOf(newLine.split("\t")[1]),
                             Integer.valueOf(newLine.split("\t")[2]), newLine.split("\t")[3],
                             Integer.valueOf(newLine.split("\t")[4]), newLine.split("\t")[5]);
@@ -103,6 +115,7 @@ public class Merge {
                 }
             }
 
+            // if all new line's chrom have change, change the thisChrom
             boolean changeChrFlag = true;
             for (MHapInfo mHapInfo : newLineList) {
                 if (!mHapInfo.getChrom().equals(nextChrom)) {
@@ -119,7 +132,7 @@ public class Merge {
         log.info("read complete "  + lineCnt + " lines");
         outputWriter.close();
 
-        // generate the .gz file
+        // convert mhap file to .gz file
         String gzFileName = mhapFileName + ".gz";
         GZIPOutputStream gzipOutputStream = new GZIPOutputStream(new FileOutputStream(gzFileName));
         FileInputStream fileInputStream = new FileInputStream(mhapFileName);
@@ -139,6 +152,7 @@ public class Merge {
     private boolean checkArgs() {
         if (args.getInputFile().equals("")) {
             log.error("The input file cannot be empty.");
+            return false;
         }
 
         return true;

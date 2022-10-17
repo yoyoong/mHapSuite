@@ -95,4 +95,17 @@ public class MHapInfo implements Serializable {
         return this.chrom + "\t" + this.start + "\t"+ this.end + "\t"
                 + this.cpg + "\t" + this.cnt + "\t" + this.strand;
     }
+
+    public int compareTo(MHapInfo mHapInfo) {
+        DecimalFormat decimalFormat = new DecimalFormat("0000000000");
+        String start1 = decimalFormat.format(this.start);
+        String end1 = decimalFormat.format(this.end);
+        String start2 = decimalFormat.format(mHapInfo.getStart());
+        String end2 = decimalFormat.format(mHapInfo.getEnd());
+
+        String mhapString1 = this.chrom + start1 + end1 + this.cpg + this.strand;
+        String mhapString2 = mHapInfo.getChrom() + start2 + end2 + mHapInfo.getCpg() + mHapInfo.getStrand();
+
+        return mhapString1.compareTo(mhapString2);
+    }
 }

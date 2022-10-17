@@ -5,28 +5,6 @@ import org.junit.Test;
 public class MainTest extends TestCase {
 
     @Test
-    public void test_merge() throws Exception {
-        Main main = new Main();
-        String arg0 = "merge";
-        String arg1 = "-inputFile";
-        String arg2 = "D:\\Code\\mHapSuite\\SRX8208800.mhap.gz D:\\Code\\mHapSuite\\SRX8208801.mhap.gz D:\\Code\\mHapSuite\\SRX8208812.mhap.gz";
-        String arg3 = "-cpgPath";
-        String arg4 = "hg19_CpG.gz";
-        String arg5 = "-outPutFile";
-        String arg6 = "test.mhap.gz";
-
-        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6};
-
-        String argsStr = "";
-        for (int i = 0; i < args.length; i++) {
-            argsStr += args[i] + " ";
-        }
-        System.out.println(argsStr);
-
-        main.main(args);
-    }
-
-    @Test
     public void test_convert() throws Exception {
         Main main = new Main();
         String arg0 = "convert";
@@ -47,6 +25,29 @@ public class MainTest extends TestCase {
         String[] args = {arg0, arg1, arg2, arg3, arg4, arg8, arg9, arg10, arg11};
         //String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg8, arg9, arg10, arg11};
         //String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11};
+
+        String argsStr = "";
+        for (int i = 0; i < args.length; i++) {
+            argsStr += args[i] + " ";
+        }
+        System.out.println(argsStr);
+
+        main.main(args);
+    }
+
+    @Test
+    public void test_merge() throws Exception {
+        Main main = new Main();
+        String arg0 = "merge";
+        String arg1 = "-inputFile";
+        String arg2 = "SRX8208800.mhap.gz SRX8208801.mhap.gz SRX8208812.mhap.gz SRX8208813.mhap.gz SRX8208814.mhap.gz " +
+                "SRX8208815.mhap.gz SRX8208816.mhap.gz SRX8208817.mhap.gz SRX8208818.mhap.gz SRX8208819.mhap.gz";
+        String arg3 = "-cpgPath";
+        String arg4 = "hg19_CpG.gz";
+        String arg5 = "-outPutFile";
+        String arg6 = "test.mhap.gz";
+
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6};
 
         String argsStr = "";
         for (int i = 0; i < args.length; i++) {

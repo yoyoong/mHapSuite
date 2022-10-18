@@ -54,13 +54,12 @@ public class Stat {
         // get the metric list
         for (Region region : regionList) {
             // parse the mhap file
-            List<MHapInfo> mHapInfoList = util.parseMhapFile(args.getMhapPath(), region, args.getStrand(), false);
             List<MHapInfo> mHapInfoListMerged = util.parseMhapFile(args.getMhapPath(), region, args.getStrand(), true);
 
             // parse the cpg file
             List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
 
-            boolean getStatResult = getStat(mHapInfoList, mHapInfoListMerged, cpgPosList, region, metricsList, bufferedWriter);
+            boolean getStatResult = getStat(mHapInfoListMerged, cpgPosList, region, metricsList, bufferedWriter);
             if (!getStatResult) {
                 log.error("getStat fail, please check the command.");
                 return;
@@ -117,7 +116,7 @@ public class Stat {
         return line;
     }
 
-    private boolean getStat(List<MHapInfo> mHapInfoList, List<MHapInfo> mHapInfoListMerged, List<Integer> cpgPosList, Region region,
+    private boolean getStat(List<MHapInfo> mHapInfoListMerged, List<Integer> cpgPosList, Region region,
                             List<String> metricsList, BufferedWriter bufferedWriter) throws Exception {
 
         // get cpg site list in region
@@ -222,7 +221,6 @@ public class Stat {
                         R2Cnt++;
                         R2 += r2Info.getR2();
                     }
-
                 }
             }
         }

@@ -62,7 +62,7 @@ public class Merge {
         while (readerList.size() > 0) {
             lineCnt++;
             if (lineCnt % 1000000 == 0) {
-                log.info("read complete "  + lineCnt + " lines. Now in " + thisChrom);
+                log.info("Merge complete "  + lineCnt + " lines. Now in " + thisChrom);
             }
 
             List<MHapInfo> newLineListFiltered = new ArrayList<>();
@@ -129,7 +129,7 @@ public class Merge {
             //log.info("writeLine: " + writeLine.print());
             outputWriter.write(writeLine.print() + "\n");
         }
-        log.info("read complete "  + lineCnt + " lines");
+        log.info("Merge succeed! Total "  + lineCnt + " lines");
         outputWriter.close();
 
         // convert mhap file to .gz file

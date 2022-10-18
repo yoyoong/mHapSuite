@@ -145,9 +145,7 @@ public class GenomeWide {
 
         // sort the cpgPosListMap
         List<Map.Entry<String, List<Integer>>> cpgPosListMapList = new ArrayList<Map.Entry<String, List<Integer>>>(cpgPosListMapRaw.entrySet());
-        Collections.sort(cpgPosListMapList, (o1, o2) -> o1.getKey().compareTo(o2.getKey()));
         cpgPosListMapList.sort(new Comparator<Map.Entry<String, List<Integer>>>() {
-            @Override
             public int compare(Map.Entry<String, List<Integer>> o1, Map.Entry<String, List<Integer>> o2) {
                 String chromNum1 = o1.getKey().substring(3, o1.getKey().length());
                 String chromNum2 = o2.getKey().substring(3, o2.getKey().length());

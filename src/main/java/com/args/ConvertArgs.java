@@ -7,7 +7,7 @@ public class ConvertArgs implements Serializable {
     public String cpgPath = "";
     public String region = "";
     public String bedFile = "";
-    public boolean non_directional = false;
+    public boolean nonDirectional = false;
     public String outPutFile = "";
     public String mode = "BS";
 
@@ -43,12 +43,12 @@ public class ConvertArgs implements Serializable {
         this.bedFile = bedFile;
     }
 
-    public boolean isNon_directional() {
-        return non_directional;
+    public boolean isNonDirectional() {
+        return nonDirectional;
     }
 
-    public void setNon_directional(boolean non_directional) {
-        this.non_directional = non_directional;
+    public void setNonDirectional(boolean nonDirectional) {
+        this.nonDirectional = nonDirectional;
     }
 
     public String getOutPutFile() {

@@ -66,17 +66,17 @@ public class Main {
         String cpgPath_Description = "genomic CpG file, gz format and indexed";
         String region_Description = "one region, in the format of chr:start-end";
         String bedPath_Description = "bed file, one query region per line";
-        String non_directional_Description = "output file";
+        String nonDirectional_Description = "non-directional, do not group results by the direction of reads.";
         String outPutFile_Description = "output filename. (default: out.mhap.gz)";
         String mode_Description = "sequencing mode. ( TAPS | BS (default) )";
 
         Options options = new Options();
         Option option0 = OptionBuilder.withLongOpt("help").withDescription("help").create("h");
-        Option option1 = OptionBuilder.withArgName("args").withLongOpt("inputFile").isRequired().hasArg().withDescription(inputFile_Description).create("inputFile");
-        Option option2 = OptionBuilder.withArgName("args").withLongOpt("cpgPath").isRequired().hasArg().withDescription(cpgPath_Description).create("cpgPath");
+        Option option1 = OptionBuilder.withArgName("args").withLongOpt("inputFile").hasArg().withDescription(inputFile_Description).create("inputFile");
+        Option option2 = OptionBuilder.withArgName("args").withLongOpt("cpgPath").hasArg().withDescription(cpgPath_Description).create("cpgPath");
         Option option3 = OptionBuilder.withArgName("args").withLongOpt("region").hasArg().withDescription(region_Description).create("region");
         Option option4 = OptionBuilder.withArgName("args").withLongOpt("bedPath").hasArg().withDescription(bedPath_Description).create("bedPath");
-        Option option5 = OptionBuilder.withArgName("args").withLongOpt("non-directional").withDescription(non_directional_Description).create("n");
+        Option option5 = OptionBuilder.withArgName("args").withLongOpt("nonDirectional").withDescription(nonDirectional_Description).create("nonDirectional");
         Option option6 = OptionBuilder.withArgName("args").withLongOpt("outPutFile").hasArg().withDescription(outPutFile_Description).create("outPutFile");
         Option option7 = OptionBuilder.withArgName("args").withLongOpt("mode").hasArg().withDescription(mode_Description).create("mode");
         options.addOption(option0).addOption(option1).addOption(option2).addOption(option3).addOption(option4)
@@ -89,7 +89,8 @@ public class Main {
         if (commandLine.getOptions().length > 0) {
             if (commandLine.hasOption('h')) {
                 HelpFormatter hf = new HelpFormatter();
-                hf.printHelp("Options", options);
+                hf.printHelp("Options:", options);
+                return null;
             } else {
                 convertArgs.setInputFile(commandLine.getOptionValue("inputFile"));
                 convertArgs.setCpgPath(commandLine.getOptionValue("cpgPath"));
@@ -99,8 +100,8 @@ public class Main {
                 if (commandLine.hasOption("bedPath")) {
                     convertArgs.setBedFile(commandLine.getOptionValue("bedPath"));
                 }
-                if (commandLine.hasOption("non-directional")) {
-                    convertArgs.setNon_directional(true);
+                if (commandLine.hasOption("nonDirectional")) {
+                    convertArgs.setNonDirectional(true);
                 }
                 if (commandLine.hasOption("outPutFile")) {
                     convertArgs.setOutPutFile(commandLine.getOptionValue("outPutFile"));
@@ -123,8 +124,8 @@ public class Main {
 
         Options options = new Options();
         Option option0 = OptionBuilder.withLongOpt("help").withDescription("help").create("h");
-        Option option1 = OptionBuilder.withArgName("args").withLongOpt("inputFile").isRequired().hasArg().withDescription(inputFile_Description).create("inputFile");
-        Option option2 = OptionBuilder.withArgName("args").withLongOpt("cpgPath").isRequired().hasArg().withDescription(cpgPath_Description).create("cpgPath");
+        Option option1 = OptionBuilder.withArgName("args").withLongOpt("inputFile").hasArg().withDescription(inputFile_Description).create("inputFile");
+        Option option2 = OptionBuilder.withArgName("args").withLongOpt("cpgPath").hasArg().withDescription(cpgPath_Description).create("cpgPath");
         Option option3 = OptionBuilder.withArgName("args").withLongOpt("outPutFile").hasArg().withDescription(outPutFile_Description).create("outPutFile");
         options.addOption(option0).addOption(option1).addOption(option2).addOption(option3);
 
@@ -135,7 +136,8 @@ public class Main {
         if (commandLine.getOptions().length > 0) {
             if (commandLine.hasOption('h')) {
                 HelpFormatter hf = new HelpFormatter();
-                hf.printHelp("Options", options);
+                hf.printHelp("Options:", options);
+                return null;
             } else {
                 if (commandLine.hasOption("inputFile")) {
                     String inputFile = commandLine.getOptionValue("inputFile");
@@ -255,7 +257,7 @@ public class Main {
         Option option1 = OptionBuilder.withLongOpt("mhapPath").hasArg().withDescription(mhapPath_Description).create("mhapPath");
         Option option2 = OptionBuilder.withLongOpt("cpgPath").hasArg().withDescription(cpgPath_Description).create("cpgPath");
         Option option3 = OptionBuilder.withLongOpt("region").hasArg().withDescription(region_Description).create("region");
-        Option option4 = OptionBuilder.withLongOpt("bed").hasArg().withDescription(bedPath_Description).create("bed");
+        Option option4 = OptionBuilder.withLongOpt("bedPath").hasArg().withDescription(bedPath_Description).create("bedPath");
         Option option5 = OptionBuilder.withLongOpt("tag").hasArg().withDescription(tag_Description).create("tag");
         Option option6 = OptionBuilder.withLongOpt("outFormat").hasArg().withDescription(outFormat_Description).create("outFormat");
         Option option7 = OptionBuilder.withLongOpt("strand").hasArg().withDescription(strand_Description).create("strand");
@@ -275,8 +277,8 @@ public class Main {
                 mHapViewArgs.setMhapPath(commandLine.getOptionValue("mhapPath"));
                 mHapViewArgs.setCpgPath(commandLine.getOptionValue("cpgPath"));
                 mHapViewArgs.setRegion(commandLine.getOptionValue("region"));
-                if (commandLine.hasOption("bed")) {
-                    mHapViewArgs.setBed(commandLine.getOptionValue("bed"));
+                if (commandLine.hasOption("bedPath")) {
+                    mHapViewArgs.setBedPath(commandLine.getOptionValue("bedPath"));
                 }
                 mHapViewArgs.setTag(commandLine.getOptionValue("tag"));
                 if (commandLine.hasOption("outFormat")) {
@@ -432,7 +434,7 @@ public class Main {
         if (commandLine.getOptions().length > 0) {
             if (commandLine.hasOption('h')) {
                 HelpFormatter helpFormatter = new HelpFormatter();
-                helpFormatter.printHelp("Options", options);
+                helpFormatter.printHelp("Options:", options);
                 return null;
             } else {
                 genomeWideArgs.setTag(commandLine.getOptionValue("tag"));

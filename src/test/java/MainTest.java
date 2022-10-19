@@ -16,7 +16,7 @@ public class MainTest extends TestCase {
         String arg6 = "chr1:1-240000";
         //        String arg5 = "-b";
 //        String arg6 = "hg19_cpgisland.bed";
-        String arg7 = "-non-directional";
+        String arg7 = "-nonDirectional";
         String arg8 = "-outPutFile";
         String arg9 = "test.mhap.gz";
         String arg10 = "-mode";
@@ -105,7 +105,7 @@ public class MainTest extends TestCase {
         String arg4 = "hg19_CpG.gz";
         String arg5 = "-region";
         String arg6 = "chr1:2121159-2121449";
-        String arg7 = "-bed";
+        String arg7 = "-bedPath";
         String arg8 = "CRC_sc_bulk.bed";
         String arg9 = "-tag";
         String arg10 = "test";

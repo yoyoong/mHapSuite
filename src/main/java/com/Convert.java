@@ -238,7 +238,7 @@ public class Convert {
 
             // 获取正负链信息
             StrandType strand = StrandType.UNKNOWN;
-            if (args.isNon_directional()) { // 无方向
+            if (args.isNonDirectional()) { // 无方向
                 strand = StrandType.UNKNOWN;
             } else {
                 if (samRecord.getReadPairedFlag() && samRecord.getProperPairFlag()) { // 同时含1和2

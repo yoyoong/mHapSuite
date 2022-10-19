@@ -124,7 +124,7 @@ public class MHapView {
         CategoryPlot mmPlot = createMMPlot(cpgPosListInRegion, cpgHpMatInRegion);
         XYPlot whiteBlackPlot = createWhiteBlackPlot(cpgHpMatInRegion);
         XYPlot bedRegionPlot = new XYPlot();
-        if (args.getBed() != null && !args.getBed().equals("")) {
+        if (args.getBedPath() != null && !args.getBedPath().equals("")) {
             bedRegionPlot = createBedRegionPlot(cpgPosListInRegion);
         }
         XYPlot MHapViewHeatMapPlot = createHeatMapPlot(cpgHpMatInRegion, cpgPosListInRegion);
@@ -333,7 +333,7 @@ public class MHapView {
     private XYPlot createBedRegionPlot(List<Integer> cpgPosListInRegion) throws Exception {
 
         // parse the bed file
-        List<BedInfo> bedInfoList = util.parseBedFile(args.getBed(), region);
+        List<BedInfo> bedInfoList = util.parseBedFile(args.getBedPath(), region);
         if (bedInfoList.size() <= 0) {
             return null;
         }

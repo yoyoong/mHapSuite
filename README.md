@@ -1,7 +1,7 @@
 # mHapSuite
 mHapSuite is a tool kit for analysis of DNA methylation haplotypes.
 It has 7 sub-commands: convert, merge, tanghulu, mHapView, MHBDiscovery, stat and genomeWide.
-The source code of mHapTk is hosted in [github](https://github.com/yoyoong/mHapSuite). It is written in java, and should run in Windows, Linux and macOS with java1.8 installed.
+The source code of mHapSuite is hosted in [github](https://github.com/yoyoong/mHapSuite). It is written in java, and should run in Windows, Linux and macOS with java1.8 installed.
 
 ## Prerequisites
 The mHapSuite requires the following dependencies:

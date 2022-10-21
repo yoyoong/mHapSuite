@@ -9,7 +9,7 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "convert";
         String arg1 = "-inputFile";
-        String arg2 = "SRX8472828.bam";
+        String arg2 = "HUES64_BISMARK_SRX759486.bam";
         String arg3 = "-cpgPath";
         String arg4 = "hg19_CpG.gz";
         String arg5 = "-region";
@@ -219,10 +219,10 @@ public class MainTest extends TestCase {
         String arg2 = "esophagus_T.mhap.gz";
         String arg3 = "-cpgPath";
         String arg4 = "hg19_CpG.gz";
-//        String arg5 = "-region";
-//        String arg6 = "chr1:3229375-3230473";
-        String arg5= "-bedPath";
-        String arg6 = "CRC_MHB_non_NC.bed";
+        String arg5 = "-region";
+        String arg6 = "chr1:567312-8277712";
+//        String arg5= "-bedPath";
+//        String arg6 = "CRC_MHB_non_NC.bed";
         String arg7 = "-window";
         String arg8 = "5";
         String arg9 = "-r2";
@@ -243,6 +243,48 @@ public class MainTest extends TestCase {
         System.out.println(argsStr);
 
         main.main(args);
+    }
 
+    @Test
+    public void test_linkM() throws Exception {
+        Main main = new Main();
+        String arg0 = "linkM";
+        String arg1 = "-mhapPathT";
+        String arg2 = "esophagus_T.mhap.gz";
+        String arg3 = "-mhapPathN";
+        String arg4 = "esophagus_N.mhap.gz";
+        String arg5 = "-cpgPath";
+        String arg6 = "hg19_CpG.gz";
+        String arg7 = "-region";
+        String arg8 = "chr1:10469-10903";
+        String arg9 = "-tag";
+        String arg10 = "linkTest";
+        String arg11 = "-fLength";
+        String arg12 = "25";
+        String arg13 = "-rLength";
+        String arg14 = "25";
+        String arg15 = "-minT";
+        String arg16 = "0.1";
+        String arg17 = "-maxN";
+        String arg18 = "0.06";
+        String arg19 = "-minFC";
+        String arg20 = "2";
+        String arg21 = "-minInsertSize";
+        String arg22 = "40";
+        String arg23 = "-maxInsertSize";
+        String arg24 = "160";
+        String arg25 = "-minCov";
+        String arg26 = "10";
+
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14,
+                arg15, arg16, arg17, arg18, arg19, arg20, arg21, arg22, arg23, arg24, arg25, arg26};
+
+        String argsStr = "";
+        for (int i = 0; i < args.length; i++) {
+            argsStr += args[i] + " ";
+        }
+        System.out.println(argsStr);
+
+        main.main(args);
     }
 }

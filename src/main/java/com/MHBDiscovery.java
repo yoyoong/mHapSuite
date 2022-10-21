@@ -16,6 +16,7 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 public class MHBDiscovery {
     public static final Logger log = LoggerFactory.getLogger(MHBDiscovery.class);
@@ -66,10 +67,18 @@ public class MHBDiscovery {
             }
             List<Integer> cpgPosListInRegion = cpgPosList.subList(cpgStartPos, cpgEndPos + 2); // end site add 1
 
+            // parse the mhap file
+            List<MHapInfo> mHapInfoList = util.parseMhapFile(args.getmHapPath(), region, "both", true);
+
             List<MHBInfo> mhbInfoList = new ArrayList<>();
             Integer startIndex = 0; // start mhb position index in cpgPosListInRegion
             Integer endIndex = 0; // end mhb position index in cpgPosListInRegion
+            Integer cpgCnt = 0;
             while (endIndex < cpgPosListInRegion.size() - 1) {
+                cpgCnt++;
+                if (cpgCnt % 100 == 0) {
+                    log.info("Read completed " + cpgCnt + " cpg positions.");
+                }
                 MHBInfo mhbInfo = new MHBInfo();
                 endIndex++;
                 Boolean extendFlag = true;
@@ -80,11 +89,8 @@ public class MHBDiscovery {
                         break;
                     }
 
-                    // parse the mhap file
-                    List<MHapInfo> mHapInfoList = util.parseMhapFile(args.getmHapPath(), region, "both", true);
-
                     // get r2 and pvalue of startIndex
-                    R2Info r2Info= util.getR2FromList(mHapInfoList, cpgPosList, cpgPosListInRegion.get(index), cpgPosListInRegion.get(endIndex), 0);
+                    R2Info r2Info = util.getR2FromList(mHapInfoList, cpgPosList, cpgPosListInRegion.get(index), cpgPosListInRegion.get(endIndex), 0);
 //                    System.out.println("startIndex: " + startIndex + " index: " + index + " endIndex: " + endIndex);
 //                    System.out.println(cpgPosListInRegion.get(index) + "\t" + cpgPosListInRegion.get(endIndex) + "\t"
 //                            + r2Info.getR2() + "\t" + r2Info.getPvalue());

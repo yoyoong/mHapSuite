@@ -3,9 +3,9 @@ package com.bean;
 import java.io.Serializable;
 
 public class Region implements Serializable {
-    public String chrom;
-    public Integer start;
-    public Integer end;
+    public String chrom = "";
+    public Integer start = 0;
+    public Integer end = 0;
 
     public String getChrom() {
         return chrom;

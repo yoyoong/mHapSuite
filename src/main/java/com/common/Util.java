@@ -350,6 +350,23 @@ public class Util {
         return r2Info;
     }
 
+    public int[][] getR2InfoArray(List<MHapInfo> mHapInfoList, List<Integer> cpgPosList, List<Integer> cpgPosListInRegion, Integer r2Cov) {
+        int[][] N = new int[4][cpgPosListInRegion.size() * (cpgPosListInRegion.size() - 1)];
+        Integer cpgStartIndex = indexOfList(cpgPosList, 0, cpgPosList.size(), cpgPosListInRegion.get(0));
+        Integer cpgEndIndex = indexOfList(cpgPosList, 0, cpgPosList.size(), cpgPosListInRegion.get(cpgPosListInRegion.size() - 1));
+
+        for (MHapInfo mHapInfo : mHapInfoList) {
+            Integer mhapStartIndex = indexOfList(cpgPosList, 0, cpgPosList.size(), mHapInfo.getStart());
+            Integer startIndex = cpgStartIndex > mhapStartIndex ? cpgStartIndex - mhapStartIndex : 0;
+            for (int i = startIndex; i < mHapInfo.getCpg().length(); i++) {
+                if (i <= cpgEndIndex) {
+
+                }
+            }
+        }
+        return N;
+    }
+
     public R2Info getR2FromList(List<MHapInfo> mHapInfoList, List<Integer> cpgPosList, Integer cpgPos1, Integer cpgPos2, Integer r2Cov) {
         R2Info r2Info = new R2Info();
         Integer N00 = 0;
@@ -365,8 +382,8 @@ public class Util {
         for (int i = 0; i < mHapInfoList.size(); i++) {
             MHapInfo mHapInfo = mHapInfoList.get(i);
             if (mHapInfo.getStart() <= cpgPos1 && cpgPos2 <= mHapInfo.getEnd()) {
-                Integer pos1 = cpgPosList.indexOf(cpgPos1) - cpgPosList.indexOf(mHapInfo.getStart());
-                Integer pos2 = cpgPosList.indexOf(cpgPos2) - cpgPosList.indexOf(mHapInfo.getStart());
+                Integer pos1 = indexOfList(cpgPosList, 0, cpgPosList.size() - 1, cpgPos1) - indexOfList(cpgPosList, 0, cpgPosList.size() - 1, mHapInfo.getStart());
+                Integer pos2 = indexOfList(cpgPosList, 0, cpgPosList.size() - 1, cpgPos2) - indexOfList(cpgPosList, 0, cpgPosList.size() - 1, mHapInfo.getStart());
                 if (mHapInfo.getCpg().charAt(pos1) == '0' && mHapInfo.getCpg().charAt(pos2) == '0') {
                     N00 += mHapInfo.getCnt();
                 } else if (mHapInfo.getCpg().charAt(pos1) == '0' && mHapInfo.getCpg().charAt(pos2) == '1') {

@@ -350,23 +350,6 @@ public class Util {
         return r2Info;
     }
 
-    public int[][] getR2InfoArray(List<MHapInfo> mHapInfoList, List<Integer> cpgPosList, List<Integer> cpgPosListInRegion, Integer r2Cov) {
-        int[][] N = new int[4][cpgPosListInRegion.size() * (cpgPosListInRegion.size() - 1)];
-        Integer cpgStartIndex = indexOfList(cpgPosList, 0, cpgPosList.size(), cpgPosListInRegion.get(0));
-        Integer cpgEndIndex = indexOfList(cpgPosList, 0, cpgPosList.size(), cpgPosListInRegion.get(cpgPosListInRegion.size() - 1));
-
-        for (MHapInfo mHapInfo : mHapInfoList) {
-            Integer mhapStartIndex = indexOfList(cpgPosList, 0, cpgPosList.size(), mHapInfo.getStart());
-            Integer startIndex = cpgStartIndex > mhapStartIndex ? cpgStartIndex - mhapStartIndex : 0;
-            for (int i = startIndex; i < mHapInfo.getCpg().length(); i++) {
-                if (i <= cpgEndIndex) {
-
-                }
-            }
-        }
-        return N;
-    }
-
     public R2Info getR2FromList(List<MHapInfo> mHapInfoList, List<Integer> cpgPosList, Integer cpgPos1, Integer cpgPos2, Integer r2Cov) {
         R2Info r2Info = new R2Info();
         Integer N00 = 0;
@@ -393,6 +376,9 @@ public class Util {
                 } else if (mHapInfo.getCpg().charAt(pos1) == '1' && mHapInfo.getCpg().charAt(pos2) == '1') {
                     N11 += mHapInfo.getCnt();
                 }
+            }
+            if (mHapInfo.getStart() > cpgPos1) {
+                break;
             }
         }
 
@@ -623,5 +609,33 @@ public class Util {
             }
         }
         return -1;
+    }
+
+    public List<MHapInfo> getMHapListCoverRegion(List<MHapInfo> mHapList, Integer start, Integer end) {
+        Integer startIndex = 0;
+        Integer endIndex = mHapList.size() - 1;
+
+        return mHapList;
+    }
+
+    public List<MHapInfo> filterMHapListInRegion(List<MHapInfo> mHapList, Region region) {
+        Integer startIndex = 0;
+        Integer endIndex = mHapList.size() - 1;
+        while (mHapList.get(endIndex).getStart() >= region.getEnd()) {
+            endIndex = endIndex / 2;
+        }
+        endIndex = endIndex * 2 > mHapList.size() - 1 ? mHapList.size() - 1 : endIndex * 2;
+
+        Integer newEndIndex = endIndex;
+        while (mHapList.get(startIndex).getEnd() <= region.getStart()) {
+            newEndIndex = newEndIndex / 2;
+            startIndex += newEndIndex;
+        }
+        startIndex = startIndex - newEndIndex * 2 < 0 ? 0 : startIndex - newEndIndex * 2;
+
+        List<MHapInfo> mHapListFiltered = new ArrayList<>();
+        mHapListFiltered = mHapList.subList(startIndex, endIndex + 1);
+
+        return mHapListFiltered;
     }
 }

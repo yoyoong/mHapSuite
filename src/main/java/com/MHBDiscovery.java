@@ -76,7 +76,7 @@ public class MHBDiscovery {
             Integer cpgCnt = 0;
             while (endIndex < cpgPosListInRegion.size() - 1) {
                 cpgCnt++;
-                if (cpgCnt % 100 == 0) {
+                if (cpgCnt % 10000 == 0) {
                     log.info("Read completed " + cpgCnt + " cpg positions.");
                 }
                 MHBInfo mhbInfo = new MHBInfo();
@@ -89,8 +89,13 @@ public class MHBDiscovery {
                         break;
                     }
 
+                    Region region1 = new Region();
+                    region1.setStart(cpgPosListInRegion.get(index));
+                    region1.setEnd(cpgPosListInRegion.get(endIndex));
+                    List<MHapInfo> mHapInfoListFiltered = util.filterMHapListInRegion(mHapInfoList, region1);
+
                     // get r2 and pvalue of startIndex
-                    R2Info r2Info = util.getR2FromList(mHapInfoList, cpgPosList, cpgPosListInRegion.get(index), cpgPosListInRegion.get(endIndex), 0);
+                    R2Info r2Info = util.getR2FromList(mHapInfoListFiltered, cpgPosList, cpgPosListInRegion.get(index), cpgPosListInRegion.get(endIndex), 0);
 //                    System.out.println("startIndex: " + startIndex + " index: " + index + " endIndex: " + endIndex);
 //                    System.out.println(cpgPosListInRegion.get(index) + "\t" + cpgPosListInRegion.get(endIndex) + "\t"
 //                            + r2Info.getR2() + "\t" + r2Info.getPvalue());

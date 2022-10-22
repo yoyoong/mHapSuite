@@ -256,7 +256,7 @@ public class MainTest extends TestCase {
         String arg5 = "-cpgPath";
         String arg6 = "hg19_CpG.gz";
         String arg7 = "-region";
-        String arg8 = "chr1:10469-109030";
+        String arg8 = "chr1:10469-10903000";
         String arg9 = "-tag";
         String arg10 = "linkTest";
         String arg11 = "-fLength";

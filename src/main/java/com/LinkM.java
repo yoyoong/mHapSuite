@@ -43,10 +43,22 @@ public class LinkM {
         Region fWindow = new Region(); // forward window region
         fWindow.setChrom(region.getChrom());
         Integer fWindowStart = region.getStart(); // forward window start position
+        long totalPosCnt = region.getEnd() - region.getStart();
+        long readPosCnt = 0;
         for (; fWindowStart < region.getEnd() - args.getMinInsertSize() - args.getrLength() + 1 && fWindow.getEnd() <= region.getEnd(); fWindowStart++) {
             fWindow.setStart(fWindowStart); // forward window start position
             fWindow.setEnd(fWindowStart + args.getfLength() - 1); // forward window end position
-            log.info("Forward window: " + fWindow.toHeadString() + " read start!");
+            readPosCnt++;
+            if (readPosCnt % (totalPosCnt / 100) == 0) {
+                int percent = (int) Math.round(Double.valueOf(readPosCnt) * 100 / totalPosCnt);
+                log.info("Read complete " + percent + "%.");
+            }
+
+            // get the cpg position list in forward window
+            List<Integer> cpgPosListInFWindow = getCpgPosListInWindow(cpgPosList, fWindow.getStart(), fWindow.getEnd());
+            if (cpgPosListInFWindow.size() < 1) {
+                continue;
+            }
 
             Region rWindow = new Region(); // forward window region
             rWindow.setChrom(region.getChrom());
@@ -61,11 +73,6 @@ public class LinkM {
                 if (cpgPosListInWindow.size() < 1) {
                     continue;
                 }
-                // get the cpg position list in forward window
-                List<Integer> cpgPosListInFWindow = getCpgPosListInWindow(cpgPosList, fWindow.getStart(), fWindow.getEnd());
-                if (cpgPosListInFWindow.size() < 1) {
-                    continue;
-                }
                 // get the cpg position list in reverse window
                 List<Integer> cpgPosListInRWindow = getCpgPosListInWindow(cpgPosList, rWindow.getStart(), rWindow.getEnd());
                 if (cpgPosListInRWindow.size() < 1) {
@@ -75,6 +82,13 @@ public class LinkM {
                 Integer fWindowCpgEndIndex = util.indexOfList(cpgPosListInWindow, 0, cpgPosListInWindow.size() - 1, cpgPosListInFWindow.get(cpgPosListInFWindow.size() - 1));
                 Integer rWindowCpgStartIndex = util.indexOfList(cpgPosListInWindow, 0, cpgPosListInWindow.size() - 1, cpgPosListInRWindow.get(0));
                 Integer rWindowCpgEndIndex = util.indexOfList(cpgPosListInWindow, 0, cpgPosListInWindow.size() - 1, cpgPosListInRWindow.get(cpgPosListInRWindow.size() - 1));
+
+//                Region regionInwindow = new Region();
+//                regionInwindow.setChrom(region.getChrom());
+//                regionInwindow.setStart(fWindow.getStart());
+//                regionInwindow.setStart(rWindow.getEnd());
+//                List<MHapInfo> tumorMHapList = util.parseMhapFile(args.getMhapPathT(), regionInwindow, "both", true);
+//                List<MHapInfo> normalMHapList = util.parseMhapFile(args.getMhapPathN(), regionInwindow, "both", true);
 
                 // get the tumor and normal mhap list in window
                 List<MHapInfo> tumorMHapListInWindow = getMHapListInWindow(tumorMHapList, fWindow.getStart(), rWindow.getEnd());
@@ -113,7 +127,6 @@ public class LinkM {
                     } else {
                         newNormalPatternMap.put(newKey, normalPatternMap.get(key));
                     }
-
                 }
 
                 // filter the different pattern of 2 map
@@ -150,7 +163,7 @@ public class LinkM {
                 }
                 //log.info("Reverse window: " + rWindow.toHeadString() + " read end!");
             }
-            log.info("Forward window: " + fWindow.toHeadString() + " read end!");
+            //log.info("Forward window: " + fWindow.toHeadString() + " read end!");
         }
         bufferedWriter.close();
 
@@ -166,10 +179,14 @@ public class LinkM {
         List<Integer> cpgPosListInWindow = new ArrayList<>();
 
         Integer cpgIndex;
-        while (util.indexOfList(cpgPosList, 0, cpgPosList.size() - 1, start) < 0) {
-            start++;
+        Integer startPos = start;
+        while (startPos <= end && util.indexOfList(cpgPosList, 0, cpgPosList.size() - 1, startPos) < 0) {
+            startPos++;
         }
-        cpgIndex = util.indexOfList(cpgPosList, 0, cpgPosList.size() - 1, start);
+        if (startPos >= end) {
+            return cpgPosListInWindow;
+        }
+        cpgIndex = util.indexOfList(cpgPosList, 0, cpgPosList.size() - 1, startPos);
 
         while (cpgIndex < cpgPosList.size() && cpgPosList.get(cpgIndex) <= end) {
             cpgPosListInWindow.add(cpgPosList.get(cpgIndex));
@@ -184,6 +201,9 @@ public class LinkM {
         for (MHapInfo mHapInfo : mHapList) {
             if (mHapInfo.getStart() <= windowStart && mHapInfo.getEnd() >= windowEnd) {
                 mHapListNew.add(mHapInfo);
+            }
+            if (mHapInfo.getStart() > windowStart) {
+                break;
             }
         }
         return mHapListNew;

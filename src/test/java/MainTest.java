@@ -256,7 +256,7 @@ public class MainTest extends TestCase {
         String arg5 = "-cpgPath";
         String arg6 = "hg19_CpG.gz";
         String arg7 = "-region";
-        String arg8 = "chr1:10469-10903";
+        String arg8 = "chr1:10469-109030";
         String arg9 = "-tag";
         String arg10 = "linkTest";
         String arg11 = "-fLength";
@@ -266,7 +266,7 @@ public class MainTest extends TestCase {
         String arg15 = "-minT";
         String arg16 = "0.1";
         String arg17 = "-maxN";
-        String arg18 = "0.06";
+        String arg18 = "0.05";
         String arg19 = "-minFC";
         String arg20 = "2";
         String arg21 = "-minInsertSize";

@@ -40,8 +40,7 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "merge";
         String arg1 = "-inputFile";
-        String arg2 = "SRX8208800.mhap.gz SRX8208801.mhap.gz SRX8208812.mhap.gz SRX8208813.mhap.gz SRX8208814.mhap.gz " +
-                "SRX8208815.mhap.gz SRX8208816.mhap.gz SRX8208817.mhap.gz SRX8208818.mhap.gz SRX8208819.mhap.gz";
+        String arg2 = "SRX8472828.mhap.gz SRX8472827.mhap.gz";
         String arg3 = "-cpgPath";
         String arg4 = "hg19_CpG.gz";
         String arg5 = "-outPutFile";
@@ -220,7 +219,7 @@ public class MainTest extends TestCase {
         String arg3 = "-cpgPath";
         String arg4 = "hg19_CpG.gz";
         String arg5 = "-region";
-        String arg6 = "chr1:567312-8277712";
+        String arg6 = "chr1:10469-53615801";
 //        String arg5= "-bedPath";
 //        String arg6 = "CRC_MHB_non_NC.bed";
         String arg7 = "-window";
@@ -234,7 +233,8 @@ public class MainTest extends TestCase {
         String arg15 = "-tag";
         String arg16 = "CRC_hg19_MHB";
         String arg17 = "-qcFlag";
-        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17};
+        //String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17};
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17};
 
         String argsStr = "";
         for (int i = 0; i < args.length; i++) {
@@ -256,7 +256,7 @@ public class MainTest extends TestCase {
         String arg5 = "-cpgPath";
         String arg6 = "hg19_CpG.gz";
         String arg7 = "-region";
-        String arg8 = "chr1:10469-10903000";
+        String arg8 = "chr1:145075781-145075851";
         String arg9 = "-tag";
         String arg10 = "linkTest";
         String arg11 = "-fLength";

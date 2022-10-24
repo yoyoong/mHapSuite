@@ -8,6 +8,9 @@ import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfTemplate;
 import com.itextpdf.text.pdf.PdfWriter;
+import htsjdk.samtools.BinningIndexContent;
+import htsjdk.samtools.LinearIndex;
+import htsjdk.tribble.index.tabix.TabixIndex;
 import htsjdk.tribble.readers.TabixReader;
 import org.apache.commons.math3.distribution.BinomialDistribution;
 import org.jfree.chart.ChartUtils;
@@ -22,6 +25,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
+import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
 
 public class Util {
     public static final Logger log = LoggerFactory.getLogger(Util.class);
@@ -229,6 +234,56 @@ public class Util {
 
         tabixReader.close();
         return mHapInfoList;
+    }
+
+    public List<Region> getWholeRegionFromMHapFile(String mhapPath) throws Exception {
+        List<Region> wholeRegionList = new ArrayList<>();
+
+        TabixIndex tabixIndex = new TabixIndex(new File(mhapPath + ".tbi"));
+        List<String> chromList = tabixIndex.getSequenceNames();
+        BinningIndexContent[] binningIndexContents = tabixIndex.getIndices();
+
+        InputStream inputStream = new GZIPInputStream(new FileInputStream(new File(mhapPath)));
+        Scanner scanner = new Scanner(inputStream);
+
+        String mHapLine = "";
+        String lastChrom = "";
+        Integer lastStart = 0;
+        Integer lastEnd = 0;
+        Integer lineCnt = 0;
+        while (scanner.hasNext()) {
+            mHapLine = scanner.nextLine();lineCnt++;
+            if (lineCnt % 100000000 == 0) {
+                log.info("Read mhap complete " + lineCnt + " lines.");
+            }
+
+            if (!lastChrom.equals("")) {
+                if (!mHapLine.split("\t")[0].equals(lastChrom)) {
+                    Region region = new Region();
+                    region.setChrom(lastChrom);
+                    region.setStart(lastStart);
+                    region.setEnd(lastEnd);
+                    wholeRegionList.add(region);
+                    lastEnd = 0;
+                    lastChrom = mHapLine.split("\t")[0];
+                    lastStart = Integer.valueOf(mHapLine.split("\t")[1]);
+                } else {
+                    if (lastEnd < Integer.valueOf(mHapLine.split("\t")[2])) {
+                        lastEnd = Integer.valueOf(mHapLine.split("\t")[2]);
+                    }
+                }
+            } else {
+                lastChrom = mHapLine.split("\t")[0];
+                lastStart = Integer.valueOf(mHapLine.split("\t")[1]);
+            }
+        }
+        Region region = new Region();
+        region.setChrom(lastChrom);
+        region.setStart(lastStart);
+        region.setEnd(lastEnd);
+        wholeRegionList.add(region);
+
+        return wholeRegionList;
     }
 
     public Integer[][] getCpgHpMat(List<MHapInfo> mHapInfoList, List<Integer> cpgPosList, List<Integer> cpgPosListInRegion) {
@@ -611,13 +666,6 @@ public class Util {
         return -1;
     }
 
-    public List<MHapInfo> getMHapListCoverRegion(List<MHapInfo> mHapList, Integer start, Integer end) {
-        Integer startIndex = 0;
-        Integer endIndex = mHapList.size() - 1;
-
-        return mHapList;
-    }
-
     public List<MHapInfo> filterMHapListInRegion(List<MHapInfo> mHapList, Region region) {
         Integer startIndex = 0;
         Integer endIndex = mHapList.size() - 1;
@@ -638,4 +686,132 @@ public class Util {
 
         return mHapListFiltered;
     }
+
+    public Map<String, List<Integer>> getMhapIndexMapToCpg(List<MHapInfo> mHapInfoList, List<Integer> cpgPosListInRegion) throws Exception {
+        TreeMap<String, List<Integer>> mHapIndexMapToCpg = new TreeMap<>();
+
+        Integer cpgStartIndex = 0;
+        Integer cpgEndIndex = 0;
+        long totalCnt = mHapInfoList.size();
+        for (long i = 0; i < mHapInfoList.size(); i++) {
+//            if (i % (totalCnt / 100) == 0) {
+//                int percent = (int) Math.round(Double.valueOf(i) * 100 / totalCnt);
+//                log.info("getMhapIndexMapToCpg complete " + percent + "%.");
+//            }
+            MHapInfo mHapInfo = mHapInfoList.get(Integer.valueOf(String.valueOf(i)));
+            // get the cpg postions in mhap line
+            while (mHapInfo.getStart() > cpgPosListInRegion.get(cpgStartIndex)) {
+                cpgStartIndex++;
+            }
+            cpgEndIndex = cpgStartIndex;
+            while (cpgPosListInRegion.get(cpgEndIndex) < mHapInfo.getEnd()) {
+                cpgEndIndex++;
+            }
+            if (cpgPosListInRegion.get(cpgEndIndex) > mHapInfo.getEnd()) {
+                cpgEndIndex--;
+            }
+
+            for (int j = cpgStartIndex; j <= cpgEndIndex; j++) {
+                List<Integer> mHapIndexInMap = mHapIndexMapToCpg.get(cpgPosListInRegion.get(j).toString());
+                if (mHapIndexInMap != null && mHapIndexInMap.size() > 0) {
+                    mHapIndexInMap.add(Integer.valueOf(String.valueOf(i)));
+                } else {
+                    mHapIndexInMap = new ArrayList<>();
+                    mHapIndexInMap.add(Integer.valueOf(String.valueOf(i)));
+                }
+                mHapIndexMapToCpg.put(cpgPosListInRegion.get(j).toString(), mHapIndexInMap);
+            }
+
+        }
+
+        return mHapIndexMapToCpg;
+    }
+
+    public List<MHapInfo> getMHapListFromIndex(List<MHapInfo> mHapInfoList, List<Integer> mHapListMapToCpg) {
+        List<MHapInfo> mHapListFromIndex = new ArrayList<>();
+        for (Integer index : mHapListMapToCpg) {
+            mHapListFromIndex.add(mHapInfoList.get(index));
+        }
+        return mHapListFromIndex;
+    }
+
+    public R2Info getR2FromMap(List<MHapInfo> mHapList1, List<MHapInfo> mHapList2, List<Integer> cpgPosList, Integer cpgPos1, Integer cpgPos2, Integer r2Cov) {
+        R2Info r2Info = new R2Info();
+        Integer N00 = 0;
+        Integer N01 = 0;
+        Integer N10 = 0;
+        Integer N11 = 0;
+        if (cpgPos2 < cpgPos1) {
+            Integer temp = cpgPos2;
+            cpgPos2 = cpgPos1;
+            cpgPos1 = temp;
+        }
+
+        List<MHapInfo> mHapListIn2CpgPos = new ArrayList<>();
+        for (MHapInfo mHapInfo : mHapList1) {
+            if (mHapInfo.getEnd() >= cpgPos2) {
+                mHapListIn2CpgPos.add(mHapInfo);
+            }
+        }
+
+        for (int i = 0; i < mHapListIn2CpgPos.size(); i++) {
+            MHapInfo mHapInfo = mHapListIn2CpgPos.get(i);
+            Integer pos1 = indexOfList(cpgPosList, 0, cpgPosList.size() - 1, cpgPos1) - indexOfList(cpgPosList, 0, cpgPosList.size() - 1, mHapInfo.getStart());
+            Integer pos2 = indexOfList(cpgPosList, 0, cpgPosList.size() - 1, cpgPos2) - indexOfList(cpgPosList, 0, cpgPosList.size() - 1, mHapInfo.getStart());
+            if (mHapInfo.getCpg().charAt(pos1) == '0' && mHapInfo.getCpg().charAt(pos2) == '0') {
+                N00 += mHapInfo.getCnt();
+            } else if (mHapInfo.getCpg().charAt(pos1) == '0' && mHapInfo.getCpg().charAt(pos2) == '1') {
+                N01 += mHapInfo.getCnt();
+            } else if (mHapInfo.getCpg().charAt(pos1) == '1' && mHapInfo.getCpg().charAt(pos2) == '0') {
+                N10 += mHapInfo.getCnt();
+            } else if (mHapInfo.getCpg().charAt(pos1) == '1' && mHapInfo.getCpg().charAt(pos2) == '1') {
+                N11 += mHapInfo.getCnt();
+            }
+            if (mHapInfo.getStart() > cpgPos1) {
+                break;
+            }
+        }
+
+        if ((N00 + N01 + N10 + N11) < r2Cov) {
+            return null;
+        }
+
+        /// 计算r2
+        Double r2 = 0.0;
+        Double pvalue = 0.0;
+        Double N = N00 + N01 + N10 + N11 + 0.0;
+        if(N == 0) {
+            r2 = Double.NaN;
+            pvalue = Double.NaN;
+        }
+        Double PA = (N10 + N11) / N;
+        Double PB = (N01 + N11) / N;
+        Double D = N11 / N - PA * PB;
+        Double Num = D * D;
+        Double Den = PA * (1 - PA) * PB * (1 - PB);
+        if (Den == 0.0) {
+            r2 = Double.NaN;
+        } else {
+            r2 = Num / Den;
+            if (D < 0) {
+                r2 = -1 * r2;
+            }
+        }
+
+        // 计算pvalue
+        BinomialDistribution binomialDistribution = new BinomialDistribution(N.intValue(), PA * PB);
+        Double pGreater = 1 - binomialDistribution.cumulativeProbability(N11);
+        Double pEqual = binomialDistribution.probability(N11);
+        pvalue = pGreater + pEqual;
+
+        r2Info.setN00(N00);
+        r2Info.setN01(N01);
+        r2Info.setN10(N10);
+        r2Info.setN11(N11);
+        r2Info.setR2(r2);
+        r2Info.setPvalue(pvalue);
+
+        return r2Info;
+    }
+
 }

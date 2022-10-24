@@ -3,6 +3,8 @@ package com;
 import com.args.MergeArgs;
 import com.bean.MHapInfo;
 import com.common.Util;
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -133,17 +135,29 @@ public class Merge {
         outputWriter.close();
 
         // convert mhap file to .gz file
+//        String gzFileName = mhapFileName + ".gz";
+//        GZIPOutputStream gzipOutputStream = new GZIPOutputStream(new FileOutputStream(gzFileName));
+//        FileInputStream fileInputStream = new FileInputStream(mhapFileName);
+//        byte[] buffer = new byte[1024];
+//        int len;
+//        while ((len = fileInputStream.read(buffer)) > 0) {
+//            gzipOutputStream.write(buffer, 0, len);
+//        }
+//        fileInputStream.close();
+//        gzipOutputStream.finish();
+//        gzipOutputStream.close();
+//        new File(mhapFileName).delete();
+
         String gzFileName = mhapFileName + ".gz";
-        GZIPOutputStream gzipOutputStream = new GZIPOutputStream(new FileOutputStream(gzFileName));
         FileInputStream fileInputStream = new FileInputStream(mhapFileName);
+        BZip2CompressorOutputStream bZip2CompressorOutputStream = new BZip2CompressorOutputStream(new FileOutputStream(gzFileName));
         byte[] buffer = new byte[1024];
         int len;
         while ((len = fileInputStream.read(buffer)) > 0) {
-            gzipOutputStream.write(buffer, 0, len);
+            bZip2CompressorOutputStream.write(buffer, 0, len);
         }
         fileInputStream.close();
-        gzipOutputStream.finish();
-        gzipOutputStream.close();
+        bZip2CompressorOutputStream.close();
         new File(mhapFileName).delete();
 
         log.info("command.Merge end! ");

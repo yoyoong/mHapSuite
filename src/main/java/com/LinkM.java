@@ -44,13 +44,13 @@ public class LinkM {
         Region fWindow = new Region(); // forward window region
         fWindow.setChrom(region.getChrom());
         Integer fWindowStart = region.getStart(); // forward window start position
-        long totalPosCnt = region.getEnd() - region.getStart();
-        long readPosCnt = 0;
+        Integer totalPosCnt = region.getEnd() - region.getStart();
+        Integer readPosCnt = 0;
         for (; fWindowStart < region.getEnd() - args.getMinInsertSize() - args.getrLength() + 1 && fWindow.getEnd() <= region.getEnd(); fWindowStart++) {
             fWindow.setStart(fWindowStart); // forward window start position
             fWindow.setEnd(fWindowStart + args.getfLength() - 1); // forward window end position
             readPosCnt++;
-            if (readPosCnt % (totalPosCnt / 100) == 0) {
+            if (readPosCnt % (totalPosCnt / 10) == 0) {
                 int percent = (int) Math.round(Double.valueOf(readPosCnt) * 100 / totalPosCnt);
                 log.info("Read complete " + percent + "%.");
             }

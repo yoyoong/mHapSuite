@@ -64,7 +64,11 @@ public class MHBDiscovery {
 
         // create the output directory and file
         BufferedWriter bufferedWriter = util.createOutputFile(args.getOutputDir(), args.getTag() + ".bed");
+
         for (Region region : regionList) {
+            // parse the mhap file
+            List<MHapInfo> mHapInfoList = util.parseMhapFile(args.getmHapPath(), region, "both", true);
+
             // parse the cpg file
             List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
 
@@ -85,12 +89,12 @@ public class MHBDiscovery {
             }
             List<Integer> cpgPosListInRegion = cpgPosList.subList(cpgStartPos,
                     cpgEndPos + 2 > cpgPosList.size() ? cpgPosList.size() : cpgEndPos + 2); // end site add 1
-
-            // parse the mhap file
-            List<MHapInfo> mHapInfoList = util.parseMhapFile(args.getmHapPath(), region, "both", true);
+            if (cpgPosListInRegion.size() < 1) {
+                continue;
+            }
 
             // get mhap index list map to cpg positions
-            Map<String, List<Integer>> mHapIndexListMapToCpg = util.getMhapIndexMapToCpg(mHapInfoList, cpgPosList);
+            Map<String, List<Integer>> mHapIndexListMapToCpg = util.getMhapIndexMapToCpg(mHapInfoList, cpgPosListInRegion);
 
             List<MHBInfo> mhbInfoList = new ArrayList<>();
             Integer startIndex = 0; // start mhb position index in cpgPosListInRegion

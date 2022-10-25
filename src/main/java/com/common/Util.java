@@ -702,10 +702,16 @@ public class Util {
             // get the cpg postions in mhap line
             while (mHapInfo.getStart() > cpgPosListInRegion.get(cpgStartIndex)) {
                 cpgStartIndex++;
+                if (cpgStartIndex >= cpgPosListInRegion.size() - 1) {
+                    break;
+                }
             }
             cpgEndIndex = cpgStartIndex;
             while (cpgPosListInRegion.get(cpgEndIndex) < mHapInfo.getEnd()) {
                 cpgEndIndex++;
+                if (cpgEndIndex >= cpgPosListInRegion.size() - 1) {
+                    break;
+                }
             }
             if (cpgPosListInRegion.get(cpgEndIndex) > mHapInfo.getEnd()) {
                 cpgEndIndex--;

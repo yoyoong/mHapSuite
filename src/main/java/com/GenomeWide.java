@@ -239,7 +239,7 @@ public class GenomeWide {
                     Integer.valueOf(mHapLine.split("\t")[4]), mHapLine.split("\t")[5]);
             mHapInfoList.add(mHapInfo);
 
-            Integer cpgPosIndex = util.indexOfList(cpgPosList, 0, cpgPosList.size(), mHapInfo.getStart());
+            Integer cpgPosIndex = util.indexOfList(cpgPosList, 0, cpgPosList.size() - 1, mHapInfo.getStart());
             String cpgStr = mHapInfo.getCpg();
             Integer cpgLen = cpgStr.length();
             Integer readCnt = mHapInfo.getCnt();

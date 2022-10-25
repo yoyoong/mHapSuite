@@ -188,13 +188,16 @@ public class Util {
                 break;
             }
         }
-        for (int i = 0; i < cpgPosList.size(); i++) {
-            if (cpgPosList.get(i) >= region.getEnd()) {
+        for (int i = cpgStartPos; i < cpgPosList.size(); i++) {
+            if (cpgPosList.get(i) > region.getEnd()) {
                 cpgEndPos = i;
+                break;
+            } else if (cpgPosList.get(i) == region.getEnd()) {
+                cpgEndPos = i + 1;
                 break;
             }
         }
-        List<Integer> cpgPosListInRegion = cpgPosList.subList(cpgStartPos, cpgEndPos + 1);
+        List<Integer> cpgPosListInRegion = cpgPosList.subList(cpgStartPos, cpgEndPos);
 
         return cpgPosListInRegion;
     }

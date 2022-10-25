@@ -122,7 +122,7 @@ public class MHBDiscovery {
                     if (mHapIndexList1 != null && mHapIndexList1.size() > 0 && mHapIndexList2 != null && mHapIndexList2.size() > 0) {
                         List<MHapInfo> mHapList1 = util.getMHapListFromIndex(mHapInfoList, mHapIndexList1);
                         List<MHapInfo> mHapList2 = util.getMHapListFromIndex(mHapInfoList, mHapIndexList2);
-                        R2Info r2Info = util.getR2FromMap(mHapList1, mHapList2, cpgPosList, cpgPos1, cpgPos2, 0);
+                        R2Info r2Info = util.getR2FromMap(mHapList1, cpgPosList, cpgPos1, cpgPos2, 0);
 //                    System.out.println("startIndex: " + startIndex + " index: " + index + " endIndex: " + endIndex);
 //                    System.out.println(cpgPosListInRegion.get(index) + "\t" + cpgPosListInRegion.get(endIndex) + "\t"
 //                            + r2Info.getR2() + "\t" + r2Info.getPvalue());

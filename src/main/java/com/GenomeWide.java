@@ -370,161 +370,165 @@ public class GenomeWide {
 
         List<Integer> cpgPosListInRegion = util.getCpgPosListInRegion(cpgPosList, region);
         Integer start = util.indexOfList(cpgPosList, 0, cpgPosList.size(), cpgPosListInRegion.get(0));
-        Integer cpgPosCnt = 0;
-        for (Integer i = 0; i < cpgPosListInRegion.size(); i++) {
-            cpgPosCnt++;
-            if (cpgPosCnt % 100000 == 0) {
-                log.info("Calculate complete " + cpgPosCnt + " cpg positions.");
-            }
 
-            Integer nReads = nReadsList[start + i];
-            Integer mRead = mReadList[start + i];
-            Integer cBase = cBaseList[start + i];
-            Integer tBase = tBaseList[start + i];
-            Integer K4plus = K4plusList[start + i];
-            Integer nDR = nDRList[start + i];
-            Integer nMR = nMRList[start + i];
-
-            if (args.getMetrics().contains("MM") && nReads < args.getCpgCov()) {
-                continue;
-            }
-            if (args.getMetrics().contains("PDR") || args.getMetrics().contains("CHALM") || args.getMetrics().contains("MHL") ||
-                    args.getMetrics().contains("MCR") || args.getMetrics().contains("MBS") || args.getMetrics().contains("Entropy")) {
-                if (K4plus < args.getK4Plus()) {
-                    continue;
-                }
-            }
-
-            BedGraphInfo bedGraphInfo = new BedGraphInfo();
-            bedGraphInfo.setChrom(region.getChrom());
-            bedGraphInfo.setStart(cpgPosListInRegion.get(i) - 1);
-            bedGraphInfo.setEnd(cpgPosListInRegion.get(i));
-            if (args.getMetrics().contains("MM")) {
-                Double MM = mRead.doubleValue() / nReads.doubleValue();
-                if (MM.isNaN() || MM.isInfinite()) {
-                    continue;
-                }
-                bedGraphInfo.setMM(MM.floatValue());
-                bufferedWriterMM.write(bedGraphInfo.printMM());
-            }
-            if (args.getMetrics().contains("PDR")) {
-                Double PDR = nDR.doubleValue() / K4plus.doubleValue();
-                if (PDR.isNaN() || PDR.isInfinite()) {
-                    continue;
-                }
-                bedGraphInfo.setPDR(PDR.floatValue());
-                bufferedWriterPDR.write(bedGraphInfo.printPDR());
-            }
-            if (args.getMetrics().contains("CHALM")) {
-                Double CHALM = nMR.doubleValue() / K4plus.doubleValue();
-                if (CHALM.isNaN() || CHALM.isInfinite()) {
-                    continue;
-                }
-                bedGraphInfo.setCHALM(CHALM.floatValue());
-                bufferedWriterCHALM.write(bedGraphInfo.printCHALM());
-            }
-            if (args.getMetrics().contains("MHL")) {
-                Double temp = 0.0;
-                Integer w = 0;
-                for (int j = args.getMinK() - 1; j < args.getMaxK(); j++) {
-                    Integer row = j - args.getMinK() + 1;
-                    Integer methKmers = methKmersList[row][start + i];
-                    Integer totalKmers = totalKmersList[row][start + i];
-                    temp += methKmers.doubleValue() / totalKmers.doubleValue() * (j + 1);
-                    w += (j + 1);
-                }
-                Double MHL = temp / w;
-                if (MHL.isNaN() || MHL.isInfinite()) {
-                    continue;
-                }
-                bedGraphInfo.setMHL(MHL.floatValue());
-                bufferedWriterMHL.write(bedGraphInfo.printMHL());
-            }
-            if (args.getMetrics().contains("MCR")) {
-                Double MCR = cBase.doubleValue() / tBase.doubleValue();
-                if (MCR.isNaN() || MCR.isInfinite()) {
-                    continue;
-                }
-                bedGraphInfo.setMCR(MCR.floatValue());
-                bufferedWriterMCR.write(bedGraphInfo.printMCR());
-            }
-            if (args.getMetrics().contains("MBS")) {
-                Double mbsNum = mbsNumList[start + i];
-                Double MBS = mbsNum / K4plus;
-                if (MBS.isNaN() || MBS.isInfinite()) {
-                    continue;
-                }
-                bedGraphInfo.setMBS(MBS.floatValue());
-                bufferedWriterMBS.write(bedGraphInfo.printMBS());
-            }
-            if (args.getMetrics().contains("Entropy")) {
-                Integer kmerAll = kmerAllList[start + i];
-                Double temp = 0.0;
-                for (int j = 0; j < args.getK() * args.getK(); j++) {
-                    if (kmerList[j][i] > 0) {
-                        Integer cnt = kmerList[j][start + i];
-                        temp += cnt.doubleValue() / kmerAll.doubleValue() * Math.log(cnt.doubleValue() / kmerAll.doubleValue()) / Math.log(2);
-                    }
+        String[] metricsList = args.getMetrics().split(" ");
+        for (String metric : metricsList) {
+            Integer cpgPosCnt = 0;
+            for (Integer i = 0; i < cpgPosListInRegion.size(); i++) {
+                cpgPosCnt++;
+                if (cpgPosCnt % 100000 == 0) {
+                    log.info("Calculate complete " + cpgPosCnt + " cpg positions.");
                 }
 
-                Double entropy = - 1 / args.getK().doubleValue() * temp;
-                if (entropy.isNaN() || entropy.isInfinite()) {
+                Integer nReads = nReadsList[start + i];
+                Integer mRead = mReadList[start + i];
+                Integer cBase = cBaseList[start + i];
+                Integer tBase = tBaseList[start + i];
+                Integer K4plus = K4plusList[start + i];
+                Integer nDR = nDRList[start + i];
+                Integer nMR = nMRList[start + i];
+
+                if (metric.equals("MM") && nReads < args.getCpgCov()) {
                     continue;
                 }
-                bedGraphInfo.setEntropy(entropy.floatValue());
-                bufferedWriterEntropy.write(bedGraphInfo.printEntropy());
-            }
-            if (args.getMetrics().contains("R2")) {
-                Double r2Sum = 0.0;
-                Double r2Num = 0.0;
-                for (int j = i - 2; j < i + 3; j++) {
-                    if (j < 0 || j == i || j >= cpgPosListInRegion.size()) {
+                if (metric.equals("PDR") || metric.equals("CHALM") || metric.equals("MHL") ||
+                        metric.equals("MCR") || metric.equals("MBS") || metric.equals("Entropy")) {
+                    if (K4plus < args.getK4Plus()) {
                         continue;
                     }
-                    Integer index = j - i > 0 ? j - i + 1 : j - i + 2;
-                    Integer N00 = N00List[index][start + i];
-                    Integer N01 = N01List[index][start + i];
-                    Integer N10 = N10List[index][start + i];
-                    Integer N11 = N11List[index][start + i];
+                }
 
-                    if ((N00 + N01 + N10 + N11) < args.getR2Cov()) {
+                BedGraphInfo bedGraphInfo = new BedGraphInfo();
+                bedGraphInfo.setChrom(region.getChrom());
+                bedGraphInfo.setStart(cpgPosListInRegion.get(i) - 1);
+                bedGraphInfo.setEnd(cpgPosListInRegion.get(i));
+                if (metric.equals("MM")) {
+                    Double MM = mRead.doubleValue() / nReads.doubleValue();
+                    if (MM.isNaN() || MM.isInfinite()) {
                         continue;
                     }
-
-                    // 计算r2
-                    Double r2 = 0.0;
-                    Double pvalue = 0.0;
-                    Double N = N00 + N01 + N10 + N11 + 0.0;
-                    if(N == 0) {
-                        r2 = Double.NaN;
-                        pvalue = Double.NaN;
+                    bedGraphInfo.setMM(MM.floatValue());
+                    bufferedWriterMM.write(bedGraphInfo.printMM());
+                }
+                if (metric.equals("PDR")) {
+                    Double PDR = nDR.doubleValue() / K4plus.doubleValue();
+                    if (PDR.isNaN() || PDR.isInfinite()) {
+                        continue;
                     }
-                    Double PA = (N10 + N11) / N;
-                    Double PB = (N01 + N11) / N;
-                    Double D = N11 / N - PA * PB;
-                    Double Num = D * D;
-                    Double Den = PA * (1 - PA) * PB * (1 - PB);
-                    if (Den == 0.0) {
-                        r2 = Double.NaN;
-                    } else {
-                        r2 = Num / Den;
-                        if (D < 0) {
-                            r2 = -1 * r2;
+                    bedGraphInfo.setPDR(PDR.floatValue());
+                    bufferedWriterPDR.write(bedGraphInfo.printPDR());
+                }
+                if (metric.equals("CHALM")) {
+                    Double CHALM = nMR.doubleValue() / K4plus.doubleValue();
+                    if (CHALM.isNaN() || CHALM.isInfinite()) {
+                        continue;
+                    }
+                    bedGraphInfo.setCHALM(CHALM.floatValue());
+                    bufferedWriterCHALM.write(bedGraphInfo.printCHALM());
+                }
+                if (metric.equals("MHL")) {
+                    Double temp = 0.0;
+                    Integer w = 0;
+                    for (int j = args.getMinK() - 1; j < args.getMaxK(); j++) {
+                        Integer row = j - args.getMinK() + 1;
+                        Integer methKmers = methKmersList[row][start + i];
+                        Integer totalKmers = totalKmersList[row][start + i];
+                        temp += methKmers.doubleValue() / totalKmers.doubleValue() * (j + 1);
+                        w += (j + 1);
+                    }
+                    Double MHL = temp / w;
+                    if (MHL.isNaN() || MHL.isInfinite()) {
+                        continue;
+                    }
+                    bedGraphInfo.setMHL(MHL.floatValue());
+                    bufferedWriterMHL.write(bedGraphInfo.printMHL());
+                }
+                if (metric.equals("MCR")) {
+                    Double MCR = cBase.doubleValue() / tBase.doubleValue();
+                    if (MCR.isNaN() || MCR.isInfinite()) {
+                        continue;
+                    }
+                    bedGraphInfo.setMCR(MCR.floatValue());
+                    bufferedWriterMCR.write(bedGraphInfo.printMCR());
+                }
+                if (metric.equals("MBS")) {
+                    Double mbsNum = mbsNumList[start + i];
+                    Double MBS = mbsNum / K4plus;
+                    if (MBS.isNaN() || MBS.isInfinite()) {
+                        continue;
+                    }
+                    bedGraphInfo.setMBS(MBS.floatValue());
+                    bufferedWriterMBS.write(bedGraphInfo.printMBS());
+                }
+                if (metric.equals("Entropy")) {
+                    Integer kmerAll = kmerAllList[start + i];
+                    Double temp = 0.0;
+                    for (int j = 0; j < args.getK() * args.getK(); j++) {
+                        if (kmerList[j][i] > 0) {
+                            Integer cnt = kmerList[j][start + i];
+                            temp += cnt.doubleValue() / kmerAll.doubleValue() * Math.log(cnt.doubleValue() / kmerAll.doubleValue()) / Math.log(2);
                         }
                     }
 
-                    if (!r2.isNaN()) {
-                        r2Num++;
-                        r2Sum += r2;
+                    Double entropy = - 1 / args.getK().doubleValue() * temp;
+                    if (entropy.isNaN() || entropy.isInfinite()) {
+                        continue;
                     }
+                    bedGraphInfo.setEntropy(entropy.floatValue());
+                    bufferedWriterEntropy.write(bedGraphInfo.printEntropy());
                 }
+                if (metric.equals("R2")) {
+                    Double r2Sum = 0.0;
+                    Double r2Num = 0.0;
+                    for (int j = i - 2; j < i + 3; j++) {
+                        if (j < 0 || j == i || j >= cpgPosListInRegion.size()) {
+                            continue;
+                        }
+                        Integer index = j - i > 0 ? j - i + 1 : j - i + 2;
+                        Integer N00 = N00List[index][start + i];
+                        Integer N01 = N01List[index][start + i];
+                        Integer N10 = N10List[index][start + i];
+                        Integer N11 = N11List[index][start + i];
 
-                Double meanR2 = r2Sum / r2Num;
-                if (meanR2.isNaN() || meanR2.isInfinite()) {
-                    continue;
+                        if ((N00 + N01 + N10 + N11) < args.getR2Cov()) {
+                            continue;
+                        }
+
+                        // 计算r2
+                        Double r2 = 0.0;
+                        Double pvalue = 0.0;
+                        Double N = N00 + N01 + N10 + N11 + 0.0;
+                        if(N == 0) {
+                            r2 = Double.NaN;
+                            pvalue = Double.NaN;
+                        }
+                        Double PA = (N10 + N11) / N;
+                        Double PB = (N01 + N11) / N;
+                        Double D = N11 / N - PA * PB;
+                        Double Num = D * D;
+                        Double Den = PA * (1 - PA) * PB * (1 - PB);
+                        if (Den == 0.0) {
+                            r2 = Double.NaN;
+                        } else {
+                            r2 = Num / Den;
+                            if (D < 0) {
+                                r2 = -1 * r2;
+                            }
+                        }
+
+                        if (!r2.isNaN()) {
+                            r2Num++;
+                            r2Sum += r2;
+                        }
+                    }
+
+                    Double meanR2 = r2Sum / r2Num;
+                    if (meanR2.isNaN() || meanR2.isInfinite()) {
+                        continue;
+                    }
+                    bedGraphInfo.setR2(meanR2.floatValue());
+                    bufferedWriterR2.write(bedGraphInfo.printR2());
                 }
-                bedGraphInfo.setR2(meanR2.floatValue());
-                bufferedWriterR2.write(bedGraphInfo.printR2());
             }
         }
 

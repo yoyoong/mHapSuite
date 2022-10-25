@@ -744,7 +744,7 @@ public class Util {
         return mHapListFromIndex;
     }
 
-    public R2Info getR2FromMap(List<MHapInfo> mHapList1, List<MHapInfo> mHapList2, List<Integer> cpgPosList, Integer cpgPos1, Integer cpgPos2, Integer r2Cov) {
+    public R2Info getR2FromMap(List<MHapInfo> mHapList1, List<Integer> cpgPosList, Integer cpgPos1, Integer cpgPos2, Integer r2Cov) {
         R2Info r2Info = new R2Info();
         Integer N00 = 0;
         Integer N01 = 0;

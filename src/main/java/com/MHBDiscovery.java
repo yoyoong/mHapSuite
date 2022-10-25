@@ -94,7 +94,7 @@ public class MHBDiscovery {
             }
 
             // get mhap index list map to cpg positions
-            Map<String, List<Integer>> mHapIndexListMapToCpg = util.getMhapIndexMapToCpg(mHapInfoList, cpgPosListInRegion);
+            Map<Integer, List<MHapInfo>> mHapIndexListMapToCpg = util.getMhapIndexMapToCpg(mHapInfoList, cpgPosListInRegion);
 
             List<MHBInfo> mhbInfoList = new ArrayList<>();
             Integer startIndex = 0; // start mhb position index in cpgPosListInRegion
@@ -117,11 +117,9 @@ public class MHBDiscovery {
                     // get r2 and pvalue of startIndex
                     Integer cpgPos1 = cpgPosListInRegion.get(index);
                     Integer cpgPos2 = cpgPosListInRegion.get(endIndex);
-                    List<Integer> mHapIndexList1 = mHapIndexListMapToCpg.get(cpgPos1.toString());
-                    List<Integer> mHapIndexList2 = mHapIndexListMapToCpg.get(cpgPos2.toString());
-                    if (mHapIndexList1 != null && mHapIndexList1.size() > 0 && mHapIndexList2 != null && mHapIndexList2.size() > 0) {
-                        List<MHapInfo> mHapList1 = util.getMHapListFromIndex(mHapInfoList, mHapIndexList1);
-                        List<MHapInfo> mHapList2 = util.getMHapListFromIndex(mHapInfoList, mHapIndexList2);
+                    List<MHapInfo> mHapList1 = mHapIndexListMapToCpg.get(cpgPos1);
+                    List<MHapInfo> mHapList2 = mHapIndexListMapToCpg.get(cpgPos2);
+                    if (mHapList1 != null && mHapList1.size() > 0 && mHapList2 != null && mHapList2.size() > 0) {
                         R2Info r2Info = util.getR2FromMap(mHapList1, cpgPosList, cpgPos1, cpgPos2, 0);
 //                    System.out.println("startIndex: " + startIndex + " index: " + index + " endIndex: " + endIndex);
 //                    System.out.println(cpgPosListInRegion.get(index) + "\t" + cpgPosListInRegion.get(endIndex) + "\t"

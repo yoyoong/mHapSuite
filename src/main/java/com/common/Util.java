@@ -690,13 +690,13 @@ public class Util {
         return mHapListFiltered;
     }
 
-    public Map<String, List<Integer>> getMhapIndexMapToCpg(List<MHapInfo> mHapInfoList, List<Integer> cpgPosListInRegion) throws Exception {
-        TreeMap<String, List<Integer>> mHapIndexMapToCpg = new TreeMap<>();
+    public Map<Integer, List<MHapInfo>> getMhapIndexMapToCpg(List<MHapInfo> mHapInfoList, List<Integer> cpgPosListInRegion) throws Exception {
+        TreeMap<Integer, List<MHapInfo>> mHapListMapToCpg = new TreeMap<>();
 
         Integer cpgStartIndex = 0;
         Integer cpgEndIndex = 0;
         long totalCnt = mHapInfoList.size();
-        for (long i = 0; i < mHapInfoList.size(); i++) {
+        for (Integer i = 0; i < mHapInfoList.size(); i++) {
 //            if (i % (totalCnt / 100) == 0) {
 //                int percent = (int) Math.round(Double.valueOf(i) * 100 / totalCnt);
 //                log.info("getMhapIndexMapToCpg complete " + percent + "%.");
@@ -721,27 +721,19 @@ public class Util {
             }
 
             for (int j = cpgStartIndex; j <= cpgEndIndex; j++) {
-                List<Integer> mHapIndexInMap = mHapIndexMapToCpg.get(cpgPosListInRegion.get(j).toString());
-                if (mHapIndexInMap != null && mHapIndexInMap.size() > 0) {
-                    mHapIndexInMap.add(Integer.valueOf(String.valueOf(i)));
+                List<MHapInfo> mHapListInMap = mHapListMapToCpg.get(cpgPosListInRegion.get(j));
+                if (mHapListInMap != null && mHapListInMap.size() > 0) {
+                    mHapListInMap.add(mHapInfo);
                 } else {
-                    mHapIndexInMap = new ArrayList<>();
-                    mHapIndexInMap.add(Integer.valueOf(String.valueOf(i)));
+                    mHapListInMap = new ArrayList<>();
+                    mHapListInMap.add(mHapInfo);
                 }
-                mHapIndexMapToCpg.put(cpgPosListInRegion.get(j).toString(), mHapIndexInMap);
+                mHapListMapToCpg.put(cpgPosListInRegion.get(j), mHapListInMap);
             }
 
         }
 
-        return mHapIndexMapToCpg;
-    }
-
-    public List<MHapInfo> getMHapListFromIndex(List<MHapInfo> mHapInfoList, List<Integer> mHapListMapToCpg) {
-        List<MHapInfo> mHapListFromIndex = new ArrayList<>();
-        for (Integer index : mHapListMapToCpg) {
-            mHapListFromIndex.add(mHapInfoList.get(index));
-        }
-        return mHapListFromIndex;
+        return mHapListMapToCpg;
     }
 
     public R2Info getR2FromMap(List<MHapInfo> mHapList1, List<Integer> cpgPosList, Integer cpgPos1, Integer cpgPos2, Integer r2Cov) {

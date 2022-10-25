@@ -3,6 +3,8 @@ package com;
 import com.args.MergeArgs;
 import com.bean.MHapInfo;
 import com.common.Util;
+import htsjdk.samtools.cram.compression.BZIP2ExternalCompressor;
+import htsjdk.samtools.util.BlockCompressedOutputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.slf4j.Logger;
@@ -135,29 +137,17 @@ public class Merge {
         outputWriter.close();
 
         // convert mhap file to .gz file
-//        String gzFileName = mhapFileName + ".gz";
-//        GZIPOutputStream gzipOutputStream = new GZIPOutputStream(new FileOutputStream(gzFileName));
-//        FileInputStream fileInputStream = new FileInputStream(mhapFileName);
-//        byte[] buffer = new byte[1024];
-//        int len;
-//        while ((len = fileInputStream.read(buffer)) > 0) {
-//            gzipOutputStream.write(buffer, 0, len);
-//        }
-//        fileInputStream.close();
-//        gzipOutputStream.finish();
-//        gzipOutputStream.close();
-//        new File(mhapFileName).delete();
-
         String gzFileName = mhapFileName + ".gz";
-        FileInputStream fileInputStream = new FileInputStream(mhapFileName);
-        BZip2CompressorOutputStream bZip2CompressorOutputStream = new BZip2CompressorOutputStream(new FileOutputStream(gzFileName));
-        byte[] buffer = new byte[1024];
-        int len;
-        while ((len = fileInputStream.read(buffer)) > 0) {
-            bZip2CompressorOutputStream.write(buffer, 0, len);
+        InputStream inputStream = new FileInputStream(mhapFileName);
+        OutputStream outputStream = new BlockCompressedOutputStream(new File(gzFileName));
+        byte[] b = new byte[1024];
+        int len = inputStream.read(b);
+        while (len > 0) {
+            outputStream.write(b, 0, len);
+            len = inputStream.read(b);
         }
-        fileInputStream.close();
-        bZip2CompressorOutputStream.close();
+        inputStream.close();
+        outputStream.close();
         new File(mhapFileName).delete();
 
         log.info("command.Merge end! ");

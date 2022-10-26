@@ -218,10 +218,10 @@ public class MainTest extends TestCase {
         String arg2 = "esophagus_T.mhap.gz";
         String arg3 = "-cpgPath";
         String arg4 = "hg19_CpG.gz";
-        String arg5 = "-region";
-        String arg6 = "chr1:10469-5361580";
-//        String arg5= "-bedPath";
-//        String arg6 = "CRC_MHB_non_NC.bed";
+//        String arg5 = "-region";
+//        String arg6 = "chr1:10469-5361580";
+        String arg5= "-bedPath";
+        String arg6 = "hg19_1000CpG.bed";
         String arg7 = "-window";
         String arg8 = "5";
         String arg9 = "-r2";

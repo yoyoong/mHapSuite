@@ -256,7 +256,7 @@ public class GenomeWide {
                 }
             }
 
-            if (cpgStr.length() >= args.getK()) {
+            if (cpgLen >= args.getK()) {
                 for (int i = 0; i < cpgLen; i++) {
                     K4plusList[cpgPosIndex + i] += readCnt;
                     if (cpgStr.contains("1")) {
@@ -318,14 +318,12 @@ public class GenomeWide {
             if (args.getMetrics().contains("Entropy")) {
                 if (cpgLen >= args.getK()) {
                     Map<String, Integer> kmerMap = new HashMap<>();
-                    if (cpgLen >= args.getK()) {
-                        for (int i = 0; i < cpgLen - args.getK() + 1; i++) {
-                            String kmerStr = cpgStr.substring(i, i + args.getK());
-                            if (kmerMap.containsKey(kmerStr)) {
-                                kmerMap.put(kmerStr, kmerMap.get(kmerStr) + readCnt);
-                            } else {
-                                kmerMap.put(kmerStr, readCnt);
-                            }
+                    for (int i = 0; i < cpgLen - args.getK() + 1; i++) {
+                        String kmerStr = cpgStr.substring(i, i + args.getK());
+                        if (kmerMap.containsKey(kmerStr)) {
+                            kmerMap.put(kmerStr, kmerMap.get(kmerStr) + readCnt);
+                        } else {
+                            kmerMap.put(kmerStr, readCnt);
                         }
                     }
 
@@ -371,13 +369,13 @@ public class GenomeWide {
         List<Integer> cpgPosListInRegion = util.getCpgPosListInRegion(cpgPosList, region);
         Integer start = util.indexOfList(cpgPosList, 0, cpgPosList.size(), cpgPosListInRegion.get(0));
 
-        String[] metricsList = args.getMetrics().split(" ");
+        String[] metricsList = args.getMetrics().trim().split(" ");
         for (String metric : metricsList) {
             Integer cpgPosCnt = 0;
             for (Integer i = 0; i < cpgPosListInRegion.size(); i++) {
                 cpgPosCnt++;
                 if (cpgPosCnt % 100000 == 0) {
-                    log.info("Calculate complete " + cpgPosCnt + " cpg positions.");
+                    log.info("Calculate " + metric + " complete " + cpgPosCnt + " cpg positions.");
                 }
 
                 Integer nReads = nReadsList[start + i];
@@ -433,6 +431,9 @@ public class GenomeWide {
                         Integer row = j - args.getMinK() + 1;
                         Integer methKmers = methKmersList[row][start + i];
                         Integer totalKmers = totalKmersList[row][start + i];
+                        if (totalKmers < 1) {
+                            continue;
+                        }
                         temp += methKmers.doubleValue() / totalKmers.doubleValue() * (j + 1);
                         w += (j + 1);
                     }
@@ -462,6 +463,9 @@ public class GenomeWide {
                 }
                 if (metric.equals("Entropy")) {
                     Integer kmerAll = kmerAllList[start + i];
+                    if (kmerAll < 1) {
+                        continue;
+                    }
                     Double temp = 0.0;
                     for (int j = 0; j < args.getK() * args.getK(); j++) {
                         if (kmerList[j][i] > 0) {

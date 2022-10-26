@@ -6,10 +6,6 @@ import com.bean.MHapInfo;
 import com.bean.R2Info;
 import com.bean.Region;
 import com.common.Util;
-import htsjdk.samtools.BinningIndexContent;
-import htsjdk.samtools.Chunk;
-import htsjdk.tribble.index.tabix.TabixFormat;
-import htsjdk.tribble.index.tabix.TabixIndex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +38,44 @@ public class MHBDiscovery {
             regionList.add(region);
         } else if (args.getBedPath() != null && !args.getBedPath().equals("")) {
             regionList = util.getBedRegionList(args.getBedPath());
+            // merge adjacent regions
+            List<Region> newRegionList = new ArrayList<>();
+            Map<String, List<Integer>> cpgPosListMap = util.parseWholeCpgFile(args.getCpgPath());
+            for (Integer i = 0; i < regionList.size() - 1; i++) {
+                Region thisRegion = regionList.get(i);
+                Region nextRegion = regionList.get(i + 1);
+                if (thisRegion.getChrom().equals(nextRegion.getChrom())) {
+                    List<Integer> cpgPosList = cpgPosListMap.get(thisRegion.getChrom());
+                    List<Integer> cpgPosListInThisRegion = util.getCpgPosListInRegion(cpgPosList, thisRegion);
+                    List<Integer> cpgPosListInNextRegion = util.getCpgPosListInRegion(cpgPosList, nextRegion);
+                    Integer thisRegionEndCpgIndex = util.indexOfList(cpgPosList, 0, cpgPosList.size() - 1,
+                            cpgPosListInThisRegion.get(cpgPosListInThisRegion.size() - 1));
+                    Integer nextRegionStartCpgIndex = util.indexOfList(cpgPosList, 0, cpgPosList.size() - 1,
+                            cpgPosListInThisRegion.get(cpgPosListInNextRegion.size() - 1));
+                    if (nextRegionStartCpgIndex <= thisRegionEndCpgIndex + 1) {
+                        int nextNum = 2;
+                        while (i + nextNum < regionList.size() && nextRegionStartCpgIndex <= thisRegionEndCpgIndex + 1) {
+                            nextRegion = regionList.get(i + nextNum);
+                            cpgPosListInNextRegion = util.getCpgPosListInRegion(cpgPosList, nextRegion);
+                            nextRegionStartCpgIndex = util.indexOfList(cpgPosList, 0, cpgPosList.size() - 1,
+                                    cpgPosListInThisRegion.get(cpgPosListInNextRegion.size() - 1));
+                            nextNum++;
+                        }
+
+                        Region mergeRegion = new Region();
+                        mergeRegion.setChrom(thisRegion.getChrom());
+                        mergeRegion.setStart(thisRegion.getStart());
+                        mergeRegion.setEnd(nextRegion.getEnd());
+                        newRegionList.add(mergeRegion);
+                        i += nextNum;
+                    } else {
+                        newRegionList.add(thisRegion);
+                    }
+                } else {
+                    newRegionList.add(thisRegion);
+                }
+            }
+            regionList = newRegionList;
         } else {
             List<Region> wholeRegionList = util.getWholeRegionFromMHapFile(args.getmHapPath());
             for (Region region : wholeRegionList) {
@@ -70,7 +104,7 @@ public class MHBDiscovery {
             List<MHapInfo> mHapInfoList = util.parseMhapFile(args.getmHapPath(), region, "both", true);
 
             // parse the cpg file
-            List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
+            List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 2000);
 
             // get cpg site list in region
             Integer cpgStartPos = 0;
@@ -94,7 +128,7 @@ public class MHBDiscovery {
             }
 
             // get mhap index list map to cpg positions
-            Map<String, List<Integer>> mHapIndexListMapToCpg = util.getMhapIndexMapToCpg(mHapInfoList, cpgPosListInRegion);
+            Map<Integer, List<Integer>> mHapIndexListMapToCpg = util.getMhapIndexMapToCpg(mHapInfoList, cpgPosListInRegion);
 
             List<MHBInfo> mhbInfoList = new ArrayList<>();
             Integer startIndex = 0; // start mhb position index in cpgPosListInRegion
@@ -117,8 +151,8 @@ public class MHBDiscovery {
                     // get r2 and pvalue of startIndex
                     Integer cpgPos1 = cpgPosListInRegion.get(index);
                     Integer cpgPos2 = cpgPosListInRegion.get(endIndex);
-                    List<Integer> mHapIndexList1 = mHapIndexListMapToCpg.get(cpgPos1.toString());
-                    List<Integer> mHapIndexList2 = mHapIndexListMapToCpg.get(cpgPos2.toString());
+                    List<Integer> mHapIndexList1 = mHapIndexListMapToCpg.get(cpgPos1);
+                    List<Integer> mHapIndexList2 = mHapIndexListMapToCpg.get(cpgPos2);
                     if (mHapIndexList1 != null && mHapIndexList1.size() > 0 && mHapIndexList2 != null && mHapIndexList2.size() > 0) {
                         List<MHapInfo> mHapList1 = util.getMHapListFromIndex(mHapInfoList, mHapIndexList1);
                         List<MHapInfo> mHapList2 = util.getMHapListFromIndex(mHapInfoList, mHapIndexList2);

@@ -690,18 +690,18 @@ public class Util {
         return mHapListFiltered;
     }
 
-    public Map<String, List<Integer>> getMhapIndexMapToCpg(List<MHapInfo> mHapInfoList, List<Integer> cpgPosListInRegion) throws Exception {
-        TreeMap<String, List<Integer>> mHapIndexMapToCpg = new TreeMap<>();
+    public Map<Integer, List<Integer>> getMhapIndexMapToCpg(List<MHapInfo> mHapInfoList, List<Integer> cpgPosListInRegion) throws Exception {
+        TreeMap<Integer, List<Integer>> mHapIndexMapToCpg = new TreeMap<>();
 
         Integer cpgStartIndex = 0;
         Integer cpgEndIndex = 0;
         long totalCnt = mHapInfoList.size();
-        for (long i = 0; i < mHapInfoList.size(); i++) {
+        for (Integer i = 0; i < mHapInfoList.size(); i++) {
 //            if (i % (totalCnt / 100) == 0) {
 //                int percent = (int) Math.round(Double.valueOf(i) * 100 / totalCnt);
 //                log.info("getMhapIndexMapToCpg complete " + percent + "%.");
 //            }
-            MHapInfo mHapInfo = mHapInfoList.get(Integer.valueOf(String.valueOf(i)));
+            MHapInfo mHapInfo = mHapInfoList.get(i);
             // get the cpg postions in mhap line
             while (cpgStartIndex < cpgPosListInRegion.size() - 1 && mHapInfo.getStart() > cpgPosListInRegion.get(cpgStartIndex)) {
                 cpgStartIndex++;
@@ -715,14 +715,14 @@ public class Util {
             }
 
             for (int j = cpgStartIndex; j <= cpgEndIndex; j++) {
-                List<Integer> mHapIndexInMap = mHapIndexMapToCpg.get(cpgPosListInRegion.get(j).toString());
+                List<Integer> mHapIndexInMap = mHapIndexMapToCpg.get(cpgPosListInRegion.get(j));
                 if (mHapIndexInMap != null && mHapIndexInMap.size() > 0) {
-                    mHapIndexInMap.add(Integer.valueOf(String.valueOf(i)));
+                    mHapIndexInMap.add(i);
                 } else {
                     mHapIndexInMap = new ArrayList<>();
-                    mHapIndexInMap.add(Integer.valueOf(String.valueOf(i)));
+                    mHapIndexInMap.add(i);
                 }
-                mHapIndexMapToCpg.put(cpgPosListInRegion.get(j).toString(), mHapIndexInMap);
+                mHapIndexMapToCpg.put(cpgPosListInRegion.get(j), mHapIndexInMap);
             }
 
         }

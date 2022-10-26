@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class MHBDiscovery {
     public static final Logger log = LoggerFactory.getLogger(MHBDiscovery.class);
@@ -37,61 +38,97 @@ public class MHBDiscovery {
             Region region = util.parseRegion(args.getRegion());
             regionList.add(region);
         } else if (args.getBedPath() != null && !args.getBedPath().equals("")) {
-            regionList = util.getBedRegionList(args.getBedPath());
+            List<Region> regionListInBed = util.getBedRegionList(args.getBedPath());
             // merge adjacent regions
-            List<Region> newRegionList = new ArrayList<>();
+            List<Region> regionListMerged = new ArrayList<>();
             Map<String, List<Integer>> cpgPosListMap = util.parseWholeCpgFile(args.getCpgPath());
-            for (Integer i = 0; i < regionList.size() - 1; i++) {
-                Region thisRegion = regionList.get(i);
-                Region nextRegion = regionList.get(i + 1);
-                if (thisRegion.getChrom().equals(nextRegion.getChrom())) {
+            Iterator<String> iterator = cpgPosListMap.keySet().iterator();
+            while (iterator.hasNext()) {
+                String chrom = iterator.next();
+                List<Region> regionListInChrom = regionListInBed.stream().filter(region -> region.getChrom().equals(chrom)).collect(Collectors.toList());
+                for (Integer i = 0; i < regionListInChrom.size() - 1;) {
+                    Region thisRegion = regionListInChrom.get(i);
+                    Integer start = thisRegion.getStart();
+                    Region nextRegion = regionListInChrom.get(i + 1);
+                    Integer end = nextRegion.getEnd();
                     List<Integer> cpgPosList = cpgPosListMap.get(thisRegion.getChrom());
                     List<Integer> cpgPosListInThisRegion = util.getCpgPosListInRegion(cpgPosList, thisRegion);
                     List<Integer> cpgPosListInNextRegion = util.getCpgPosListInRegion(cpgPosList, nextRegion);
                     Integer thisRegionEndCpgIndex = util.indexOfList(cpgPosList, 0, cpgPosList.size() - 1,
                             cpgPosListInThisRegion.get(cpgPosListInThisRegion.size() - 1));
                     Integer nextRegionStartCpgIndex = util.indexOfList(cpgPosList, 0, cpgPosList.size() - 1,
-                            cpgPosListInThisRegion.get(cpgPosListInNextRegion.size() - 1));
+                            cpgPosListInNextRegion.get(0));
                     if (nextRegionStartCpgIndex <= thisRegionEndCpgIndex + 1) {
                         int nextNum = 2;
-                        while (i + nextNum < regionList.size() && nextRegionStartCpgIndex <= thisRegionEndCpgIndex + 1) {
-                            nextRegion = regionList.get(i + nextNum);
+                        while (i + nextNum < regionListInChrom.size() && nextRegionStartCpgIndex <= thisRegionEndCpgIndex + 1) {
+                            thisRegion = regionListInChrom.get(i + nextNum - 1);
+                            cpgPosListInThisRegion = util.getCpgPosListInRegion(cpgPosList, thisRegion);
+                            thisRegionEndCpgIndex = util.indexOfList(cpgPosList, 0, cpgPosList.size() - 1,
+                                    cpgPosListInThisRegion.get(cpgPosListInThisRegion.size() - 1));
+                            nextRegion = regionListInChrom.get(i + nextNum);
                             cpgPosListInNextRegion = util.getCpgPosListInRegion(cpgPosList, nextRegion);
                             nextRegionStartCpgIndex = util.indexOfList(cpgPosList, 0, cpgPosList.size() - 1,
-                                    cpgPosListInThisRegion.get(cpgPosListInNextRegion.size() - 1));
+                                    cpgPosListInNextRegion.get(0));
                             nextNum++;
+                        }
+                        if (i + nextNum == regionListInChrom.size()) {
+                            end = nextRegion.getEnd();
+                        } else {
+                            end = thisRegion.getEnd();
                         }
 
                         Region mergeRegion = new Region();
-                        mergeRegion.setChrom(thisRegion.getChrom());
-                        mergeRegion.setStart(thisRegion.getStart());
-                        mergeRegion.setEnd(nextRegion.getEnd());
-                        newRegionList.add(mergeRegion);
-                        i += nextNum;
+                        mergeRegion.setChrom(chrom);
+                        mergeRegion.setStart(start);
+                        mergeRegion.setEnd(end);
+                        regionListMerged.add(mergeRegion);
+                        i += (nextNum - 1);
                     } else {
-                        newRegionList.add(thisRegion);
+                        i++;
+                        regionListMerged.add(thisRegion);
                     }
-                } else {
-                    newRegionList.add(thisRegion);
                 }
             }
-            regionList = newRegionList;
+            for (Region region : regionListMerged) {
+                Integer splitSize = 1000000;
+                if (region.getEnd() - region.getStart() > 1000000) {
+                    Integer regionNum = (region.getEnd() - region.getStart()) / splitSize + 1;
+                    for (int i = 0; i < regionNum; i++) {
+                        Region newRegion = new Region();
+                        newRegion.setChrom(region.getChrom());
+                        newRegion.setStart(region.getStart());
+                        if (region.getStart() + splitSize < region.getEnd()) {
+                            newRegion.setEnd(region.getStart() + splitSize - 1);
+                        } else {
+                            newRegion.setEnd(region.getEnd());
+                        }
+                        regionList.add(newRegion);
+                        region.setStart(newRegion.getEnd() + 1);
+                    }
+                } else {
+                    regionList.add(region);
+                }
+            }
         } else {
             List<Region> wholeRegionList = util.getWholeRegionFromMHapFile(args.getmHapPath());
             for (Region region : wholeRegionList) {
                 Integer splitSize = 1000000;
-                Integer regionNum = (region.getEnd() - region.getStart()) / splitSize + 1;
-                for (int i = 0; i < regionNum; i++) {
-                    Region newRegion = new Region();
-                    newRegion.setChrom(region.getChrom());
-                    newRegion.setStart(region.getStart());
-                    if (region.getStart() + splitSize < region.getEnd()) {
-                        newRegion.setEnd(region.getStart() + splitSize - 1);
-                    } else {
-                        newRegion.setEnd(region.getEnd());
+                if (region.getEnd() - region.getStart() > 1000000) {
+                    Integer regionNum = (region.getEnd() - region.getStart()) / splitSize + 1;
+                    for (int i = 0; i < regionNum; i++) {
+                        Region newRegion = new Region();
+                        newRegion.setChrom(region.getChrom());
+                        newRegion.setStart(region.getStart());
+                        if (region.getStart() + splitSize < region.getEnd()) {
+                            newRegion.setEnd(region.getStart() + splitSize - 1);
+                        } else {
+                            newRegion.setEnd(region.getEnd());
+                        }
+                        regionList.add(newRegion);
+                        region.setStart(newRegion.getEnd() + 1);
                     }
-                    regionList.add(newRegion);
-                    region.setStart(newRegion.getEnd() + 1);
+                } else {
+                    regionList.add(region);
                 }
             }
         }

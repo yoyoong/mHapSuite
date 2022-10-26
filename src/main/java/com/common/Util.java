@@ -57,7 +57,7 @@ public class Util {
     }
 
     public Map<String, List<Integer>> parseWholeCpgFile(String cpgPath) throws Exception {
-        Map<String, List<Integer>> cpgPosListMap = new HashMap<>();
+        TreeMap<String, List<Integer>> cpgPosListMap = new TreeMap<>();
 
         List<Integer> cpgPosList = new ArrayList<>();
         TabixReader tabixReader = new TabixReader(cpgPath);

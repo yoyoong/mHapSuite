@@ -61,7 +61,7 @@ public class LinkM {
                 continue;
             }
 
-            Region rWindow = new Region(); // forward window region
+            Region rWindow = new Region(); // reverse window region
             rWindow.setChrom(region.getChrom());
             Integer rWindowStart = fWindow.getEnd() + args.getMinInsertSize() + 1; // reverse window start position
             for (; rWindowStart < fWindow.getEnd() + args.getMaxInsertSize() + 1 && rWindow.getEnd() <= region.getEnd(); rWindowStart++) {
@@ -162,7 +162,7 @@ public class LinkM {
                     Double tumorRate = newTumorPatternMap.get(key).doubleValue() / tumarTotalPatternCount.doubleValue();
                     Double normalRate = newNormalPatternMap.get(key).doubleValue() / normalTotalPatternCount.doubleValue();
                     Double foldChange = tumorRate / normalRate;
-                    if (tumorRate > args.getMinT() && normalRate < args.getMaxN() && foldChange > args.getMinFC()) {
+                    if (tumorRate >= args.getMinT() && normalRate <= args.getMaxN() && foldChange >= args.getMinFC()) {
                         bufferedWriter.write(fWindow.toHeadString() + "\t" + rWindow.toHeadString() + "\t" +
                                 key.substring(fWindowCpgStartIndex, fWindowCpgEndIndex + 1) + "\t" + key.substring(fWindowCpgEndIndex + 1) + "\t"
                                 + tumarTotalPatternCount + "\t" + tumorRate.floatValue() + "\t" +  normalTotalPatternCount + "\t" + normalRate.floatValue() + "\t"

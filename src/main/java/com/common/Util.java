@@ -239,6 +239,53 @@ public class Util {
         return mHapInfoList;
     }
 
+    public List<MHapInfo> parseMhapFileWithEndShift(String mhapPath, Region region, String strand, Integer shift) throws IOException, InterruptedException {
+        TabixReader tabixReader = new TabixReader(mhapPath);
+        TabixReader.Iterator mhapIterator = tabixReader.query(region.getChrom(), region.getStart() - 1, region.getEnd() + shift);
+        List<MHapInfo> mHapInfoList = new ArrayList<>();
+        String mHapLine = "";
+        Integer lineCnt = 0;
+        while((mHapLine = mhapIterator.next()) != null) {
+            lineCnt++;
+            if (lineCnt % 1000000 == 0) {
+                log.info("Read " + region.getChrom() + " mhap " + lineCnt + " lines.");
+            }
+            if ((strand.equals("plus") && mHapLine.split("\t")[5].equals("-")) ||
+                    (strand.equals("minus") && mHapLine.split("\t")[5].equals("+"))) {
+                continue;
+            }
+            MHapInfo mHapInfo = new MHapInfo(mHapLine.split("\t")[0], Integer.valueOf(mHapLine.split("\t")[1]),
+                    Integer.valueOf(mHapLine.split("\t")[2]), mHapLine.split("\t")[3],
+                    Integer.valueOf(mHapLine.split("\t")[4]), mHapLine.split("\t")[5]);
+            mHapInfoList.add(mHapInfo);
+        }
+
+        tabixReader.close();
+        return mHapInfoList;
+    }
+    
+    public List<Region> splitRegionToSmallRegion(Region region, Integer splitSize) {
+        List<Region> regionList = new ArrayList<>();
+        if (region.getEnd() - region.getStart() > splitSize) {
+            Integer regionNum = (region.getEnd() - region.getStart()) / splitSize + 1;
+            for (int i = 0; i < regionNum; i++) {
+                Region newRegion = new Region();
+                newRegion.setChrom(region.getChrom());
+                newRegion.setStart(region.getStart());
+                if (region.getStart() + splitSize < region.getEnd()) {
+                    newRegion.setEnd(region.getStart() + splitSize - 1);
+                } else {
+                    newRegion.setEnd(region.getEnd());
+                }
+                regionList.add(newRegion);
+                region.setStart(newRegion.getEnd() + 1);
+            }
+        } else {
+            regionList.add(region);
+        }
+        return regionList;
+    }
+
     public List<Region> getWholeRegionFromMHapFile(String mhapPath) throws Exception {
         List<Region> wholeRegionList = new ArrayList<>();
 
@@ -732,6 +779,9 @@ public class Util {
 
     public List<MHapInfo> getMHapListFromIndex(List<MHapInfo> mHapInfoList, List<Integer> mHapListMapToCpg) {
         List<MHapInfo> mHapListFromIndex = new ArrayList<>();
+        if (mHapListMapToCpg == null || mHapListMapToCpg.size() < 1) {
+            return mHapListFromIndex;
+        }
         for (Integer index : mHapListMapToCpg) {
             mHapListFromIndex.add(mHapInfoList.get(index));
         }
@@ -748,6 +798,10 @@ public class Util {
             Integer temp = cpgPos2;
             cpgPos2 = cpgPos1;
             cpgPos1 = temp;
+        }
+
+        if (mHapList1 == null || mHapList1.size() < 1) {
+            return null;
         }
 
         List<MHapInfo> mHapListIn2CpgPos = new ArrayList<>();

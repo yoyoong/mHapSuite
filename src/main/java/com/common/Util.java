@@ -88,7 +88,8 @@ public class Util {
     public List<Integer> parseCpgFileWithShift(String cpgPath, Region region, Integer shift) throws Exception {
         List<Integer> cpgPosList = new ArrayList<>();
         TabixReader tabixReader = new TabixReader(cpgPath);
-        TabixReader.Iterator cpgIterator = tabixReader.query(region.getChrom(), region.getStart() - shift, region.getEnd() + shift);
+        Integer start = region.getStart() - shift > 1 ? region.getStart() - shift : 1;
+        TabixReader.Iterator cpgIterator = tabixReader.query(region.getChrom(), start, region.getEnd() + shift);
         String cpgLine = "";
         while((cpgLine = cpgIterator.next()) != null) {
             if (cpgLine.split("\t").length < 3) {

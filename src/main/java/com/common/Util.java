@@ -288,11 +288,6 @@ public class Util {
 
     public List<Region> getWholeRegionFromMHapFile(String mhapPath) throws Exception {
         List<Region> wholeRegionList = new ArrayList<>();
-
-        TabixIndex tabixIndex = new TabixIndex(new File(mhapPath + ".tbi"));
-        List<String> chromList = tabixIndex.getSequenceNames();
-        BinningIndexContent[] binningIndexContents = tabixIndex.getIndices();
-
         InputStream inputStream = new GZIPInputStream(new FileInputStream(new File(mhapPath)));
         Scanner scanner = new Scanner(inputStream);
 

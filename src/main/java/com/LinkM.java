@@ -161,13 +161,15 @@ public class LinkM {
                 tumorPatternMapIterator = newTumorPatternMap.keySet().iterator();
                 while (tumorPatternMapIterator.hasNext()) {
                     String key = tumorPatternMapIterator.next();
+                    Integer tumarPatternCount = newTumorPatternMap.get(key);
+                    Integer normalPatternCount = newNormalPatternMap.get(key);
                     Double tumorRate = newTumorPatternMap.get(key).doubleValue() / tumarTotalPatternCount.doubleValue();
                     Double normalRate = newNormalPatternMap.get(key).doubleValue() / normalTotalPatternCount.doubleValue();
                     Double foldChange = tumorRate / normalRate;
                     if (tumorRate >= args.getMinT() && normalRate <= args.getMaxN() && foldChange >= args.getMinFC()) {
                         bufferedWriter.write(fWindow.toHeadString() + "\t" + rWindow.toHeadString() + "\t" +
                                 key.substring(fWindowCpgStartIndex, fWindowCpgEndIndex + 1) + "\t" + key.substring(fWindowCpgEndIndex + 1) + "\t"
-                                + tumarTotalPatternCount + "\t" + tumorRate.floatValue() + "\t" +  normalTotalPatternCount + "\t" + normalRate.floatValue() + "\t"
+                                + tumarPatternCount + "\t" + tumorRate.floatValue() + "\t" +  normalPatternCount + "\t" + normalRate.floatValue() + "\t"
                                 + foldChange.floatValue() + "\n");
                     }
                 }

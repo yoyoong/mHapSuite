@@ -62,13 +62,13 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "tanghulu";
         String arg1 = "-mhapPath";
-        String arg2 = "esophagus_T.mhap.gz";
+        String arg2 = "SRX1635079.mhap.gz";
         String arg3 = "-cpgPath";
         String arg4 = "hg19_CpG.gz";
         String arg5 = "-region";
-        String arg6 = "chr1:10469-10903";
+        String arg6 = "chr1:145075800-145075900";
         String arg7 = "-outputFile";
-        String arg8 = "esophagus_T";
+        String arg8 = "SRX1635079";
         String arg9 = "-strand";
         String arg10 = "both";
         String arg11 = "-outFormat";
@@ -219,7 +219,7 @@ public class MainTest extends TestCase {
         String arg3 = "-cpgPath";
         String arg4 = "hg19_CpG.gz";
 //        String arg5 = "-region";
-//        String arg6 = "chr1:10469-5361580";
+//        String arg6 = "chr10:11060294-11060351";
         String arg5= "-bedPath";
         String arg6 = "hg19_1000CpG.bed";
         String arg7 = "-window";
@@ -250,13 +250,13 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "linkM";
         String arg1 = "-mhapPathT";
-        String arg2 = "esophagus_T.mhap.gz";
+        String arg2 = "SRX1635050.mhap.gz";
         String arg3 = "-mhapPathN";
-        String arg4 = "esophagus_N.mhap.gz";
+        String arg4 = "SRX1635079.mhap.gz";
         String arg5 = "-cpgPath";
         String arg6 = "hg19_CpG.gz";
         String arg7 = "-region";
-        String arg8 = "chr1:145075781-145075851";
+        String arg8 = "chr1:145075800-145075900";
         String arg9 = "-tag";
         String arg10 = "linkTest";
         String arg11 = "-fLength";
@@ -264,17 +264,17 @@ public class MainTest extends TestCase {
         String arg13 = "-rLength";
         String arg14 = "25";
         String arg15 = "-minT";
-        String arg16 = "0.1";
+        String arg16 = "0.00";
         String arg17 = "-maxN";
-        String arg18 = "0.05";
+        String arg18 = "10";
         String arg19 = "-minFC";
-        String arg20 = "2";
+        String arg20 = "0";
         String arg21 = "-minInsertSize";
         String arg22 = "40";
         String arg23 = "-maxInsertSize";
         String arg24 = "160";
         String arg25 = "-minCov";
-        String arg26 = "10";
+        String arg26 = "0";
 
         String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14,
                 arg15, arg16, arg17, arg18, arg19, arg20, arg21, arg22, arg23, arg24, arg25, arg26};

@@ -46,9 +46,6 @@ public class MHBDiscovery {
             Iterator<String> iterator = cpgPosListMap.keySet().iterator();
             while (iterator.hasNext()) {
                 String chrom = iterator.next();
-                if (chrom.equals("chrM")) {
-                    int g = 0;
-                }
                 List<Region> regionListInChrom = regionListInBed.stream().filter(region -> region.getChrom().equals(chrom)).collect(Collectors.toList());
                 if (regionListInChrom.size() > 1) {
                     for (Integer i = 0; i < regionListInChrom.size() - 1;) {
@@ -101,7 +98,20 @@ public class MHBDiscovery {
                 regionList.addAll(util.splitRegionToSmallRegion(region, 1000000));
             }
         } else {
-            List<Region> wholeRegionList = util.getWholeRegionFromMHapFile(args.getmHapPath());
+//            List<Region> wholeRegionList = util.getWholeRegionFromMHapFile(args.getmHapPath());
+            List<Region> wholeRegionList = new ArrayList<>();
+            Map<String, List<Integer>> cpgPostListMap = util.parseWholeCpgFile(args.getCpgPath());
+            Iterator<String> iterator = cpgPostListMap.keySet().iterator();
+            while (iterator.hasNext()) {
+                String chrom = iterator.next();
+                List<Integer> cpgPostList = cpgPostListMap.get(chrom);
+                Region region = new Region();
+                region.setChrom(chrom);
+                region.setStart(cpgPostList.get(0));
+                region.setEnd(cpgPostList.get(cpgPostList.size() - 1));
+                wholeRegionList.add(region);
+            }
+
             for (Region region : wholeRegionList) {
                 regionList.addAll(util.splitRegionToSmallRegion(region, 1000000));
             }

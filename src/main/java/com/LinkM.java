@@ -122,7 +122,6 @@ public class LinkM {
                     } else {
                         newTumorPatternMap.put(newKey, tumorPatternMap.get(key));
                     }
-
                 }
 
                 // get the normal pattern in window
@@ -139,32 +138,37 @@ public class LinkM {
                     }
                 }
 
-                // filter the different pattern of 2 map
-                tumorPatternMapIterator = newTumorPatternMap.keySet().iterator();
-                while (tumorPatternMapIterator.hasNext()) {
-                    String key = tumorPatternMapIterator.next();
-                    if (!newNormalPatternMap.containsKey(key)) {
-                        tumorPatternMapIterator.remove();
-                    }
-                }
-                normalPatternMapIterator = newNormalPatternMap.keySet().iterator();
-                while (normalPatternMapIterator.hasNext()) {
-                    String key = normalPatternMapIterator.next();
-                    if (!newTumorPatternMap.containsKey(key)) {
-                        normalPatternMapIterator.remove();
-                    }
-                }
+//                tumorPatternMapIterator = newTumorPatternMap.keySet().iterator();
+//                while (tumorPatternMapIterator.hasNext()) {
+//                    String key = tumorPatternMapIterator.next();
+//                    if (!newNormalPatternMap.containsKey(key)) {
+//                        tumorPatternMapIterator.remove();
+//                    }
+//                }
+                // filter the normal pattern which is not exist in tumor, but tumor do not filter
+//                normalPatternMapIterator = newNormalPatternMap.keySet().iterator();
+//                while (normalPatternMapIterator.hasNext()) {
+//                    String key = normalPatternMapIterator.next();
+//                    if (!newTumorPatternMap.containsKey(key)) {
+//                        normalPatternMapIterator.remove();
+//                    }
+//                }
 
                 // get the tumor and normal total pattern count
                 Integer tumarTotalPatternCount = newTumorPatternMap.entrySet().stream().mapToInt(t->t.getValue()).sum();
                 Integer normalTotalPatternCount = newNormalPatternMap.entrySet().stream().mapToInt(t->t.getValue()).sum();
+
                 tumorPatternMapIterator = newTumorPatternMap.keySet().iterator();
                 while (tumorPatternMapIterator.hasNext()) {
                     String key = tumorPatternMapIterator.next();
                     Integer tumarPatternCount = newTumorPatternMap.get(key);
-                    Integer normalPatternCount = newNormalPatternMap.get(key);
                     Double tumorRate = newTumorPatternMap.get(key).doubleValue() / tumarTotalPatternCount.doubleValue();
-                    Double normalRate = newNormalPatternMap.get(key).doubleValue() / normalTotalPatternCount.doubleValue();
+                    Integer normalPatternCount = 0;
+                    Double normalRate = 0.0;
+                    if (newNormalPatternMap.containsKey(key)) {
+                        normalPatternCount = newNormalPatternMap.get(key);
+                        normalRate = newNormalPatternMap.get(key).doubleValue() / normalTotalPatternCount.doubleValue();
+                    }
                     Double foldChange = tumorRate / normalRate;
                     if (tumorRate >= args.getMinT() && normalRate <= args.getMaxN() && foldChange >= args.getMinFC()) {
                         bufferedWriter.write(fWindow.toHeadString() + "\t" + rWindow.toHeadString() + "\t" +
@@ -172,6 +176,25 @@ public class LinkM {
                                 + tumarPatternCount + "\t" + tumorRate.floatValue() + "\t" +  normalPatternCount + "\t" + normalRate.floatValue() + "\t"
                                 + foldChange.floatValue() + "\n");
                     }
+                }
+
+                normalPatternMapIterator = newNormalPatternMap.keySet().iterator();
+                while (normalPatternMapIterator.hasNext()) {
+                    String key = normalPatternMapIterator.next();
+                    Integer tumarPatternCount = 0;
+                    Double tumorRate = 0.0;
+                    if (!newTumorPatternMap.containsKey(key)) {
+                        Integer normalPatternCount = newNormalPatternMap.get(key);
+                        Double normalRate = newNormalPatternMap.get(key).doubleValue() / normalTotalPatternCount.doubleValue();
+                        Double foldChange = tumorRate / normalRate;
+                        if (tumorRate >= args.getMinT() && normalRate <= args.getMaxN() && foldChange >= args.getMinFC()) {
+                            bufferedWriter.write(fWindow.toHeadString() + "\t" + rWindow.toHeadString() + "\t" +
+                                    key.substring(fWindowCpgStartIndex, fWindowCpgEndIndex + 1) + "\t" + key.substring(fWindowCpgEndIndex + 1) + "\t"
+                                    + tumarPatternCount + "\t" + tumorRate.floatValue() + "\t" + normalPatternCount + "\t" + normalRate.floatValue() + "\t"
+                                    + foldChange.floatValue() + "\n");
+                        }
+                    }
+
                 }
                 //log.info("Reverse window: " + rWindow.toHeadString() + " read end!");
             }

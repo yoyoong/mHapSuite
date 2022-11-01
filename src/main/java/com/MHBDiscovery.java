@@ -33,11 +33,120 @@ public class MHBDiscovery {
             return;
         }
 
+        if (args.isQcFlag()) {
+            boolean doQCResult = doQC();
+            if (!doQCResult) {
+                log.error("do QC fail, please check the command.");
+                return;
+            }
+        } else {
+            boolean getMHBResult = getMHB();
+            if (!getMHBResult) {
+                log.error("get MHB fail, please check the command.");
+                return;
+            }
+        }
+
+        log.info("MHBDiscovery end!");
+    }
+
+    private boolean checkArgs() {
+        if (args.getmHapPath().equals("")) {
+            log.error("mhapPath can not be null.");
+            return false;
+        }
+        if (args.getCpgPath().equals("")) {
+            log.error("cpgPath can not be null.");
+            return false;
+        }
+        if (!args.getRegion().equals("") && !args.getBedPath().equals("")) {
+            log.error("Can not input region and bedPath at the same time.");
+            return false;
+        }
+        return true;
+    }
+    private boolean doQC() throws Exception{
+        BufferedWriter bufferedWriter = util.createOutputFile(args.getOutputDir(), args.getTag() + ".qcFlag.bed");
+
+        List<Region> regionList = new ArrayList<>();
+        if (args.getRegion() != null && !args.getRegion().equals("")) {
+            Region region = util.parseRegion(args.getRegion());
+            regionList.add(region);
+        } else if (args.getBedPath() != null && !args.getBedPath().equals("")) {
+            regionList = util.getBedRegionList(args.getBedPath());
+        }
+
+        for (Region region : regionList) {
+            region.setStart(region.getStart() - 1);
+            // parse the mhap file
+            List<MHapInfo> mHapInfoList = util.parseMhapFile(args.getmHapPath(), region, "both", true);
+            if (mHapInfoList.size() < 1) {
+                continue;
+            }
+
+            // parse the cpg file
+            List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 2000);
+            if (cpgPosList.size() < 1) {
+                continue;
+            }
+
+            // get cpg site list in region
+            List<Integer> cpgPosListInRegion = util.getCpgPosListInRegion(cpgPosList, region);
+            if (cpgPosListInRegion.size() < 1) {
+                continue;
+            }
+
+            // get mhap index list map to cpg positions
+            Map<Integer, List<Integer>> mHapIndexListMapToCpg = util.getMhapIndexMapToCpg(mHapInfoList, cpgPosListInRegion);
+
+            boolean isMHBFlag = true;
+            Integer firstIndex = 0; // start mhb position index in cpgPosListInRegion
+            Integer secondIndex = 0; // end mhb position index in cpgPosListInRegion
+            while (secondIndex < cpgPosListInRegion.size() - 1) {
+                secondIndex++;
+                for (int i = 1; i < args.getWindow(); i++) {
+                    firstIndex = secondIndex - i; // cpg site index in cpgPosListInRegion for loop
+                    if (firstIndex < 0) {
+                        break;
+                    }
+                    // get r2 and pvalue of startIndex
+                    Integer cpgPos1 = cpgPosListInRegion.get(firstIndex);
+                    Integer cpgPos2 = cpgPosListInRegion.get(secondIndex);
+                    List<Integer> mHapIndexList1 = mHapIndexListMapToCpg.get(cpgPos1);
+                    List<Integer> mHapIndexList2 = mHapIndexListMapToCpg.get(cpgPos2);
+                    List<MHapInfo> mHapList1 = util.getMHapListFromIndex(mHapInfoList, mHapIndexList1);
+                    List<MHapInfo> mHapList2 = util.getMHapListFromIndex(mHapInfoList, mHapIndexList2);
+                    R2Info r2Info = util.getR2FromMap(mHapList1, cpgPosList, cpgPos1, cpgPos2, 0);
+                    if (r2Info == null || r2Info.getR2() < args.getR2() || r2Info.getPvalue() > args.getPvalue()) {
+                        isMHBFlag = false;
+                        if (r2Info == null || r2Info.getR2().isNaN()) {
+                            bufferedWriter.write(region.getChrom() + "\t" + region.getStart() + "\t" + region.getEnd() + "\t" + "no" + "\t"
+                                    + cpgPosListInRegion.get(firstIndex) + "-" + cpgPosListInRegion.get(secondIndex) + " r2 is null or nan!" + "\n");
+                        } else {
+                            bufferedWriter.write(region.getChrom() + "\t" + region.getStart() + "\t" + region.getEnd() + "\t" + "no" + "\t"
+                                    + cpgPosListInRegion.get(firstIndex) + "-" + cpgPosListInRegion.get(secondIndex) + " " + r2Info.getR2() + " " + r2Info.getPvalue() + "\n");
+                        }
+                        break;
+                    }
+                }
+            }
+
+            if(isMHBFlag) {
+                bufferedWriter.write(region.getChrom() + "\t" + region.getStart() + "\t" + region.getEnd() + "\t" + "yes" + "\n");
+            }
+        }
+        bufferedWriter.close();
+
+        return true;
+    }
+
+
+    private boolean getMHB() throws Exception {
         // get regionList, from region or bedfile
         List<Region> regionList = new ArrayList<>();
         if (args.getRegion() != null && !args.getRegion().equals("")) {
             Region region = util.parseRegion(args.getRegion());
-            regionList.addAll(util.splitRegionToSmallRegion(region, 1000000));
+            regionList.addAll(util.splitRegionToSmallRegion(region, 1000000, 1000));
         } else if (args.getBedPath() != null && !args.getBedPath().equals("")) {
             List<Region> regionListInBed = util.getBedRegionList(args.getBedPath());
             // merge adjacent regions
@@ -95,7 +204,7 @@ public class MHBDiscovery {
                 }
             }
             for (Region region : regionListMerged) {
-                regionList.addAll(util.splitRegionToSmallRegion(region, 1000000));
+                regionList.addAll(util.splitRegionToSmallRegion(region, 1000000, 1000));
             }
         } else {
 //            List<Region> wholeRegionList = util.getWholeRegionFromMHapFile(args.getmHapPath());
@@ -113,7 +222,7 @@ public class MHBDiscovery {
             }
 
             for (Region region : wholeRegionList) {
-                regionList.addAll(util.splitRegionToSmallRegion(region, 1000000));
+                regionList.addAll(util.splitRegionToSmallRegion(region, 1000000, 1000));
             }
         }
 
@@ -124,7 +233,7 @@ public class MHBDiscovery {
         for (Region region : regionList) {
             // parse the mhap file
             //List<MHapInfo> mHapInfoList = util.parseMhapFile(args.getmHapPath(), region, "both", true);
-            List<MHapInfo> mHapInfoList = util.parseMhapFileWithEndShift(args.getmHapPath(), region, "both", 500);
+            List<MHapInfo> mHapInfoList = util.parseMhapFile(args.getmHapPath(), region, "both", true);
             if (mHapInfoList.size() < 1) {
                 continue;
             }
@@ -206,40 +315,6 @@ public class MHBDiscovery {
         }
         bufferedWriter.close();
 
-        log.info("MHBDiscovery end!");
-    }
-
-    private boolean checkArgs() {
-        if (args.getmHapPath().equals("")) {
-            log.error("mhapPath can not be null.");
-            return false;
-        }
-        if (args.getCpgPath().equals("")) {
-            log.error("cpgPath can not be null.");
-            return false;
-        }
-        if (!args.getRegion().equals("") && !args.getBedPath().equals("")) {
-            log.error("Can not input region and bedPath at the same time.");
-            return false;
-        }
         return true;
-    }
-
-    private Integer[][] getMC(List<MHapInfo> mHapInfoList, List<Integer> cpgPosListInRegion) {
-        Integer[][] MC = new Integer[mHapInfoList.size()][cpgPosListInRegion.size()];
-
-        return MC;
-    }
-
-    private Integer[][] getM1(List<MHapInfo> mHapInfoList, List<Integer> cpgPosListInRegion) {
-        Integer[][] M1 = new Integer[mHapInfoList.size()][cpgPosListInRegion.size()];
-
-        return M1;
-    }
-
-    private Integer[][] getM0(List<MHapInfo> mHapInfoList, List<Integer> cpgPosListInRegion) {
-        Integer[][] M0 = new Integer[mHapInfoList.size()][cpgPosListInRegion.size()];
-
-        return M0;
     }
 }

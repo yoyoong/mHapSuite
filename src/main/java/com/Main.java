@@ -577,6 +577,7 @@ public class Main {
         String cpgPath_Description = "genomic CpG file, gz format and indexed";
         String region_Description = "one region, in the format of chr:start-end";
         //String bedPath_Description = "input BED file";
+        String outputDir_Description = "output directory, created in advance";
         String tag_Description = "prefix of the output file(s)";
         String fLength_Description = "fLength";
         String rLength_Description = "rLength";
@@ -593,18 +594,19 @@ public class Main {
         Option option2 = OptionBuilder.withLongOpt("mhapPathN").hasArg().withDescription(mhapPathN_Description).create("mhapPathN");
         Option option3 = OptionBuilder.withLongOpt("cpgPath").hasArg().withDescription(cpgPath_Description).create("cpgPath");
         Option option4 = OptionBuilder.withLongOpt("region").hasArg().withDescription(region_Description).create("region");
-        Option option5 = OptionBuilder.withLongOpt("tag").hasArg().withDescription(tag_Description).create("tag");
-        Option option6 = OptionBuilder.withLongOpt("fLength").hasArg().withDescription(fLength_Description).create("fLength");
-        Option option7 = OptionBuilder.withLongOpt("rLength").hasArg().withDescription(rLength_Description).create("rLength");
-        Option option8 = OptionBuilder.withLongOpt("minT").hasArg().withDescription(minT_Description).create("minT");
-        Option option9 = OptionBuilder.withLongOpt("maxN").hasArg().withDescription(maxN_Description).create("maxN");
-        Option option10 = OptionBuilder.withLongOpt("minFC").hasArg().withDescription(minFC_Description).create("minFC");
-        Option option11 = OptionBuilder.withLongOpt("minInsertSize").hasArg().withDescription(minInsertSize_Description).create("minInsertSize");
-        Option option12 = OptionBuilder.withLongOpt("maxInsertSize").hasArg().withDescription(maxInsertSize_Description).create("maxInsertSize");
-        Option option13 = OptionBuilder.withLongOpt("minCov").hasArg().withDescription(minCov_Description).create("minCov");
+        Option option5 = OptionBuilder.withLongOpt("outputDir").hasArg().withDescription(outputDir_Description).create("outputDir");
+        Option option6 = OptionBuilder.withLongOpt("tag").hasArg().withDescription(tag_Description).create("tag");
+        Option option7 = OptionBuilder.withLongOpt("fLength").hasArg().withDescription(fLength_Description).create("fLength");
+        Option option8 = OptionBuilder.withLongOpt("rLength").hasArg().withDescription(rLength_Description).create("rLength");
+        Option option9 = OptionBuilder.withLongOpt("minT").hasArg().withDescription(minT_Description).create("minT");
+        Option option10 = OptionBuilder.withLongOpt("maxN").hasArg().withDescription(maxN_Description).create("maxN");
+        Option option11 = OptionBuilder.withLongOpt("minFC").hasArg().withDescription(minFC_Description).create("minFC");
+        Option option12 = OptionBuilder.withLongOpt("minInsertSize").hasArg().withDescription(minInsertSize_Description).create("minInsertSize");
+        Option option13 = OptionBuilder.withLongOpt("maxInsertSize").hasArg().withDescription(maxInsertSize_Description).create("maxInsertSize");
+        Option option14 = OptionBuilder.withLongOpt("minCov").hasArg().withDescription(minCov_Description).create("minCov");
         options.addOption(option0).addOption(option1).addOption(option2).addOption(option3).addOption(option4).addOption(option5)
                 .addOption(option6).addOption(option7).addOption(option8).addOption(option9).addOption(option10).addOption(option11)
-                .addOption(option12).addOption(option13);
+                .addOption(option12).addOption(option13).addOption(option14);
 
         BasicParser parser = new BasicParser();
         LinkMArgs linkMArgs = new LinkMArgs();
@@ -620,6 +622,9 @@ public class Main {
                 linkMArgs.setMhapPathN(commandLine.getOptionValue("mhapPathN"));
                 linkMArgs.setCpgPath(commandLine.getOptionValue("cpgPath"));
                 linkMArgs.setRegion(commandLine.getOptionValue("region"));
+                if (commandLine.hasOption("outputDir")) {
+                    linkMArgs.setOutputDir(commandLine.getOptionValue("outputDir"));
+                }
                 if (commandLine.hasOption("tag")) {
                     linkMArgs.setTag(commandLine.getOptionValue("tag"));
                 }

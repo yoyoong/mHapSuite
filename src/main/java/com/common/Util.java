@@ -265,7 +265,7 @@ public class Util {
         return mHapInfoList;
     }
     
-    public List<Region> splitRegionToSmallRegion(Region region, Integer splitSize) {
+    public List<Region> splitRegionToSmallRegion(Region region, Integer splitSize, Integer shift) {
         List<Region> regionList = new ArrayList<>();
         if (region.getEnd() - region.getStart() > splitSize) {
             Integer regionNum = (region.getEnd() - region.getStart()) / splitSize + 1;
@@ -273,13 +273,17 @@ public class Util {
                 Region newRegion = new Region();
                 newRegion.setChrom(region.getChrom());
                 newRegion.setStart(region.getStart());
-                if (region.getStart() + splitSize < region.getEnd()) {
-                    newRegion.setEnd(region.getStart() + splitSize - 1);
+                if (region.getStart() + splitSize + shift - 1 <= region.getEnd()) {
+                    newRegion.setEnd(region.getStart() + splitSize + shift - 1);
                 } else {
                     newRegion.setEnd(region.getEnd());
                 }
                 regionList.add(newRegion);
-                region.setStart(newRegion.getEnd() + 1);
+                if (newRegion.getEnd() - shift + 1 < 1) {
+                    region.setStart(newRegion.getEnd() + 1);
+                } else {
+                    region.setStart(newRegion.getEnd() - shift + 1);
+                }
             }
         } else {
             regionList.add(region);

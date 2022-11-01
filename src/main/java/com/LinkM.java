@@ -38,7 +38,7 @@ public class LinkM {
         List<MHapInfo> tumorMHapList = util.parseMhapFile(args.getMhapPathT(), region, "both", true);
         List<MHapInfo> normalMHapList = util.parseMhapFile(args.getMhapPathN(), region, "both", true);
 
-        BufferedWriter bufferedWriter = util.createOutputFile("", args.getTag() + ".linkM.txt");
+        BufferedWriter bufferedWriter = util.createOutputFile(args.getOutputDir(), args.getTag() + ".linkM.txt");
         bufferedWriter.write("Fpos" + "\t" + "Rpos" + "\t" + "Fpattern" + "\t" + "Rpattern" + "\t" + "T_RC" + "\t" + "T" + "\t" + "N_RC" + "\t" +"N" + "\t" + "FC" + "\n");
 
         Region fWindow = new Region(); // forward window region

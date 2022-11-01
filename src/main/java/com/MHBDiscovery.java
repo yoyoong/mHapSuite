@@ -125,27 +125,18 @@ public class MHBDiscovery {
             // parse the mhap file
             //List<MHapInfo> mHapInfoList = util.parseMhapFile(args.getmHapPath(), region, "both", true);
             List<MHapInfo> mHapInfoList = util.parseMhapFileWithEndShift(args.getmHapPath(), region, "both", 500);
+            if (mHapInfoList.size() < 1) {
+                continue;
+            }
 
             // parse the cpg file
             List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 2000);
+            if (cpgPosList.size() < 1) {
+                continue;
+            }
 
             // get cpg site list in region
-            Integer cpgStartPos = 0;
-            Integer cpgEndPos = cpgPosList.size() - 1;
-            for (int i = 0; i < cpgPosList.size(); i++) {
-                if (cpgPosList.get(i) < region.getStart() && cpgPosList.get(i + 1) >= region.getStart()) {
-                    cpgStartPos = i + 1;
-                    break;
-                }
-            }
-            for (int i = 0; i < cpgPosList.size(); i++) {
-                if (cpgPosList.get(i) >= region.getEnd()) {
-                    cpgEndPos = i;
-                    break;
-                }
-            }
-            List<Integer> cpgPosListInRegion = cpgPosList.subList(cpgStartPos,
-                    cpgEndPos + 2 > cpgPosList.size() ? cpgPosList.size() : cpgEndPos + 2); // end site add 1
+            List<Integer> cpgPosListInRegion = util.getCpgPosListInRegion(cpgPosList, region);
             if (cpgPosListInRegion.size() < 1) {
                 continue;
             }

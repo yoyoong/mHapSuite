@@ -30,4 +30,8 @@ public class MHBInfo implements Serializable {
     public void setEnd(Integer end) {
         this.end = end;
     }
+
+    public String toString() {
+        return this.chrom + this.start + this.end;
+    }
 }

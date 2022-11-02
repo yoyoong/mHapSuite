@@ -20,8 +20,6 @@ public class MHBDiscovery {
     Util util = new Util();
     MHBDiscoveryArgs args = new MHBDiscoveryArgs();
 
-    long completeCpgCnt = 0;
-
     public void MHBDiscovery(MHBDiscoveryArgs mhbDiscoveryArgs) throws Exception {
         log.info("MHBDiscovery start!");
         args = mhbDiscoveryArgs;
@@ -229,7 +227,7 @@ public class MHBDiscovery {
         // create the output directory and file
         BufferedWriter bufferedWriter = util.createOutputFile(args.getOutputDir(), args.getTag() + ".bed");
 
-        List<MHBInfo> mhbInfoList = new ArrayList<>();
+        Map<String, String> mhbInfoListMap = new HashMap<>();
         for (Region region : regionList) {
             // parse the mhap file
             //List<MHapInfo> mHapInfoList = util.parseMhapFile(args.getmHapPath(), region, "both", true);
@@ -257,10 +255,6 @@ public class MHBDiscovery {
             Integer endIndex = 0; // end mhb position index in cpgPosListInRegion
             Integer index = 0;
             while (endIndex < cpgPosListInRegion.size() - 1) {
-                completeCpgCnt++;
-                if (completeCpgCnt % 10000 == 0) {
-                    log.info("Read completed " + completeCpgCnt + " cpg positions.");
-                }
                 endIndex++;
                 Boolean extendFlag = true;
                 for (int i = 1; i < args.getWindow(); i++) {
@@ -293,8 +287,8 @@ public class MHBDiscovery {
                     mhbInfo.setStart(cpgPosListInRegion.get(startIndex));
                     mhbInfo.setEnd(cpgPosListInRegion.get(endIndex - 1));
                     startIndex = index + 1 > startIndex ? index + 1 : startIndex;
-                    if (mhbSize >= args.getWindow() && !mhbInfoList.contains(mhbInfo)) {
-                        mhbInfoList.add(mhbInfo);
+                    if (mhbSize >= args.getWindow() && !mhbInfoListMap.containsKey(mhbInfo.toString())) {
+                        mhbInfoListMap.put(mhbInfo.toString(), mhbInfo.toString());
                         //log.info("discovery a mhb in : " + mhbInfo.getChrom() + ":" + mhbInfo.getStart() + "-" + mhbInfo.getEnd());
                         bufferedWriter.write(mhbInfo.getChrom() + "\t" + mhbInfo.getStart() + "\t" + mhbInfo.getEnd() + "\n");
                     }
@@ -306,8 +300,8 @@ public class MHBDiscovery {
                 mhbInfo.setChrom(region.getChrom());
                 mhbInfo.setStart(cpgPosListInRegion.get(startIndex));
                 mhbInfo.setEnd(cpgPosListInRegion.get(endIndex - 1));
-                if (!mhbInfoList.contains(mhbInfo)) {
-                    mhbInfoList.add(mhbInfo);
+                if (!mhbInfoListMap.containsKey(mhbInfo.toString())) {
+                    mhbInfoListMap.put(mhbInfo.toString(), mhbInfo.toString());
                     bufferedWriter.write(mhbInfo.getChrom() + "\t" + mhbInfo.getStart() + "\t" + mhbInfo.getEnd() + "\n");
                 }
             }

@@ -39,7 +39,8 @@ public class LinkM {
         List<MHapInfo> normalMHapList = util.parseMhapFile(args.getMhapPathN(), region, "both", true);
 
         BufferedWriter bufferedWriter = util.createOutputFile(args.getOutputDir(), args.getTag() + ".linkM.txt");
-        bufferedWriter.write("Fpos" + "\t" + "Rpos" + "\t" + "Fpattern" + "\t" + "Rpattern" + "\t" + "T_RC" + "\t" + "T" + "\t" + "N_RC" + "\t" +"N" + "\t" + "FC" + "\n");
+        bufferedWriter.write("Fpos" + "\t" + "Rpos" + "\t" + "Fpattern" + "\t" + "Rpattern" + "\t" +
+                "T_RC" + "\t" + "T_PRC" + "\t" + "T" + "\t" + "N_RC" + "\t" + "N_PRC" + "\t" +"N" + "\t" + "FC" + "\n");
 
         Region fWindow = new Region(); // forward window region
         fWindow.setChrom(region.getChrom());
@@ -89,22 +90,14 @@ public class LinkM {
                 Integer fWindowCpgEndIndex = util.indexOfList(cpgPosListInWindow, 0, cpgPosListInWindow.size() - 1, cpgPosListInFWindow.get(cpgPosListInFWindow.size() - 1));
                 Integer rWindowCpgStartIndex = util.indexOfList(cpgPosListInWindow, 0, cpgPosListInWindow.size() - 1, cpgPosListInRWindow.get(0));
                 Integer rWindowCpgEndIndex = util.indexOfList(cpgPosListInWindow, 0, cpgPosListInWindow.size() - 1, cpgPosListInRWindow.get(cpgPosListInRWindow.size() - 1));
-
                 Integer cpgStart = cpgPosListInWindow.get(fWindowCpgStartIndex);
                 Integer cpgEnd = cpgPosListInWindow.get(rWindowCpgEndIndex);
+
                 // get the tumor and normal mhap list in window
-//                List<MHapInfo> tumorMHapListInWindow = getMHapListInWindow(tumorMHapList, f2rWindow);
-//                if (tumorMHapListInWindow.size() < args.getMinCov()) {
-//                    continue;
-//                }
                 List<MHapInfo> tumorMHapListInWindow = getMHapListInWindow(tumorMHapList, f2rWindow, cpgStart, cpgEnd);
                 if (tumorMHapListInWindow.size() < args.getMinCov()) {
                     continue;
                 }
-//                List<MHapInfo> normalMHapListInWindow = getMHapListInWindow(normalMHapList, f2rWindow);
-//                if (normalMHapListInWindow.size() < args.getMinCov()) {
-//                    continue;
-//                }
                 List<MHapInfo> normalMHapListInWindow = getMHapListInWindow(normalMHapList, f2rWindow, cpgStart, cpgEnd);
                 if (normalMHapListInWindow.size() < args.getMinCov()) {
                     continue;
@@ -138,22 +131,6 @@ public class LinkM {
                     }
                 }
 
-//                tumorPatternMapIterator = newTumorPatternMap.keySet().iterator();
-//                while (tumorPatternMapIterator.hasNext()) {
-//                    String key = tumorPatternMapIterator.next();
-//                    if (!newNormalPatternMap.containsKey(key)) {
-//                        tumorPatternMapIterator.remove();
-//                    }
-//                }
-                // filter the normal pattern which is not exist in tumor, but tumor do not filter
-//                normalPatternMapIterator = newNormalPatternMap.keySet().iterator();
-//                while (normalPatternMapIterator.hasNext()) {
-//                    String key = normalPatternMapIterator.next();
-//                    if (!newTumorPatternMap.containsKey(key)) {
-//                        normalPatternMapIterator.remove();
-//                    }
-//                }
-
                 // get the tumor and normal total pattern count
                 Integer tumarTotalPatternCount = newTumorPatternMap.entrySet().stream().mapToInt(t->t.getValue()).sum();
                 Integer normalTotalPatternCount = newNormalPatternMap.entrySet().stream().mapToInt(t->t.getValue()).sum();
@@ -173,8 +150,8 @@ public class LinkM {
                     if (tumorRate >= args.getMinT() && normalRate <= args.getMaxN() && foldChange >= args.getMinFC()) {
                         bufferedWriter.write(fWindow.toHeadString() + "\t" + rWindow.toHeadString() + "\t" +
                                 key.substring(fWindowCpgStartIndex, fWindowCpgEndIndex + 1) + "\t" + key.substring(fWindowCpgEndIndex + 1) + "\t"
-                                + tumarPatternCount + "\t" + tumorRate.floatValue() + "\t" +  normalPatternCount + "\t" + normalRate.floatValue() + "\t"
-                                + foldChange.floatValue() + "\n");
+                                + tumarTotalPatternCount + "\t" + tumarPatternCount + "\t" + tumorRate.floatValue() + "\t" +  normalTotalPatternCount + "\t" +
+                                normalPatternCount + "\t" + normalRate.floatValue() + "\t" + foldChange.floatValue() + "\n");
                     }
                 }
 
@@ -190,8 +167,8 @@ public class LinkM {
                         if (tumorRate >= args.getMinT() && normalRate <= args.getMaxN() && foldChange >= args.getMinFC()) {
                             bufferedWriter.write(fWindow.toHeadString() + "\t" + rWindow.toHeadString() + "\t" +
                                     key.substring(fWindowCpgStartIndex, fWindowCpgEndIndex + 1) + "\t" + key.substring(fWindowCpgEndIndex + 1) + "\t"
-                                    + tumarPatternCount + "\t" + tumorRate.floatValue() + "\t" + normalPatternCount + "\t" + normalRate.floatValue() + "\t"
-                                    + foldChange.floatValue() + "\n");
+                                    + tumarTotalPatternCount + "\t" + tumarPatternCount + "\t" + tumorRate.floatValue() + "\t" +  normalTotalPatternCount + "\t" +
+                                    normalPatternCount + "\t" + normalRate.floatValue() + "\t" + foldChange.floatValue() + "\n");
                         }
                     }
 
@@ -230,19 +207,6 @@ public class LinkM {
 
         return cpgPosListInWindow;
     }
-
-//    private List<MHapInfo> getMHapListInWindow(List<MHapInfo> mHapList, Region window) {
-//        List<MHapInfo> mHapListNew = new ArrayList<>();
-//        for (MHapInfo mHapInfo : mHapList) {
-//            if (mHapInfo.getStart() <= window.getStart() && mHapInfo.getEnd() >= window.getEnd()) {
-//                mHapListNew.add(mHapInfo);
-//            }
-//            if (mHapInfo.getStart() > window.getStart()) {
-//                break;
-//            }
-//        }
-//        return mHapListNew;
-//    }
 
     private List<MHapInfo> getMHapListInWindow(List<MHapInfo> mHapList, Region f2rWindow, Integer startCpg, Integer endCpg) {
         List<MHapInfo> mHapListFiltered = util.filterMHapListInRegion(mHapList, f2rWindow);

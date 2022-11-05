@@ -225,7 +225,7 @@ public class MHBDiscovery {
         }
 
         // create the output directory and file
-        BufferedWriter bufferedWriter = util.createOutputFile(args.getOutputDir(), args.getTag() + ".bed");
+        BufferedWriter bufferedWriter = util.createOutputFile(args.getOutputDir(), args.getTag() + ".txt");
 
         Map<String, String> mhbInfoListMap = new HashMap<>();
         for (Region region : regionList) {

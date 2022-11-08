@@ -256,8 +256,10 @@ public class MainTest extends TestCase {
         String arg4 = "SRX1635079.mhap.gz";
         String arg5 = "-cpgPath";
         String arg6 = "hg19_CpG.gz";
-        String arg7 = "-region";
-        String arg8 = "chr1:145075800-145075900";
+//        String arg7 = "-region";
+//        String arg8 = "chr1:942616-942734";
+        String arg7 = "-bedPath";
+        String arg8 = "hg19_1000CpG.bed";
         String arg27 = "-outputDir";
         String arg28 = "outputDir";
         String arg9 = "-tag";

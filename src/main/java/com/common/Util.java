@@ -716,27 +716,6 @@ public class Util {
         return -1;
     }
 
-    public List<MHapInfo> filterMHapListInRegion(List<MHapInfo> mHapList, Region region) {
-        Integer startIndex = 0;
-        Integer endIndex = mHapList.size() - 1;
-        while (mHapList.get(endIndex).getStart() >= region.getEnd()) {
-            endIndex = endIndex / 2;
-        }
-        endIndex = endIndex * 2 > mHapList.size() - 1 ? mHapList.size() - 1 : endIndex * 2;
-
-        Integer newEndIndex = endIndex;
-        while (mHapList.get(startIndex).getEnd() <= region.getStart()) {
-            newEndIndex = newEndIndex / 2;
-            startIndex += newEndIndex;
-        }
-        startIndex = startIndex - newEndIndex * 2 < 0 ? 0 : startIndex - newEndIndex * 2;
-
-        List<MHapInfo> mHapListFiltered = new ArrayList<>();
-        mHapListFiltered = mHapList.subList(startIndex, endIndex + 1);
-
-        return mHapListFiltered;
-    }
-
     public Map<Integer, List<Integer>> getMhapIndexMapToCpg(List<MHapInfo> mHapInfoList, List<Integer> cpgPosListInRegion) throws Exception {
         TreeMap<Integer, List<Integer>> mHapIndexMapToCpg = new TreeMap<>();
 

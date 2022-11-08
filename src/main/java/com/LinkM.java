@@ -28,141 +28,141 @@ public class LinkM {
             return;
         }
 
-        // parse the region
-        Region region = util.parseRegion(args.getRegion());
+        // get regionList, from region or bedfile
+        List<Region> regionList = new ArrayList<>();
+        if (args.getRegion() != null && !args.getRegion().equals("")) {
+            Region region = util.parseRegion(args.getRegion());
+            regionList.add(region);
+        } else if (args.getBedPath() != null && !args.getBedPath().equals("")) {
+            regionList = util.getBedRegionList(args.getBedPath());
+        }
 
-        // parse the cpg file
-        List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 2000);
-
-        // parse the mhap file
-        List<MHapInfo> tumorMHapList = util.parseMhapFile(args.getMhapPathT(), region, "both", true);
-        List<MHapInfo> normalMHapList = util.parseMhapFile(args.getMhapPathN(), region, "both", true);
-
-        BufferedWriter bufferedWriter = util.createOutputFile(args.getOutputDir(), args.getTag() + ".linkM.txt");
-        bufferedWriter.write("Fpos" + "\t" + "Rpos" + "\t" + "Fpattern" + "\t" + "Rpattern" + "\t" +
-                "T_RC" + "\t" + "T_PRC" + "\t" + "T" + "\t" + "N_RC" + "\t" + "N_PRC" + "\t" +"N" + "\t" + "FC" + "\n");
-
-        Region fWindow = new Region(); // forward window region
-        fWindow.setChrom(region.getChrom());
-        Integer fWindowStart = region.getStart(); // forward window start position
-        Integer totalPosCnt = region.getEnd() - region.getStart();
-        Integer readPosCnt = 0;
-        for (; fWindowStart < region.getEnd() - args.getMinInsertSize() - args.getrLength() + 1 && fWindow.getEnd() <= region.getEnd(); fWindowStart++) {
-            fWindow.setStart(fWindowStart); // forward window start position
-            fWindow.setEnd(fWindowStart + args.getfLength() - 1); // forward window end position
-            readPosCnt++;
-            if (readPosCnt % (totalPosCnt / 10) == 0) {
-                int percent = (int) Math.round(Double.valueOf(readPosCnt) * 100 / totalPosCnt);
-                log.info("Read complete " + percent + "%.");
-            }
-
-            // get the cpg position list in forward window
-            List<Integer> cpgPosListInFWindow = getCpgPosListInWindow(cpgPosList, fWindow);
-            if (cpgPosListInFWindow.size() < 1) {
+        for (Region region : regionList) {
+            log.info("linkM read" + region.toHeadString() + " start! ");
+            // parse the cpg file
+            List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 2000);
+            if (cpgPosList.size() < 1) {
                 continue;
             }
 
-            Region rWindow = new Region(); // reverse window region
-            rWindow.setChrom(region.getChrom());
-            Integer rWindowStart = fWindow.getEnd() + args.getMinInsertSize() + 1; // reverse window start position
-            for (; rWindowStart < fWindow.getEnd() + args.getMaxInsertSize() + 1 && rWindow.getEnd() <= region.getEnd(); rWindowStart++) {
-                rWindow.setStart(rWindowStart); // reverse window start position
-                rWindow.setEnd(rWindowStart + args.getrLength() - 1); // reverse window end position
-                //log.info("Reverse window: " + rWindow.toHeadString() + " read start!");
+            // parse the mhap file
+            List<MHapInfo> tumorMHapList = util.parseMhapFile(args.getMhapPathT(), region, "both", true);
+            if (tumorMHapList.size() < 1) {
+                continue;
+            }
+            List<MHapInfo> normalMHapList = util.parseMhapFile(args.getMhapPathN(), region, "both", true);
+            if (normalMHapList.size() < 1) {
+                continue;
+            }
 
-                // get the region include forward and reverse window
-                Region f2rWindow = new Region();
-                f2rWindow.setChrom(region.getChrom());
-                f2rWindow.setStart(fWindow.getStart());
-                f2rWindow.setEnd(rWindow.getEnd());
+            BufferedWriter bufferedWriter = util.createOutputFile(args.getOutputDir(), args.getTag() + ".linkM.txt");
+            bufferedWriter.write("Fpos" + "\t" + "Rpos" + "\t" + "Fpattern" + "\t" + "Rpattern" + "\t" +
+                    "T_RC" + "\t" + "T_PRC" + "\t" + "T" + "\t" + "N_RC" + "\t" + "N_PRC" + "\t" +"N" + "\t" + "FC" + "\n");
 
-                // get the cpg position list in both forward and reverse window
-                List<Integer> cpgPosListInWindow = getCpgPosListInWindow(cpgPosList, f2rWindow);
-                if (cpgPosListInWindow.size() < 1) {
-                    continue;
+            Region fWindow = new Region(); // forward window region
+            fWindow.setChrom(region.getChrom());
+            Integer fWindowStart = region.getStart(); // forward window start position
+            Integer totalPosCnt = region.getEnd() - region.getStart();
+            Integer readPosCnt = 0;
+            for (; fWindowStart < region.getEnd() - args.getMinInsertSize() - args.getrLength() + 1 && fWindow.getEnd() <= region.getEnd(); fWindowStart++) {
+                fWindow.setStart(fWindowStart); // forward window start position
+                fWindow.setEnd(fWindowStart + args.getfLength() - 1); // forward window end position
+                readPosCnt++;
+                if (readPosCnt % (totalPosCnt / 10) == 0) {
+                    int percent = (int) Math.round(Double.valueOf(readPosCnt) * 100 / totalPosCnt);
+                    log.info("Read complete " + percent + "%.");
                 }
-                // get the cpg position list in reverse window
-                List<Integer> cpgPosListInRWindow = getCpgPosListInWindow(cpgPosList, rWindow);
-                if (cpgPosListInRWindow.size() < 1) {
-                    continue;
-                }
-                Integer fWindowCpgStartIndex = util.indexOfList(cpgPosListInWindow, 0, cpgPosListInWindow.size() - 1, cpgPosListInFWindow.get(0));
-                Integer fWindowCpgEndIndex = util.indexOfList(cpgPosListInWindow, 0, cpgPosListInWindow.size() - 1, cpgPosListInFWindow.get(cpgPosListInFWindow.size() - 1));
-                Integer rWindowCpgStartIndex = util.indexOfList(cpgPosListInWindow, 0, cpgPosListInWindow.size() - 1, cpgPosListInRWindow.get(0));
-                Integer rWindowCpgEndIndex = util.indexOfList(cpgPosListInWindow, 0, cpgPosListInWindow.size() - 1, cpgPosListInRWindow.get(cpgPosListInRWindow.size() - 1));
-                Integer cpgStart = cpgPosListInWindow.get(fWindowCpgStartIndex);
-                Integer cpgEnd = cpgPosListInWindow.get(rWindowCpgEndIndex);
 
-                // get the tumor and normal mhap list in window
-                List<MHapInfo> tumorMHapListInWindow = getMHapListInWindow(tumorMHapList, f2rWindow, cpgStart, cpgEnd);
-                if (tumorMHapListInWindow.size() < args.getMinCov()) {
-                    continue;
-                }
-                List<MHapInfo> normalMHapListInWindow = getMHapListInWindow(normalMHapList, f2rWindow, cpgStart, cpgEnd);
-                if (normalMHapListInWindow.size() < args.getMinCov()) {
+                // get the cpg position list in forward window
+                List<Integer> cpgPosListInFWindow = getCpgPosListInWindow(cpgPosList, fWindow);
+                if (cpgPosListInFWindow.size() < 1) {
                     continue;
                 }
 
-                // get the tumor pattern in window
-                Map<String, Integer> tumorPatternMap = getPatternInWindow(tumorMHapListInWindow, cpgPosList, cpgStart, cpgEnd);
-                Map<String, Integer> newTumorPatternMap = new HashMap<>();
-                Iterator<String> tumorPatternMapIterator = tumorPatternMap.keySet().iterator();
-                while (tumorPatternMapIterator.hasNext()) {
-                    String key = tumorPatternMapIterator.next();
-                    String newKey = key.substring(fWindowCpgStartIndex, fWindowCpgEndIndex + 1) + key.substring(rWindowCpgStartIndex);
-                    if (newTumorPatternMap.containsKey(newKey)) {
-                        newTumorPatternMap.put(newKey, newTumorPatternMap.get(newKey) + tumorPatternMap.get(key));
-                    } else {
-                        newTumorPatternMap.put(newKey, tumorPatternMap.get(key));
-                    }
-                }
+                Region rWindow = new Region(); // reverse window region
+                rWindow.setChrom(region.getChrom());
+                Integer rWindowStart = fWindow.getEnd() + args.getMinInsertSize() + 1; // reverse window start position
+                for (; rWindowStart < fWindow.getEnd() + args.getMaxInsertSize() + 1 && rWindow.getEnd() <= region.getEnd(); rWindowStart++) {
+                    rWindow.setStart(rWindowStart); // reverse window start position
+                    rWindow.setEnd(rWindowStart + args.getrLength() - 1); // reverse window end position
+                    //log.info("Reverse window: " + rWindow.toHeadString() + " read start!");
 
-                // get the normal pattern in window
-                Map<String, Integer> normalPatternMap = getPatternInWindow(normalMHapListInWindow, cpgPosList, cpgStart, cpgEnd);
-                Map<String, Integer> newNormalPatternMap = new HashMap<>();
-                Iterator<String> normalPatternMapIterator = normalPatternMap.keySet().iterator();
-                while (normalPatternMapIterator.hasNext()) {
-                    String key = normalPatternMapIterator.next();
-                    String newKey = key.substring(fWindowCpgStartIndex, fWindowCpgEndIndex + 1) + key.substring(rWindowCpgStartIndex);
-                    if (newNormalPatternMap.containsKey(newKey)) {
-                        newNormalPatternMap.put(newKey, newNormalPatternMap.get(newKey) + normalPatternMap.get(key));
-                    } else {
-                        newNormalPatternMap.put(newKey, normalPatternMap.get(key));
-                    }
-                }
+                    // get the region include forward and reverse window
+                    Region f2rWindow = new Region();
+                    f2rWindow.setChrom(region.getChrom());
+                    f2rWindow.setStart(fWindow.getStart());
+                    f2rWindow.setEnd(rWindow.getEnd());
 
-                // get the tumor and normal total pattern count
-                Integer tumarTotalPatternCount = newTumorPatternMap.entrySet().stream().mapToInt(t->t.getValue()).sum();
-                Integer normalTotalPatternCount = newNormalPatternMap.entrySet().stream().mapToInt(t->t.getValue()).sum();
-
-                tumorPatternMapIterator = newTumorPatternMap.keySet().iterator();
-                while (tumorPatternMapIterator.hasNext()) {
-                    String key = tumorPatternMapIterator.next();
-                    Integer tumarPatternCount = newTumorPatternMap.get(key);
-                    Double tumorRate = newTumorPatternMap.get(key).doubleValue() / tumarTotalPatternCount.doubleValue();
-                    Integer normalPatternCount = 0;
-                    Double normalRate = 0.0;
-                    if (newNormalPatternMap.containsKey(key)) {
-                        normalPatternCount = newNormalPatternMap.get(key);
-                        normalRate = newNormalPatternMap.get(key).doubleValue() / normalTotalPatternCount.doubleValue();
+                    // get the cpg position list in both forward and reverse window
+                    List<Integer> cpgPosListInWindow = getCpgPosListInWindow(cpgPosList, f2rWindow);
+                    if (cpgPosListInWindow.size() < 1) {
+                        continue;
                     }
-                    Double foldChange = tumorRate / normalRate;
-                    if (tumorRate >= args.getMinT() && normalRate <= args.getMaxN() && foldChange >= args.getMinFC()) {
-                        bufferedWriter.write(fWindow.toHeadString() + "\t" + rWindow.toHeadString() + "\t" +
-                                key.substring(fWindowCpgStartIndex, fWindowCpgEndIndex + 1) + "\t" + key.substring(fWindowCpgEndIndex + 1) + "\t"
-                                + tumarTotalPatternCount + "\t" + tumarPatternCount + "\t" + tumorRate.floatValue() + "\t" +  normalTotalPatternCount + "\t" +
-                                normalPatternCount + "\t" + normalRate.floatValue() + "\t" + foldChange.floatValue() + "\n");
+                    // get the cpg position list in reverse window
+                    List<Integer> cpgPosListInRWindow = getCpgPosListInWindow(cpgPosList, rWindow);
+                    if (cpgPosListInRWindow.size() < 1) {
+                        continue;
                     }
-                }
+                    Integer fWindowCpgStartIndex = util.indexOfList(cpgPosListInWindow, 0, cpgPosListInWindow.size() - 1, cpgPosListInFWindow.get(0));
+                    Integer fWindowCpgEndIndex = util.indexOfList(cpgPosListInWindow, 0, cpgPosListInWindow.size() - 1, cpgPosListInFWindow.get(cpgPosListInFWindow.size() - 1));
+                    Integer rWindowCpgStartIndex = util.indexOfList(cpgPosListInWindow, 0, cpgPosListInWindow.size() - 1, cpgPosListInRWindow.get(0));
+                    Integer rWindowCpgEndIndex = util.indexOfList(cpgPosListInWindow, 0, cpgPosListInWindow.size() - 1, cpgPosListInRWindow.get(cpgPosListInRWindow.size() - 1));
+                    Integer cpgStart = cpgPosListInWindow.get(fWindowCpgStartIndex);
+                    Integer cpgEnd = cpgPosListInWindow.get(rWindowCpgEndIndex);
 
-                normalPatternMapIterator = newNormalPatternMap.keySet().iterator();
-                while (normalPatternMapIterator.hasNext()) {
-                    String key = normalPatternMapIterator.next();
-                    Integer tumarPatternCount = 0;
-                    Double tumorRate = 0.0;
-                    if (!newTumorPatternMap.containsKey(key)) {
-                        Integer normalPatternCount = newNormalPatternMap.get(key);
-                        Double normalRate = newNormalPatternMap.get(key).doubleValue() / normalTotalPatternCount.doubleValue();
+                    // get the tumor and normal mhap list in window
+                    List<MHapInfo> tumorMHapListInWindow = getMHapListInWindow(tumorMHapList, f2rWindow, cpgStart, cpgEnd);
+                    if (tumorMHapListInWindow.size() < args.getMinCov()) {
+                        continue;
+                    }
+                    List<MHapInfo> normalMHapListInWindow = getMHapListInWindow(normalMHapList, f2rWindow, cpgStart, cpgEnd);
+                    if (normalMHapListInWindow.size() < args.getMinCov()) {
+                        continue;
+                    }
+
+                    // get the tumor pattern in window
+                    Map<String, Integer> tumorPatternMap = getPatternInWindow(tumorMHapListInWindow, cpgPosList, cpgStart, cpgEnd);
+                    Map<String, Integer> newTumorPatternMap = new HashMap<>();
+                    Iterator<String> tumorPatternMapIterator = tumorPatternMap.keySet().iterator();
+                    while (tumorPatternMapIterator.hasNext()) {
+                        String key = tumorPatternMapIterator.next();
+                        String newKey = key.substring(fWindowCpgStartIndex, fWindowCpgEndIndex + 1) + key.substring(rWindowCpgStartIndex);
+                        if (newTumorPatternMap.containsKey(newKey)) {
+                            newTumorPatternMap.put(newKey, newTumorPatternMap.get(newKey) + tumorPatternMap.get(key));
+                        } else {
+                            newTumorPatternMap.put(newKey, tumorPatternMap.get(key));
+                        }
+                    }
+
+                    // get the normal pattern in window
+                    Map<String, Integer> normalPatternMap = getPatternInWindow(normalMHapListInWindow, cpgPosList, cpgStart, cpgEnd);
+                    Map<String, Integer> newNormalPatternMap = new HashMap<>();
+                    Iterator<String> normalPatternMapIterator = normalPatternMap.keySet().iterator();
+                    while (normalPatternMapIterator.hasNext()) {
+                        String key = normalPatternMapIterator.next();
+                        String newKey = key.substring(fWindowCpgStartIndex, fWindowCpgEndIndex + 1) + key.substring(rWindowCpgStartIndex);
+                        if (newNormalPatternMap.containsKey(newKey)) {
+                            newNormalPatternMap.put(newKey, newNormalPatternMap.get(newKey) + normalPatternMap.get(key));
+                        } else {
+                            newNormalPatternMap.put(newKey, normalPatternMap.get(key));
+                        }
+                    }
+
+                    // get the tumor and normal total pattern count
+                    Integer tumarTotalPatternCount = newTumorPatternMap.entrySet().stream().mapToInt(t->t.getValue()).sum();
+                    Integer normalTotalPatternCount = newNormalPatternMap.entrySet().stream().mapToInt(t->t.getValue()).sum();
+
+                    tumorPatternMapIterator = newTumorPatternMap.keySet().iterator();
+                    while (tumorPatternMapIterator.hasNext()) {
+                        String key = tumorPatternMapIterator.next();
+                        Integer tumarPatternCount = newTumorPatternMap.get(key);
+                        Double tumorRate = newTumorPatternMap.get(key).doubleValue() / tumarTotalPatternCount.doubleValue();
+                        Integer normalPatternCount = 0;
+                        Double normalRate = 0.0;
+                        if (newNormalPatternMap.containsKey(key)) {
+                            normalPatternCount = newNormalPatternMap.get(key);
+                            normalRate = newNormalPatternMap.get(key).doubleValue() / normalTotalPatternCount.doubleValue();
+                        }
                         Double foldChange = tumorRate / normalRate;
                         if (tumorRate >= args.getMinT() && normalRate <= args.getMaxN() && foldChange >= args.getMinFC()) {
                             bufferedWriter.write(fWindow.toHeadString() + "\t" + rWindow.toHeadString() + "\t" +
@@ -172,17 +172,49 @@ public class LinkM {
                         }
                     }
 
-                }
-                //log.info("Reverse window: " + rWindow.toHeadString() + " read end!");
-            }
-            //log.info("Forward window: " + fWindow.toHeadString() + " read end!");
-        }
-        bufferedWriter.close();
+                    normalPatternMapIterator = newNormalPatternMap.keySet().iterator();
+                    while (normalPatternMapIterator.hasNext()) {
+                        String key = normalPatternMapIterator.next();
+                        Integer tumarPatternCount = 0;
+                        Double tumorRate = 0.0;
+                        if (!newTumorPatternMap.containsKey(key)) {
+                            Integer normalPatternCount = newNormalPatternMap.get(key);
+                            Double normalRate = newNormalPatternMap.get(key).doubleValue() / normalTotalPatternCount.doubleValue();
+                            Double foldChange = tumorRate / normalRate;
+                            if (tumorRate >= args.getMinT() && normalRate <= args.getMaxN() && foldChange >= args.getMinFC()) {
+                                bufferedWriter.write(fWindow.toHeadString() + "\t" + rWindow.toHeadString() + "\t" +
+                                        key.substring(fWindowCpgStartIndex, fWindowCpgEndIndex + 1) + "\t" + key.substring(fWindowCpgEndIndex + 1) + "\t"
+                                        + tumarTotalPatternCount + "\t" + tumarPatternCount + "\t" + tumorRate.floatValue() + "\t" +  normalTotalPatternCount + "\t" +
+                                        normalPatternCount + "\t" + normalRate.floatValue() + "\t" + foldChange.floatValue() + "\n");
+                            }
+                        }
 
-        log.info("command.linkM end! ");
+                    }
+                    //log.info("Reverse window: " + rWindow.toHeadString() + " read end!");
+                }
+                //log.info("Forward window: " + fWindow.toHeadString() + " read end!");
+            }
+
+            log.info("linkM read" + region.toHeadString() + " end! ");
+            bufferedWriter.close();
+        }
+
+        log.info("command.linkM end!");
     }
 
     private boolean checkArgs() {
+        if (args.getMhapPathN().equals("") || args.getMhapPathT().equals("")) {
+            log.error("mhapPath can not be null.");
+            return false;
+        }
+        if (args.getCpgPath().equals("")) {
+            log.error("cpgPath can not be null.");
+            return false;
+        }
+        if (!args.getRegion().equals("") && !args.getBedPath().equals("")) {
+            log.error("Can not input region and bedPath at the same time.");
+            return false;
+        }
 
         return true;
     }
@@ -209,9 +241,8 @@ public class LinkM {
     }
 
     private List<MHapInfo> getMHapListInWindow(List<MHapInfo> mHapList, Region f2rWindow, Integer startCpg, Integer endCpg) {
-        List<MHapInfo> mHapListFiltered = util.filterMHapListInRegion(mHapList, f2rWindow);
         List<MHapInfo> mHapListNew = new ArrayList<>();
-        for (MHapInfo mHapInfo : mHapListFiltered) {
+        for (MHapInfo mHapInfo : mHapList) {
             if (mHapInfo.getStart() <= startCpg && mHapInfo.getEnd() >= endCpg) {
                 mHapListNew.add(mHapInfo);
             }

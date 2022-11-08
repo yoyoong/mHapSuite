@@ -55,7 +55,7 @@ public class LinkM {
                 continue;
             }
 
-            BufferedWriter bufferedWriter = util.createOutputFile(args.getOutputDir(), args.getTag() + ".linkM.txt");
+            BufferedWriter bufferedWriter = util.createOutputFile(args.getOutputDir(), args.getTag() + "_" + region.toFileString() + ".linkM.txt");
             bufferedWriter.write("Fpos" + "\t" + "Rpos" + "\t" + "Fpattern" + "\t" + "Rpattern" + "\t" +
                     "T_RC" + "\t" + "T_PRC" + "\t" + "T" + "\t" + "N_RC" + "\t" + "N_PRC" + "\t" +"N" + "\t" + "FC" + "\n");
 

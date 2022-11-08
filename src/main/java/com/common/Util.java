@@ -193,7 +193,7 @@ public class Util {
             if (cpgPosList.get(i) > region.getEnd()) {
                 cpgEndPos = i;
                 break;
-            } else if (cpgPosList.get(i) == region.getEnd()) {
+            } else if (cpgPosList.get(i).equals(region.getEnd())) {
                 cpgEndPos = i + 1;
                 break;
             }

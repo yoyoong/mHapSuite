@@ -1,6 +1,9 @@
 package com.common;
 
-import com.bean.*;
+import com.bean.BedInfo;
+import com.bean.MHapInfo;
+import com.bean.R2Info;
+import com.bean.Region;
 import com.itextpdf.awt.DefaultFontMapper;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
@@ -8,9 +11,6 @@ import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfTemplate;
 import com.itextpdf.text.pdf.PdfWriter;
-import htsjdk.samtools.BinningIndexContent;
-import htsjdk.samtools.LinearIndex;
-import htsjdk.tribble.index.tabix.TabixIndex;
 import htsjdk.tribble.readers.TabixReader;
 import org.apache.commons.math3.distribution.BinomialDistribution;
 import org.jfree.chart.ChartUtils;
@@ -21,12 +21,8 @@ import org.slf4j.LoggerFactory;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.*;
 import java.util.List;
-import java.util.regex.Pattern;
-import java.util.zip.GZIPInputStream;
+import java.util.*;
 
 public class Util {
     public static final Logger log = LoggerFactory.getLogger(Util.class);
@@ -239,31 +235,6 @@ public class Util {
         tabixReader.close();
         return mHapInfoList;
     }
-
-    public List<MHapInfo> parseMhapFileWithEndShift(String mhapPath, Region region, String strand, Integer shift) throws IOException, InterruptedException {
-        TabixReader tabixReader = new TabixReader(mhapPath);
-        TabixReader.Iterator mhapIterator = tabixReader.query(region.getChrom(), region.getStart() - 1, region.getEnd() + shift);
-        List<MHapInfo> mHapInfoList = new ArrayList<>();
-        String mHapLine = "";
-        Integer lineCnt = 0;
-        while((mHapLine = mhapIterator.next()) != null) {
-            lineCnt++;
-            if (lineCnt % 1000000 == 0) {
-                log.info("Read " + region.getChrom() + " mhap " + lineCnt + " lines.");
-            }
-            if ((strand.equals("plus") && mHapLine.split("\t")[5].equals("-")) ||
-                    (strand.equals("minus") && mHapLine.split("\t")[5].equals("+"))) {
-                continue;
-            }
-            MHapInfo mHapInfo = new MHapInfo(mHapLine.split("\t")[0], Integer.valueOf(mHapLine.split("\t")[1]),
-                    Integer.valueOf(mHapLine.split("\t")[2]), mHapLine.split("\t")[3],
-                    Integer.valueOf(mHapLine.split("\t")[4]), mHapLine.split("\t")[5]);
-            mHapInfoList.add(mHapInfo);
-        }
-
-        tabixReader.close();
-        return mHapInfoList;
-    }
     
     public List<Region> splitRegionToSmallRegion(Region region, Integer splitSize, Integer shift) {
         List<Region> regionList = new ArrayList<>();
@@ -289,51 +260,6 @@ public class Util {
             regionList.add(region);
         }
         return regionList;
-    }
-
-    public List<Region> getWholeRegionFromMHapFile(String mhapPath) throws Exception {
-        List<Region> wholeRegionList = new ArrayList<>();
-        InputStream inputStream = new GZIPInputStream(new FileInputStream(new File(mhapPath)));
-        Scanner scanner = new Scanner(inputStream);
-
-        String mHapLine = "";
-        String lastChrom = "";
-        Integer lastStart = 0;
-        Integer lastEnd = 0;
-        Integer lineCnt = 0;
-        while (scanner.hasNext()) {
-            mHapLine = scanner.nextLine();lineCnt++;
-            if (lineCnt % 100000000 == 0) {
-                log.info("Read mhap complete " + lineCnt + " lines.");
-            }
-
-            if (!lastChrom.equals("")) {
-                if (!mHapLine.split("\t")[0].equals(lastChrom)) {
-                    Region region = new Region();
-                    region.setChrom(lastChrom);
-                    region.setStart(lastStart);
-                    region.setEnd(lastEnd);
-                    wholeRegionList.add(region);
-                    lastEnd = 0;
-                    lastChrom = mHapLine.split("\t")[0];
-                    lastStart = Integer.valueOf(mHapLine.split("\t")[1]);
-                } else {
-                    if (lastEnd < Integer.valueOf(mHapLine.split("\t")[2])) {
-                        lastEnd = Integer.valueOf(mHapLine.split("\t")[2]);
-                    }
-                }
-            } else {
-                lastChrom = mHapLine.split("\t")[0];
-                lastStart = Integer.valueOf(mHapLine.split("\t")[1]);
-            }
-        }
-        Region region = new Region();
-        region.setChrom(lastChrom);
-        region.setStart(lastStart);
-        region.setEnd(lastEnd);
-        wholeRegionList.add(region);
-
-        return wholeRegionList;
     }
 
     public Integer[][] getCpgHpMat(List<MHapInfo> mHapInfoList, List<Integer> cpgPosList, List<Integer> cpgPosListInRegion) {

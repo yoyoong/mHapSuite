@@ -18,6 +18,7 @@ public class GenomeWide {
     GenomeWideArgs args = new GenomeWideArgs();
     Util util = new Util();
 
+    BufferedWriter bufferedWriterCov = null;
     BufferedWriter bufferedWriterMM = null;
     BufferedWriter bufferedWriterPDR = null;
     BufferedWriter bufferedWriterCHALM = null;
@@ -38,6 +39,9 @@ public class GenomeWide {
             return;
         }
 
+        if (args.getMetrics().contains("Cov")) {
+            bufferedWriterCov = util.createOutputFile(args.getOutputDir(), args.getTag() + ".Cov.bedGraph");
+        }
         if (args.getMetrics().contains("MM")) {
             bufferedWriterMM = util.createOutputFile(args.getOutputDir(), args.getTag() + ".MM.bedGraph");
         }
@@ -90,6 +94,9 @@ public class GenomeWide {
             }
         }
 
+        if (args.getMetrics().contains("Cov")) {
+            bufferedWriterCov.close();
+        }
         if (args.getMetrics().contains("MM")) {
             bufferedWriterMM.close();
         }
@@ -400,6 +407,10 @@ public class GenomeWide {
                 bedGraphInfo.setChrom(region.getChrom());
                 bedGraphInfo.setStart(cpgPosListInRegion.get(i) - 1);
                 bedGraphInfo.setEnd(cpgPosListInRegion.get(i));
+                if (metric.equals("Cov")) {
+                    bedGraphInfo.setCov(nReads);
+                    bufferedWriterCov.write(bedGraphInfo.printCov());
+                }
                 if (metric.equals("MM")) {
                     Double MM = mRead.doubleValue() / nReads.doubleValue();
                     if (MM.isNaN() || MM.isInfinite()) {

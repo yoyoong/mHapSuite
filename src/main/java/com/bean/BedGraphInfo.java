@@ -6,6 +6,7 @@ public class BedGraphInfo implements Serializable {
     public String chrom;
     public Integer start;
     public Integer end;
+    public Integer Cov;
     public Float MM;
     public Float PDR;
     public Float CHALM;
@@ -37,6 +38,14 @@ public class BedGraphInfo implements Serializable {
 
     public void setEnd(Integer end) {
         this.end = end;
+    }
+
+    public Integer getCov() {
+        return Cov;
+    }
+
+    public void setCov(Integer cov) {
+        Cov = cov;
     }
 
     public Float getMM() {
@@ -101,6 +110,10 @@ public class BedGraphInfo implements Serializable {
 
     public void setR2(Float r2) {
         R2 = r2;
+    }
+
+    public String printCov() {
+        return this.getChrom() + "\t" + this.getStart() + "\t" + this.getEnd() + "\t" + this.getCov() + "\n";
     }
 
     public String printMM() {

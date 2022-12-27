@@ -55,15 +55,21 @@ public class Stat {
         for (Region region : regionList) {
             // parse the mhap file
             List<MHapInfo> mHapInfoListMerged = util.parseMhapFile(args.getMhapPath(), region, args.getStrand(), true);
-
+            if (mHapInfoListMerged.size() < 1) {
+                continue;
+            }
             // parse the cpg file
             List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
+            if (cpgPosList.size() < 1) {
+                continue;
+            }
 
             boolean getStatResult = getStat(mHapInfoListMerged, cpgPosList, region, metricsList, bufferedWriter);
             if (!getStatResult) {
                 log.error("getStat fail, please check the command.");
                 return;
             }
+            log.info("Region: " + region.toHeadString() + " calculate end!");
         }
         bufferedWriter.close();
 

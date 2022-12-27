@@ -194,7 +194,14 @@ public class Util {
                 break;
             }
         }
-        List<Integer> cpgPosListInRegion = cpgPosList.subList(cpgStartPos, cpgEndPos);
+
+        List<Integer> cpgPosListInRegion = new ArrayList<>();
+        try {
+            cpgPosListInRegion = cpgPosList.subList(cpgStartPos, cpgEndPos);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
 
         return cpgPosListInRegion;
     }

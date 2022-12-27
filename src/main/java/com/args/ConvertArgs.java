@@ -10,6 +10,7 @@ public class ConvertArgs implements Serializable {
     public boolean nonDirectional = false;
     public String outPutFile = "";
     public String mode = "BS";
+    public boolean pat = false;
 
     public String getInputFile() {
         return inputFile;
@@ -65,5 +66,13 @@ public class ConvertArgs implements Serializable {
 
     public void setMode(String mode) {
         this.mode = mode;
+    }
+
+    public boolean isPat() {
+        return pat;
+    }
+
+    public void setPat(boolean pat) {
+        this.pat = pat;
     }
 }

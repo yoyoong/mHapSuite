@@ -2,6 +2,8 @@ import junit.framework.TestCase;
 import com.Main;
 import org.junit.Test;
 
+import java.io.File;
+
 public class MainTest extends TestCase {
 
     @Test
@@ -9,9 +11,9 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "convert";
         String arg1 = "-inputFile";
-        String arg2 = "HUES64_BISMARK_SRX759486.bam";
+        String arg2 = "/sibcb2/bioinformatics2/fengyan/WGBStools/wgbs_tools/GSM5652176_Adipocytes-Z000000T7.pat.gz";
         String arg3 = "-cpgPath";
-        String arg4 = "hg19_CpG.gz";
+        String arg4 = "/sibcb2/bioinformatics2/zhangzhiqiang/genome/CpG/hg19/hg19_CpG.gz";
         String arg5 = "-region";
         String arg6 = "chr1:1-240000";
         //        String arg5 = "-b";
@@ -19,13 +21,16 @@ public class MainTest extends TestCase {
         String arg7 = "-nonDirectional";
         String arg8 = "-outPutFile";
         String arg9 = "test.mhap.gz";
-        String arg10 = "-mode";
-        String arg11 = "BS";
+//        String arg10 = "-mode";
+//        String arg11 = "BS";
+        String arg10 = "-pat";
 
-        String[] args = {arg0, arg1, arg2, arg3, arg4, arg8, arg9, arg10, arg11};
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg8, arg9, arg10};
+        // String[] args = {arg0, arg1, arg2, arg3, arg4, arg8, arg9, arg10, arg11};
         //String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg8, arg9, arg10, arg11};
         //String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11};
 
+        System.out.println("Work direqtory: " + System.getProperty("user.dir"));
         String argsStr = "";
         for (int i = 0; i < args.length; i++) {
             argsStr += args[i] + " ";
@@ -48,6 +53,7 @@ public class MainTest extends TestCase {
 
         String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6};
 
+        System.out.println("Work direqtory: " + System.getProperty("user.dir"));
         String argsStr = "";
         for (int i = 0; i < args.length; i++) {
             argsStr += args[i] + " ";
@@ -62,11 +68,11 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "tanghulu";
         String arg1 = "-mhapPath";
-        String arg2 = "SRX1635079.mhap.gz";
+        String arg2 = "esophagus_T.mhap.gz";
         String arg3 = "-cpgPath";
         String arg4 = "hg19_CpG.gz";
         String arg5 = "-region";
-        String arg6 = "chr1:145075800-145075900";
+        String arg6 = "chr1:2121159-2121449";
         String arg7 = "-outputFile";
         String arg8 = "SRX1635079";
         String arg9 = "-strand";
@@ -85,6 +91,7 @@ public class MainTest extends TestCase {
         // String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18};
         // String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg19};
 
+        System.out.println("Work direqtory: " + System.getProperty("user.dir"));
         String argsStr = "";
         for (int i = 0; i < args.length; i++) {
             argsStr += args[i] + " ";
@@ -114,6 +121,7 @@ public class MainTest extends TestCase {
         String arg14 = "both";
         String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14};
 
+        System.out.println("Work direqtory: " + System.getProperty("user.dir"));
         String argsStr = "";
         for (int i = 0; i < args.length; i++) {
             argsStr += args[i] + " ";
@@ -128,17 +136,17 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "stat";
         String arg1 = "-metrics";
-        String arg2 = "MM PDR CHALM MHL MCR MBS Entropy R2";
+        String arg2 = "MM PDR";
         String arg3 = "-mhapPath";
-        String arg4 = "esophagus_T.mhap.gz";
+        String arg4 = "/sibcb1/bioinformatics/dataupload/CUP/mHaps/training/RRBS20A041478.mhap.gz";
         String arg5 = "-cpgPath";
-        String arg6 = "hg19_CpG.gz";
+        String arg6 = "/sibcb2/bioinformatics2/dingyi/CommonData/iGenome/hg19/hg19_CpG.gz";
 //        String arg7 = "-region";
 //        String arg8 = "chr1:566520-566816";
         String arg7 = "-bedPath";
-        String arg8 = "CRC_MHB_non_NC.bed";
+        String arg8 = "/sibcb2/bioinformatics2/hongyuyang/code/mHapSuite/tss_1k.bed";
         String arg9 = "-outputFile";
-        String arg10 = "outStat.tsv";
+        String arg10 = "/sibcb2/bioinformatics2/hongyuyang/code/mHapSuite/outputDir/outStat.tsv";
         String arg11 = "-minK";
         String arg12 = "1";
         String arg13 = "-maxK";
@@ -154,6 +162,7 @@ public class MainTest extends TestCase {
         //String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19};
         String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg20, arg21};
 
+        System.out.println("Work direqtory: " + System.getProperty("user.dir"));
         String argsStr = "";
         for (int i = 0; i < args.length; i++) {
             argsStr += args[i] + " ";
@@ -170,7 +179,7 @@ public class MainTest extends TestCase {
         String arg1 = "-tag";
         String arg2 = "test";
         String arg3 = "-mhapPath";
-        String arg4 = "esophagus_T.mhap.gz";
+        String arg4 = "SRX3098563.mhap.gz";
         String arg5 = "-cpgPath";
         String arg6 = "hg19_CpG.gz";
         String arg7 = "-metrics";
@@ -196,11 +205,12 @@ public class MainTest extends TestCase {
         String arg25 = "-k4Plus";
         String arg26 = "5";
 
-        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14,
-                arg15, arg16, arg17, arg18, arg19, arg20, arg21, arg22, arg23, arg24, arg25, arg26};
 //        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14,
-//                arg15, arg16, arg17, arg18, arg21, arg22, arg23, arg24, arg25, arg26};
+//                arg15, arg16, arg17, arg18, arg19, arg20, arg21, arg22, arg23, arg24, arg25, arg26};
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14,
+                arg15, arg16, arg17, arg18, arg21, arg22, arg23, arg24, arg25, arg26};
 
+        System.out.println("Work direqtory: " + System.getProperty("user.dir"));
         String argsStr = "";
         for (int i = 0; i < args.length; i++) {
             argsStr += args[i] + " ";
@@ -237,6 +247,7 @@ public class MainTest extends TestCase {
         //String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17};
         //String[] args = {arg0, arg1, arg2, arg3, arg4, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16};
 
+        System.out.println("Work direqtory: " + System.getProperty("user.dir"));
         String argsStr = "";
         for (int i = 0; i < args.length; i++) {
             argsStr += args[i] + " ";
@@ -284,6 +295,7 @@ public class MainTest extends TestCase {
         String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14,
                 arg15, arg16, arg17, arg18, arg19, arg20, arg21, arg22, arg23, arg24, arg25, arg26, arg27, arg28};
 
+        System.out.println("Work direqtory: " + System.getProperty("user.dir"));
         String argsStr = "";
         for (int i = 0; i < args.length; i++) {
             argsStr += args[i] + " ";

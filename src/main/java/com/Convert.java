@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import static htsjdk.samtools.SamFiles.findIndex;
@@ -28,7 +29,6 @@ public class Convert {
     Util util = new Util();
     public RegionType regionType; // 区域类型
     public File inputFile; // sam/bam文件
-    BufferedWriter bufferedWriter = null;
 
     public void convert(ConvertArgs convertArgs) throws Exception {
         log.info("command.Convert start!");
@@ -54,33 +54,26 @@ public class Convert {
         } else {
             mhapFileName = args.getOutPutFile().substring(0, args.getOutPutFile().length() - 3);
         }
-        bufferedWriter = util.createOutputFile("", mhapFileName);
+        BufferedWriter bufferedWriter = util.createOutputFile("", mhapFileName);
 
-        // 生成mHap文件数据
-        if (regionType == RegionType.SINGLE_REGION) { // 单区间
-            // 解析region
-            Region region = util.parseRegion(args.getRegion());
-            boolean getSingleRegionDataResult = getSingleRegionData(region, bufferedWriter);
-            if (!getSingleRegionDataResult) {
-                log.error("getSingleRegionData fail, please check the command.");
+        if (args.isPat()) {
+            boolean convertPatResult = convertPat(bufferedWriter);
+            if (!convertPatResult) {
+                log.error("convertPat fail, please check the command.");
                 return;
             }
-        } else if (regionType == RegionType.WHOLE_FILE) { // 整个文件
-            boolean getWholeFileDataResult = getWholeFileData(bufferedWriter);
-            if (!getWholeFileDataResult) {
-                log.error("getWholeFileData fail, please check the command.");
-                return;
-            }
-        } else if (regionType == RegionType.MULTI_REGION) { // bed文件的基因
-            boolean getWholeFileDataResult = getMultiRegionData(bufferedWriter);
-            if (!getWholeFileDataResult) {
-                log.error("getWholeFileData fail, please check the command.");
+        } else {
+            boolean convertBamResult = convertBam(bufferedWriter);
+            if (!convertBamResult) {
+                log.error("convertBam fail, please check the command.");
                 return;
             }
         }
+
         bufferedWriter.close();
 
         // generate the .gz file
+        log.info("Start generate .gz file...");
         String gzFileName = mhapFileName + ".gz";
         GZIPOutputStream gzipOutputStream = new GZIPOutputStream(new FileOutputStream(gzFileName));
         FileInputStream fileInputStream = new FileInputStream(mhapFileName);
@@ -94,16 +87,97 @@ public class Convert {
         gzipOutputStream.close();
         new File(mhapFileName).delete();
 
+
         log.info("command.Convert end! ");
+    }
+
+    private boolean convertBam(BufferedWriter bufferedWriter) throws Exception {
+        if (regionType == RegionType.SINGLE_REGION) { // 单区间
+            // 解析region
+            Region region = util.parseRegion(args.getRegion());
+            boolean getSingleRegionDataResult = getSingleRegionData(region, bufferedWriter);
+            if (!getSingleRegionDataResult) {
+                log.error("getSingleRegionData fail, please check the command.");
+                return false;
+            }
+        } else if (regionType == RegionType.WHOLE_FILE) { // 整个文件
+            boolean getWholeFileDataResult = getWholeFileData(bufferedWriter);
+            if (!getWholeFileDataResult) {
+                log.error("getWholeFileData fail, please check the command.");
+                return false;
+            }
+        } else if (regionType == RegionType.MULTI_REGION) { // bed文件的基因
+            boolean getWholeFileDataResult = getMultiRegionData(bufferedWriter);
+            if (!getWholeFileDataResult) {
+                log.error("getWholeFileData fail, please check the command.");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean convertPat(BufferedWriter bufferedWriter) throws Exception {
+        // get whole cpg position list
+        List<Integer> cpgPosList = new ArrayList<>();
+        TabixReader tabixReader = new TabixReader(args.getCpgPath());
+        String cpgLine = tabixReader.readLine();
+        while(cpgLine != null && !cpgLine.equals("")) {
+            if (cpgLine.split("\t").length < 3) {
+                continue;
+            } else {
+                cpgPosList.add(Integer.valueOf(cpgLine.split("\t")[1]));
+                cpgLine = tabixReader.readLine();
+            }
+        }
+        log.info("Read cpg reference file: " + args.getCpgPath() + " end.");
+
+        FileInputStream fileInputStream = new FileInputStream(args.getInputFile());
+        GZIPInputStream gzipInputStream = new GZIPInputStream(fileInputStream);
+        InputStreamReader inputStreamReader = new InputStreamReader(gzipInputStream);
+        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+        String patLine = "";
+        long completeLine = 0l;
+        while ((patLine = bufferedReader.readLine()) != null && !patLine.equals("")) {
+            completeLine++;
+            if (completeLine % 1000000 == 0) { // 每一百万条打印进度
+                log.info("Complete convert pat file "  + completeLine + " lines.");
+            }
+
+            if(patLine == null || patLine.split("\t").length < 4) {
+                continue;
+            }
+
+            String thisChrom = patLine.split("\t")[0];
+            Integer startLine = Integer.valueOf(patLine.split("\t")[1]);
+            String cpgInfo = patLine.split("\t")[2];
+            Integer readNum = Integer.valueOf(patLine.split("\t")[3]);
+
+            if (cpgInfo.contains(".")) {
+                continue;
+            }
+
+            Integer startPos = cpgPosList.get(startLine - 1);
+            Integer endPos = cpgPosList.get(startLine + cpgInfo.length() - 1);
+
+            String cpgStr = ""; // cpg string in format of 0/1
+            for (char cpg : cpgInfo.toCharArray()) {
+                if (cpg == 'C') {
+                    cpgStr += "1";
+                } else if (cpg == 'T') {
+                    cpgStr += "0";
+                }
+            }
+
+            bufferedWriter.write(thisChrom + "\t" + startPos + "\t" + endPos + "\t" + cpgStr + "\t" + readNum + "\t" + "+" + "\n");
+        }
+
+        return true;
     }
 
     private boolean checkArgs() {
         if (args.getInputFile().isEmpty() || args.getCpgPath().isEmpty()) {
             log.error("Please specify -i and -c options.");
-            return false;
-        }
-        if (!args.getRegion().isEmpty() && !args.getBedFile().isEmpty()) {
-            log.error("You can not specify both -r and -b options.");
             return false;
         }
         if (args.getMode() != "BS" && args.getMode() != "TAPS") {

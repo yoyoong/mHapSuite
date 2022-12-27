@@ -69,6 +69,7 @@ public class Main {
         String nonDirectional_Description = "non-directional, do not group results by the direction of reads.";
         String outPutFile_Description = "output filename. (default: out.mhap.gz)";
         String mode_Description = "sequencing mode. ( TAPS | BS (default) )";
+        String pat_Description = "whether inputPath is pat file";
 
         Options options = new Options();
         Option option0 = OptionBuilder.withLongOpt("help").withDescription("help").create("h");
@@ -79,8 +80,9 @@ public class Main {
         Option option5 = OptionBuilder.withArgName("args").withLongOpt("nonDirectional").withDescription(nonDirectional_Description).create("nonDirectional");
         Option option6 = OptionBuilder.withArgName("args").withLongOpt("outPutFile").hasArg().withDescription(outPutFile_Description).create("outPutFile");
         Option option7 = OptionBuilder.withArgName("args").withLongOpt("mode").hasArg().withDescription(mode_Description).create("mode");
+        Option option8 = OptionBuilder.withArgName("args").withLongOpt("pat").withDescription(pat_Description).create("pat");
         options.addOption(option0).addOption(option1).addOption(option2).addOption(option3).addOption(option4)
-                .addOption(option5).addOption(option6).addOption(option7);
+                .addOption(option5).addOption(option6).addOption(option7).addOption(option8);
 
         BasicParser parser = new BasicParser();
         ConvertArgs convertArgs = new ConvertArgs();
@@ -108,6 +110,9 @@ public class Main {
                 }
                 if (commandLine.hasOption("mode")) {
                     convertArgs.setMode(commandLine.getOptionValue("mode"));
+                }
+                if (commandLine.hasOption("pat")) {
+                    convertArgs.setPat(true);
                 }
             }
         } else {

@@ -7,6 +7,7 @@ import com.bean.RegionType;
 import com.bean.StrandType;
 import com.common.Util;
 import htsjdk.samtools.*;
+import htsjdk.samtools.util.BlockCompressedOutputStream;
 import htsjdk.tribble.bed.BEDCodec;
 import htsjdk.tribble.bed.BEDFeature;
 import htsjdk.tribble.readers.AsciiLineReader;
@@ -72,21 +73,20 @@ public class Convert {
 
         bufferedWriter.close();
 
-        // generate the .gz file
+        // convert mhap file to .gz file
         log.info("Start generate .gz file...");
         String gzFileName = mhapFileName + ".gz";
-        GZIPOutputStream gzipOutputStream = new GZIPOutputStream(new FileOutputStream(gzFileName));
-        FileInputStream fileInputStream = new FileInputStream(mhapFileName);
-        byte[] buffer = new byte[1024];
-        int len;
-        while ((len = fileInputStream.read(buffer)) > 0) {
-            gzipOutputStream.write(buffer, 0, len);
+        InputStream inputStream = new FileInputStream(mhapFileName);
+        OutputStream outputStream = new BlockCompressedOutputStream(new File(gzFileName));
+        byte[] b = new byte[1024];
+        int len = inputStream.read(b);
+        while (len > 0) {
+            outputStream.write(b, 0, len);
+            len = inputStream.read(b);
         }
-        fileInputStream.close();
-        gzipOutputStream.finish();
-        gzipOutputStream.close();
+        inputStream.close();
+        outputStream.close();
         new File(mhapFileName).delete();
-
 
         log.info("command.Convert end! ");
     }
@@ -118,6 +118,7 @@ public class Convert {
     }
 
     private boolean convertPat(BufferedWriter bufferedWriter) throws Exception {
+
         // get whole cpg position list
         List<Integer> cpgPosList = new ArrayList<>();
         TabixReader tabixReader = new TabixReader(args.getCpgPath());
@@ -158,7 +159,7 @@ public class Convert {
             }
 
             Integer startPos = cpgPosList.get(startLine - 1);
-            Integer endPos = cpgPosList.get(startLine + cpgInfo.length() - 1);
+            Integer endPos = cpgPosList.get(startLine + cpgInfo.length() - 2);
 
             String cpgStr = ""; // cpg string in format of 0/1
             for (char cpg : cpgInfo.toCharArray()) {

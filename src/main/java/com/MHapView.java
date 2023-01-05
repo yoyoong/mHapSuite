@@ -145,12 +145,10 @@ public class MHapView {
         heightList.add(width * 3 / 10);
 
         // 输出到文件
-        String outputPath = "";
+        String outputPath = args.getTag() + "_" + region.toFileString() + ".mHapView." + args.getOutFormat();
         if (args.getOutFormat().equals("pdf")) {
-            outputPath = args.getTag() + ".mHapView.pdf";
             saveAsPdf(plotList, outputPath, width, heightList, cpgPosListInRegion);
         } else if (args.getOutFormat().equals("png")) {
-            outputPath = args.getTag() + ".mHapView.png";
             saveAsPng(plotList, outputPath, width, heightList, cpgPosListInRegion);
         }
 
@@ -397,13 +395,10 @@ public class MHapView {
         for (int i = 0; i < cpgPosListInRegion.size(); i++) {
             for (int j = i + 1; j < cpgPosListInRegion.size(); j++) {
                 R2Info r2Info = util.getR2FromMat(cpgHpMatInRegion, i, j, 0);
-                if (r2Info != null && !r2Info.getR2().isNaN()) {
-                    r2Info.setChrom(region.getChrom());
-                    r2Info.setStart(cpgPosListInRegion.get(i));
-                    r2Info.setEnd(cpgPosListInRegion.get(j));
-                    r2List.add(r2Info);
-                }
-
+                r2Info.setChrom(region.getChrom());
+                r2Info.setStart(cpgPosListInRegion.get(i));
+                r2Info.setEnd(cpgPosListInRegion.get(j));
+                r2List.add(r2Info);
             }
         }
 
@@ -428,7 +423,10 @@ public class MHapView {
                 R2Info r2Info = r2InfoList.get(j);
                 x[next + j] = i;
                 y[next + j] = j;
-                Double r2 = (r2Info.getR2() < -1 ? -1 : r2Info.getR2()) > 1 ? 1 : r2Info.getR2();
+                Double r2 = 0.0;
+                if (r2Info != null && !r2Info.getR2().isNaN()) {
+                    r2 = (r2Info.getR2() < -1 ? -1 : r2Info.getR2()) > 1 ? 1 : r2Info.getR2();
+                }
                 z[next + j] = r2 * r2;
             }
             next += r2InfoList.size();

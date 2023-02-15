@@ -300,10 +300,10 @@ public class Tanghulu {
         // 输出到文件
         String outputFile = "";
         if (args.getOutFormat().equals("png")) {
-            outputFile = args.getOutputFile() + ".tanghulu.png";
+            outputFile = args.getOutputFile() + "_" + region.toFileString() + ".tanghulu.png";
             util.saveAsPng(jfreechart, outputFile, width, height);
         } else {
-            outputFile = args.getOutputFile() + ".tanghulu.pdf";
+            outputFile = args.getOutputFile() + "_" + region.toFileString() + ".tanghulu.pdf";
             util.saveAsPdf(jfreechart, outputFile, width, height);
         }
 

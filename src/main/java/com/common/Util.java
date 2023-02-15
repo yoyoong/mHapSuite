@@ -196,12 +196,7 @@ public class Util {
         }
 
         List<Integer> cpgPosListInRegion = new ArrayList<>();
-        try {
-            cpgPosListInRegion = cpgPosList.subList(cpgStartPos, cpgEndPos);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+        cpgPosListInRegion = cpgPosList.subList(cpgStartPos, cpgEndPos);
 
         return cpgPosListInRegion;
     }

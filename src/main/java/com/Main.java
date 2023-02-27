@@ -1,8 +1,10 @@
 package com;
 
 import com.args.*;
+import com.common.Annotation;
 import org.apache.commons.cli.*;
 
+import java.lang.reflect.Field;
 import java.util.*;
 
 public class Main {
@@ -13,6 +15,7 @@ public class Main {
     static Stat stat = new Stat();
     static GenomeWide genomeWide = new GenomeWide();
     static MHBDiscovery mhbDiscovery = new MHBDiscovery();
+    static ScatterView scatterView = new ScatterView();
 
     public static void main(String[] args) throws Exception {
         System.setProperty("java.awt.headless", "true");
@@ -53,6 +56,11 @@ public class Main {
                 if (mhbDiscoveryArgs != null) {
                     mhbDiscovery.MHBDiscovery(mhbDiscoveryArgs);
                 }
+            } else if (args[0].equals("scatterView")) {
+                ScatterViewArgs scatterViewArgs = parseScatterView(args);
+                if (scatterViewArgs != null) {
+                    scatterView.scatterView(scatterViewArgs);
+                }
             } else {
                 System.out.println("unrecognized command:" + args[0]);
             }
@@ -61,29 +69,48 @@ public class Main {
         }
     }
 
-    private static ConvertArgs parseConvert(String[] args) throws ParseException {
-        String inputFile_Description = "input file, SAM/BAM format, should be sorted by samtools";
-        String cpgPath_Description = "genomic CpG file, gz format and indexed";
-        String region_Description = "one region, in the format of chr:start-end";
-        String bedPath_Description = "bed file, one query region per line";
-        String nonDirectional_Description = "non-directional, do not group results by the direction of reads.";
-        String outPutFile_Description = "output filename. (default: out.mhap.gz)";
-        String mode_Description = "sequencing mode. ( TAPS | BS (default) )";
-        String pat_Description = "whether inputPath is pat file";
-
+    private static Options getOptions(Field[] declaredFields) {
         Options options = new Options();
-        Option option0 = OptionBuilder.withLongOpt("help").withDescription("help").create("h");
-        Option option1 = OptionBuilder.withArgName("args").withLongOpt("inputFile").hasArg().withDescription(inputFile_Description).create("inputFile");
-        Option option2 = OptionBuilder.withArgName("args").withLongOpt("cpgPath").hasArg().withDescription(cpgPath_Description).create("cpgPath");
-        Option option3 = OptionBuilder.withArgName("args").withLongOpt("region").hasArg().withDescription(region_Description).create("region");
-        Option option4 = OptionBuilder.withArgName("args").withLongOpt("bedPath").hasArg().withDescription(bedPath_Description).create("bedPath");
-        Option option5 = OptionBuilder.withArgName("args").withLongOpt("nonDirectional").withDescription(nonDirectional_Description).create("nonDirectional");
-        Option option6 = OptionBuilder.withArgName("args").withLongOpt("outPutFile").hasArg().withDescription(outPutFile_Description).create("outPutFile");
-        Option option7 = OptionBuilder.withArgName("args").withLongOpt("mode").hasArg().withDescription(mode_Description).create("mode");
-        Option option8 = OptionBuilder.withArgName("args").withLongOpt("pat").withDescription(pat_Description).create("pat");
-        options.addOption(option0).addOption(option1).addOption(option2).addOption(option3).addOption(option4)
-                .addOption(option5).addOption(option6).addOption(option7).addOption(option8);
+        Option helpOption = OptionBuilder.withLongOpt("help").withDescription("help").create("h");
+        options.addOption(helpOption);
+        Field[] fields = declaredFields;
+        for(Field field : fields) {
+            String annotation = field.getAnnotation(Annotation.class).value();
+            Option option = null;
+            if (field.getType().equals(boolean.class)) {
+                option = OptionBuilder.withLongOpt(field.getName()).withDescription(annotation).create(field.getName());
+            } else {
+                option = OptionBuilder.withLongOpt(field.getName()).hasArg().withDescription(annotation).create(field.getName());
+            }
+            options.addOption(option);
+        }
+        return options;
+    }
 
+    public static String getStringFromMultiValueParameter(CommandLine commandLine, String args) {
+        String value = commandLine.getOptionValue(args);
+        if (commandLine.getArgs().length > 1) {
+            for (int i = 1; i < commandLine.getArgs().length; i++) {
+                value += " " + commandLine.getArgs()[i];
+            }
+        }
+        // 去除重复的值
+        String[] valueList = value.split(" ");
+        Set<Object> haoma = new LinkedHashSet<Object>();
+        for (int i = 0; i < valueList.length; i++) {
+            haoma.add(valueList[i]);
+        }
+
+        String realValue = "";
+        for (int i = 0; i < haoma.size(); i++) {
+            realValue += " " + haoma.toArray()[i];
+        }
+
+        return realValue.trim();
+    }
+
+    private static ConvertArgs parseConvert(String[] args) throws ParseException {
+        Options options = getOptions(ConvertArgs.class.getDeclaredFields());
         BasicParser parser = new BasicParser();
         ConvertArgs convertArgs = new ConvertArgs();
 
@@ -123,17 +150,7 @@ public class Main {
     }
 
     private static MergeArgs parseMerge(String[] args) throws ParseException {
-        String inputFile_Description = "input files, multiple .mhap.gz files to merge";
-        String cpgPath_Description = "genomic CpG file, gz format and indexed";
-        String outPutFile_Description = "output filename. (default: out.mhap.gz)";
-
-        Options options = new Options();
-        Option option0 = OptionBuilder.withLongOpt("help").withDescription("help").create("h");
-        Option option1 = OptionBuilder.withArgName("args").withLongOpt("inputFile").hasArg().withDescription(inputFile_Description).create("inputFile");
-        Option option2 = OptionBuilder.withArgName("args").withLongOpt("cpgPath").hasArg().withDescription(cpgPath_Description).create("cpgPath");
-        Option option3 = OptionBuilder.withArgName("args").withLongOpt("outPutFile").hasArg().withDescription(outPutFile_Description).create("outPutFile");
-        options.addOption(option0).addOption(option1).addOption(option2).addOption(option3);
-
+        Options options = getOptions(MergeArgs.class.getDeclaredFields());
         BasicParser parser = new BasicParser();
         MergeArgs mergeArgs = new MergeArgs();
 
@@ -177,34 +194,7 @@ public class Main {
     }
 
     private static TanghuluArgs parseTanghulu(String[] args) throws ParseException {
-        String mhapPath_Description = "input file,mhap.gz format,generated by mHapTools and indexed";
-        String cpgPath_Description = "genomic CpG file, gz format and indexed";
-        String region_Description = "one region, in the format of chr:start-end";
-        String outputFile_Description = "output file";
-        String outFormat_Description = "output format,pdf or png [pdf]";
-        String strand_Description = "plus,minus,both [both]";
-        String maxReads_Description = "the max number of reads to plot [50]";
-        String maxLength_Description = "the max length of region to plot [2000]";
-        String merge_Description = "indicates whether identical mHaps should be merged";
-        String simulation_Description = "indicates whether mHaps should be simulated";
-        String cutReads_Description = "indicates whether only keep CpGs in the defined region";
-
-        Options options = new Options();
-        Option option0 = OptionBuilder.withLongOpt("help").withDescription("help").create("h");
-        Option option1 = OptionBuilder.withLongOpt("mhapPath").hasArg().withDescription(mhapPath_Description).create("mhapPath");
-        Option option2 = OptionBuilder.withLongOpt("cpgPath").hasArg().withDescription(cpgPath_Description).create("cpgPath");
-        Option option3 = OptionBuilder.withLongOpt("region").hasArg().withDescription(region_Description).create("region");
-        Option option4 = OptionBuilder.withLongOpt("outputFile").hasArg().withDescription(outputFile_Description).create("outputFile");
-        Option option5 = OptionBuilder.withLongOpt("outFormat").hasArg().withDescription(outFormat_Description).create("outFormat");
-        Option option6 = OptionBuilder.withLongOpt("strand").hasArg().withDescription(strand_Description).create("strand");
-        Option option7 = OptionBuilder.withLongOpt("maxReads").hasArg().withDescription(maxReads_Description).create("maxReads");
-        Option option8 = OptionBuilder.withLongOpt("maxLength").hasArg().withDescription(maxLength_Description).create("maxLength");
-        Option option9 = OptionBuilder.withLongOpt("merge").withDescription(merge_Description).create("merge");
-        Option option10 = OptionBuilder.withLongOpt("simulation").withDescription(simulation_Description).create("simulation");
-        Option option11 = OptionBuilder.withLongOpt("cutReads").withDescription(cutReads_Description).create("cutReads");
-        options.addOption(option0).addOption(option1).addOption(option2).addOption(option3).addOption(option4).addOption(option5).addOption(option6)
-                .addOption(option7).addOption(option8).addOption(option9).addOption(option10).addOption(option11);
-
+        Options options = getOptions(TanghuluArgs.class.getDeclaredFields());
         BasicParser parser = new BasicParser();
         TanghuluArgs tanghuluArgs = new TanghuluArgs();
 
@@ -249,26 +239,7 @@ public class Main {
     }
 
     private static MHapViewArgs parseMHapView(String[] args) throws ParseException {
-        String mhapPath_Description = "input file,mhap.gz format,generated by mHapTools and indexed";
-        String cpgPath_Description = "genomic CpG file, gz format and indexed";
-        String region_Description = "one region, in the format of chr:start-end";
-        String bedPath_Description = "a bed file";
-        String tag_Description = "prefix of the output file(s)";
-        String outFormat_Description = "output format,pdf or png [pdf]";
-        String strand_Description = "plus,minus,both [both]";
-
-        Options options = new Options();
-        Option option0 = OptionBuilder.withLongOpt("help").withDescription("help").create("h");
-        Option option1 = OptionBuilder.withLongOpt("mhapPath").hasArg().withDescription(mhapPath_Description).create("mhapPath");
-        Option option2 = OptionBuilder.withLongOpt("cpgPath").hasArg().withDescription(cpgPath_Description).create("cpgPath");
-        Option option3 = OptionBuilder.withLongOpt("region").hasArg().withDescription(region_Description).create("region");
-        Option option4 = OptionBuilder.withLongOpt("bedPath").hasArg().withDescription(bedPath_Description).create("bedPath");
-        Option option5 = OptionBuilder.withLongOpt("tag").hasArg().withDescription(tag_Description).create("tag");
-        Option option6 = OptionBuilder.withLongOpt("outFormat").hasArg().withDescription(outFormat_Description).create("outFormat");
-        Option option7 = OptionBuilder.withLongOpt("strand").hasArg().withDescription(strand_Description).create("strand");
-        options.addOption(option0).addOption(option1).addOption(option2).addOption(option3).addOption(option4).addOption(option5).
-                addOption(option6).addOption(option7);
-
+        Options options = getOptions(MHapViewArgs.class.getDeclaredFields());
         BasicParser parser = new BasicParser();
         MHapViewArgs mHapViewArgs = new MHapViewArgs();
 
@@ -301,36 +272,7 @@ public class Main {
     }
 
     private static StatArgs parseStat(String[] args) throws ParseException {
-        String metrics_Description = "mHap-level metrics, including MM, PDR, CHALM, MHL, MCR, MBS, Entropy and R2 [None]";
-        String mhapPath_Description = "input file,mhap.gz format,generated by mHapTools and indexed";
-        String cpgPath_Description = "genomic CpG file, gz format and indexed";
-        String region_Description = "one region, in the format of chr:start-end";
-        String bedPath_Description = "input BED file";
-        String outputFile_Description = "output file";
-        String minK_Description = "minimum k-mer length for MHL [1]";
-        String maxK_Description = "maximum k-mer length for MHL [10]";
-        String K_Description = "k-mer length for entropy, PDR, and CHALM, can be 3, 4, or 5 [4]";
-        String strand_Description = "plus,minus,both [both]";
-        String cutReads_Description = "indicates whether only keep CpGs in the defined region";
-        String r2Cov_Description = "minimal number of reads that cover two CpGs for R2 calculation [20]";
-
-        Options options = new Options();
-        Option option0 = OptionBuilder.withLongOpt("help").withDescription("help").create("h");
-        Option option1 = OptionBuilder.withLongOpt("metrics").hasArg().withDescription(metrics_Description).create("metrics");
-        Option option2 = OptionBuilder.withLongOpt("mhapPath").hasArg().withDescription(mhapPath_Description).create("mhapPath");
-        Option option3 = OptionBuilder.withLongOpt("cpgPath").hasArg().withDescription(cpgPath_Description).create("cpgPath");
-        Option option4 = OptionBuilder.withLongOpt("region").hasArg().withDescription(region_Description).create("region");
-        Option option5 = OptionBuilder.withLongOpt("bedPath").hasArg().withDescription(bedPath_Description).create("bedPath");
-        Option option6 = OptionBuilder.withLongOpt("outputFile").hasArg().withDescription(outputFile_Description).create("outputFile");
-        Option option7 = OptionBuilder.withLongOpt("minK").hasArg().withDescription(minK_Description).create("minK");
-        Option option8 = OptionBuilder.withLongOpt("maxK").hasArg().withDescription(maxK_Description).create("maxK");
-        Option option9 = OptionBuilder.withLongOpt("K").hasArg().withDescription(K_Description).create("K");
-        Option option10 = OptionBuilder.withLongOpt("strand").hasArg().withDescription(strand_Description).create("strand");
-        Option option11 = OptionBuilder.withLongOpt("cutReads").withDescription(cutReads_Description).create("cutReads");
-        Option option12 = OptionBuilder.withLongOpt("r2Cov").hasArg().withDescription(r2Cov_Description).create("r2Cov");
-        options.addOption(option0).addOption(option1).addOption(option2).addOption(option3).addOption(option4).addOption(option5).addOption(option6).
-                addOption(option7).addOption(option8).addOption(option9).addOption(option10).addOption(option11).addOption(option12);
-
+        Options options = getOptions(StatArgs.class.getDeclaredFields());
         BasicParser parser = new BasicParser();
         StatArgs statArgs = new StatArgs();
 
@@ -398,40 +340,7 @@ public class Main {
     }
 
     private static GenomeWideArgs parseGenomeWide(String[] args) throws ParseException {
-        String tag_Description = "prefix of the output file(s)";
-        String mhapPath_Description = "input file,mhap.gz format,generated by mHapTools and indexed";
-        String cpgPath_Description = "genomic CpG file, gz format and indexed";
-        String metrics_Description = "mHap-level metrics,including M,PDR,CHALM,MHL,MCR,MBS,Entropy,and R2";
-        String outputDir_Description = "output directory, created in advance";
-        String minK_Description = "minimum k-mer length for MHL [1]";
-        String maxK_Description = "maximum k-mer length for MHL [10]";
-        String K_Description = "k-mer length for entropy, PDR, and CHALM, can be 3, 4, or 5 [4]";
-        String strand_Description = "plus,minus,both [both]";
-        String region_Description = "one region, in the format of chr:start-end";
-        String bedPath_Description = "input BED file";
-        String cpgCov_Description = "minimal number of CpG coverage for MM calculation [5]";
-        String r2Cov_Description = "minimal number of reads that cover two CpGs for R2 calculation [20]";
-        String k4Plus_Description = "minimal number of reads that cover 4 or more CpGs for PDR, CHALM, MHL, MCR, MBS and Entropy [5]";
-
-        Options options = new Options();
-        Option option0 = OptionBuilder.withLongOpt("help").withDescription("help").create("h");
-        Option option1 = OptionBuilder.withLongOpt("tag").hasArg().withDescription(tag_Description).create("tag");
-        Option option2 = OptionBuilder.withLongOpt("mhapPath").hasArg().withDescription(mhapPath_Description).create("mhapPath");
-        Option option3 = OptionBuilder.withLongOpt("cpgPath").hasArg().withDescription(cpgPath_Description).create("cpgPath");
-        Option option4 = OptionBuilder.withLongOpt("metrics").hasArg().withDescription(metrics_Description).create("metrics");
-        Option option5 = OptionBuilder.withLongOpt("outputDir").hasArg().withDescription(outputDir_Description).create("outputDir");
-        Option option6 = OptionBuilder.withLongOpt("minK").hasArg().withDescription(minK_Description).create("minK");
-        Option option7 = OptionBuilder.withLongOpt("maxK").hasArg().withDescription(maxK_Description).create("maxK");
-        Option option8 = OptionBuilder.withLongOpt("K").hasArg().withDescription(K_Description).create("K");
-        Option option9 = OptionBuilder.withLongOpt("strand").hasArg().withDescription(strand_Description).create("strand");
-        Option option10 = OptionBuilder.withLongOpt("region").hasArg().withDescription(region_Description).create("region");
-        Option option11 = OptionBuilder.withLongOpt("bedPath").hasArg().withDescription(bedPath_Description).create("bedPath");
-        Option option12 = OptionBuilder.withLongOpt("cpgCov").hasArg().withDescription(cpgCov_Description).create("cpgCov");
-        Option option13 = OptionBuilder.withLongOpt("r2Cov").hasArg().withDescription(r2Cov_Description).create("r2Cov");
-        Option option14 = OptionBuilder.withLongOpt("k4Plus").hasArg().withDescription(k4Plus_Description).create("k4Plus");
-        options.addOption(option0).addOption(option1).addOption(option2).addOption(option3).addOption(option4).addOption(option5).addOption(option6).
-                addOption(option7).addOption(option8).addOption(option9).addOption(option10).addOption(option11).addOption(option12).addOption(option13).addOption(option14);
-
+        Options options = getOptions(GenomeWideArgs.class.getDeclaredFields());
         BasicParser parser = new BasicParser();
         GenomeWideArgs genomeWideArgs = new GenomeWideArgs();
 
@@ -503,32 +412,7 @@ public class Main {
     }
 
     private static MHBDiscoveryArgs parseMHBDiscovery(String[] args) throws ParseException {
-        String mhapPath_Description = "input file,mhap.gz format,generated by mHapTools and indexed";
-        String cpgPath_Description = "genomic CpG file, gz format and indexed";
-        String region_Description = "one region, in the format of chr:start-end";
-        String bedPath_Description = "input BED file";
-        String window_Description = "Size of core window";
-        String r2_Description = "R square cutoff";
-        String pvalue_Description = "P value cutoff";
-        String outputDir_Description = "output directory, created in advance";
-        String tag_Description = "prefix of the output file(s)";
-        String qcFlag_Description = "whether output matrics for QC";
-
-        Options options = new Options();
-        Option option0 = OptionBuilder.withLongOpt("help").withDescription("help").create("h");
-        Option option1 = OptionBuilder.withLongOpt("mhapPath").hasArg().withDescription(mhapPath_Description).create("mhapPath");
-        Option option2 = OptionBuilder.withLongOpt("cpgPath").hasArg().withDescription(cpgPath_Description).create("cpgPath");
-        Option option3 = OptionBuilder.withLongOpt("region").hasArg().withDescription(region_Description).create("region");
-        Option option4 = OptionBuilder.withLongOpt("bedPath").hasArg().withDescription(bedPath_Description).create("bedPath");
-        Option option5 = OptionBuilder.withLongOpt("window").hasArg().withDescription(window_Description).create("window");
-        Option option6 = OptionBuilder.withLongOpt("r2").hasArg().withDescription(r2_Description).create("r2");
-        Option option7 = OptionBuilder.withLongOpt("pvalue").hasArg().withDescription(pvalue_Description).create("pvalue");
-        Option option8 = OptionBuilder.withLongOpt("outputDir").hasArg().withDescription(outputDir_Description).create("outputDir");
-        Option option9 = OptionBuilder.withLongOpt("tag").hasArg().withDescription(tag_Description).create("tag");
-        Option option10 = OptionBuilder.withLongOpt("qcFlag").withDescription(qcFlag_Description).create("qcFlag");
-        options.addOption(option0).addOption(option1).addOption(option2).addOption(option3).addOption(option4).addOption(option5)
-                .addOption(option6).addOption(option7).addOption(option8).addOption(option9).addOption(option10);
-
+        Options options = getOptions(MHBDiscoveryArgs.class.getDeclaredFields());
         BasicParser parser = new BasicParser();
         MHBDiscoveryArgs mhbDiscoveryArgs = new MHBDiscoveryArgs();
 
@@ -568,5 +452,30 @@ public class Main {
         }
 
         return mhbDiscoveryArgs;
+    }
+
+    private static ScatterViewArgs parseScatterView(String[] args) throws ParseException {
+        Options options = getOptions(ScatterViewArgs.class.getDeclaredFields());
+        BasicParser parser = new BasicParser();
+        ScatterViewArgs scatterViewArgs = new ScatterViewArgs();
+
+        CommandLine commandLine = parser.parse(options, args);
+        if (commandLine.getOptions().length > 0) {
+            if (commandLine.hasOption('h')) {
+                HelpFormatter helpFormatter = new HelpFormatter();
+                helpFormatter.printHelp("Options", options);
+                return null;
+            } else {
+                scatterViewArgs.setRegion(commandLine.getOptionValue("region"));
+                scatterViewArgs.setBigwig1(commandLine.getOptionValue("bigwig1"));
+                scatterViewArgs.setBigwig2(commandLine.getOptionValue("bigwig2"));
+                scatterViewArgs.setTag(commandLine.getOptionValue("tag"));
+                scatterViewArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
+            }
+        } else {
+            System.out.println("The paramter is null");
+        }
+
+        return scatterViewArgs;
     }
 }

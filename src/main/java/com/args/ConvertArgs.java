@@ -1,15 +1,25 @@
 package com.args;
 
+import com.common.Annotation;
+
 import java.io.Serializable;
 
 public class ConvertArgs implements Serializable {
+    @Annotation("input file, SAM/BAM format, should be sorted by samtools")
     public String inputFile = "";
+    @Annotation("genomic CpG file, gz format and indexed")
     public String cpgPath = "";
+    @Annotation("one region, in the format of chr:start-end")
     public String region = "";
+    @Annotation("bed file, one query region per line")
     public String bedFile = "";
+    @Annotation("non-directional, do not group results by the direction of reads")
     public boolean nonDirectional = false;
+    @Annotation("output filename. (default: out.mhap.gz)")
     public String outPutFile = "";
+    @Annotation("sequencing mode. ( TAPS | BS (default) )")
     public String mode = "BS";
+    @Annotation("whether inputPath is pat file")
     public boolean pat = false;
 
     public String getInputFile() {

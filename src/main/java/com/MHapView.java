@@ -137,7 +137,7 @@ public class MHapView {
         heightList.add(width / 10);
         plotList.add(whiteBlackPlot);
         heightList.add(width * 2 / 5);
-        if (bedRegionPlot != null) {
+        if (args.getBedPath() != null && !args.getBedPath().equals("")) {
             plotList.add(bedRegionPlot);
             heightList.add(width * 3 / 50);
         }

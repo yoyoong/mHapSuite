@@ -41,6 +41,7 @@ target/maven-archiver/
 *.bedGraph
 *.wig
 *.bigwig
+*.bw
 
 #常用文件格式
 *.pdf

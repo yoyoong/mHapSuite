@@ -6,8 +6,14 @@ import com.common.Constants;
 import java.io.Serializable;
 
 public class ScatterViewArgs implements Serializable {
-    @Annotation(Constants.REGION_DESCRIPTION)
-    public String region = "";
+    @Annotation(Constants.STARTCHR_DESCRIPTION)
+    public String startChr = "";
+    @Annotation(Constants.STARTBASE_DESCRIPTION)
+    public Integer startBase;
+    @Annotation(Constants.ENDCHR_DESCRIPTION)
+    public String endChr = "";
+    @Annotation(Constants.ENDBASE_DESCRIPTION)
+    public Integer endBase;
     @Annotation(Constants.BIGWIG1_DESCRIPTION)
     public String bigwig1;
     @Annotation(Constants.BIGWIG2_DESCRIPTION)
@@ -19,12 +25,36 @@ public class ScatterViewArgs implements Serializable {
     @Annotation(Constants.SAMPLEFLAG_DESCRIPTION)
     public boolean sampleFlag = true;
 
-    public String getRegion() {
-        return region;
+    public String getStartChr() {
+        return startChr;
     }
 
-    public void setRegion(String region) {
-        this.region = region;
+    public void setStartChr(String startChr) {
+        this.startChr = startChr;
+    }
+
+    public Integer getStartBase() {
+        return startBase;
+    }
+
+    public void setStartBase(Integer startBase) {
+        this.startBase = startBase;
+    }
+
+    public String getEndChr() {
+        return endChr;
+    }
+
+    public void setEndChr(String endChr) {
+        this.endChr = endChr;
+    }
+
+    public Integer getEndBase() {
+        return endBase;
+    }
+
+    public void setEndBase(Integer endBase) {
+        this.endBase = endBase;
     }
 
     public String getBigwig1() {

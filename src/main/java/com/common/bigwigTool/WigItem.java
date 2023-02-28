@@ -66,6 +66,10 @@ public class WigItem {
         return endBase;
     }
 
+    public float getWigValue() {
+        return wigValue;
+    }
+
      public void print(){
        log.debug("Wig item index " + itemIndex);
        log.debug("mChromosome name: " + chromosome);

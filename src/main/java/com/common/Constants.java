@@ -32,7 +32,12 @@ final public class Constants {
     public static final String R2_DESCRIPTION = "R square cutoff";
     public static final String PVALUE_DESCRIPTION = "P value cutoff";
     public static final String QCFLAG_DESCRIPTION = "whether output matrics for QC";
-    public static final String BIGWIG1_DESCRIPTION = "the first input bigwig file of a metrics from a samplee";
+    public static final String STARTCHR_DESCRIPTION = "start chromosome of a genome, in the format of chrXX";
+    public static final String STARTBASE_DESCRIPTION = "start base of a genome, Integer";
+    public static final String ENDCHR_DESCRIPTION = "end chromosome of a genome, in the format of chrXX";
+    public static final String ENDBASE_DESCRIPTION = "end base of a genome, Integer";
+    public static final String BIGWIG1_DESCRIPTION = "the first input bigwig file of a metrics from a sample";
     public static final String BIGWIG2_DESCRIPTION = "the second input bigwig file of other metrics, or from other sample";
     public static final String SAMPLEFLAG_DESCRIPTION = "whether two bigwig files generate from same sample";
+
 }

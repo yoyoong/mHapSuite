@@ -85,7 +85,7 @@ public class ScatterView {
         double[] xValue = new double[10000];
         double[] yValue = new double[10000];
         Integer index = 0;
-        for(Integer i = 0, j = 0; i < wigItemList1.size() || j < wigItemList2.size(); i++, j++) {
+        for(Integer i = 0, j = 0; i < wigItemList1.size() && j < wigItemList2.size(); i++, j++) {
             if (wigItemList1.get(i).getStartBase() > wigItemList2.get(j).getStartBase()) {
                 j++;
             } else if (wigItemList1.get(i).getStartBase() < wigItemList2.get(j).getStartBase()) {
@@ -113,10 +113,9 @@ public class ScatterView {
                 yAxisLabel, // Y轴的标签
                 dataset, // dataset
                 PlotOrientation.VERTICAL,
-                true, // legend
+                false, // legend
                 false, // tooltips
                 false); // URLs
-        jfreechart.removeLegend(); // 去掉图例
 
         XYPlot xyPlot = jfreechart.getXYPlot( );
         xyPlot.setBackgroundPaint(Color.WHITE); // 背景色
@@ -150,11 +149,11 @@ public class ScatterView {
         String outputFilename = "";
         if (args.getOutFormat().equals("png")) {
             outputFilename = args.getTag() + "_" + args.getStartChr() + "_" + args.getStartBase() + "_"
-                    + args.getEndChr() + "_" + args.getEndBase() + ".sactterView.png";
+                    + args.getEndChr() + "_" + args.getEndBase() + ".scatterView.png";
             util.saveAsPng(jfreechart, outputFilename, width, height);
         } else {
             outputFilename = args.getTag() + "_" + args.getStartChr() + "_" + args.getStartBase() + "_"
-                    + args.getEndChr() + "_" + args.getEndBase() + ".sactterView.pdf";
+                    + args.getEndChr() + "_" + args.getEndBase() + ".scatterView.pdf";
             util.saveAsPdf(jfreechart, outputFilename, width, height);
         }
 

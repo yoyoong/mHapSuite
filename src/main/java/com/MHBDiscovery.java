@@ -299,7 +299,7 @@ public class MHBDiscovery {
                 MHBInfo mhbInfo = new MHBInfo();
                 mhbInfo.setChrom(region.getChrom());
                 mhbInfo.setStart(cpgPosListInRegion.get(startIndex));
-                mhbInfo.setEnd(cpgPosListInRegion.get(endIndex - 1));
+                mhbInfo.setEnd(cpgPosListInRegion.get(endIndex));
                 if (!mhbInfoListMap.containsKey(mhbInfo.toString())) {
                     mhbInfoListMap.put(mhbInfo.toString(), mhbInfo.toString());
                     bufferedWriter.write(mhbInfo.getChrom() + "\t" + mhbInfo.getStart() + "\t" + mhbInfo.getEnd() + "\n");

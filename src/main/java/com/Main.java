@@ -466,10 +466,7 @@ public class Main {
                 helpFormatter.printHelp("Options", options);
                 return null;
             } else {
-                scatterViewArgs.setStartChr(commandLine.getOptionValue("startChr"));
-                scatterViewArgs.setStartBase(Integer.valueOf(commandLine.getOptionValue("startBase")));
-                scatterViewArgs.setEndChr(commandLine.getOptionValue("endChr"));
-                scatterViewArgs.setEndBase(Integer.valueOf(commandLine.getOptionValue("endBase")));
+                scatterViewArgs.setBedPath(commandLine.getOptionValue("bedPath"));
                 scatterViewArgs.setBigwig1(commandLine.getOptionValue("bigwig1"));
                 scatterViewArgs.setBigwig2(commandLine.getOptionValue("bigwig2"));
                 scatterViewArgs.setTag(commandLine.getOptionValue("tag"));

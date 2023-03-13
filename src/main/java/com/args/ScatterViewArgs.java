@@ -6,14 +6,8 @@ import com.common.Constants;
 import java.io.Serializable;
 
 public class ScatterViewArgs implements Serializable {
-    @Annotation(Constants.STARTCHR_DESCRIPTION)
-    public String startChr = "";
-    @Annotation(Constants.STARTBASE_DESCRIPTION)
-    public Integer startBase;
-    @Annotation(Constants.ENDCHR_DESCRIPTION)
-    public String endChr = "";
-    @Annotation(Constants.ENDBASE_DESCRIPTION)
-    public Integer endBase;
+    @Annotation(Constants.BEDPATH_DESCRIPTION)
+    public String bedPath = "";
     @Annotation(Constants.BIGWIG1_DESCRIPTION)
     public String bigwig1;
     @Annotation(Constants.BIGWIG2_DESCRIPTION)
@@ -25,36 +19,12 @@ public class ScatterViewArgs implements Serializable {
     @Annotation(Constants.SAMPLEFLAG_DESCRIPTION)
     public boolean sampleFlag = true;
 
-    public String getStartChr() {
-        return startChr;
+    public String getBedPath() {
+        return bedPath;
     }
 
-    public void setStartChr(String startChr) {
-        this.startChr = startChr;
-    }
-
-    public Integer getStartBase() {
-        return startBase;
-    }
-
-    public void setStartBase(Integer startBase) {
-        this.startBase = startBase;
-    }
-
-    public String getEndChr() {
-        return endChr;
-    }
-
-    public void setEndChr(String endChr) {
-        this.endChr = endChr;
-    }
-
-    public Integer getEndBase() {
-        return endBase;
-    }
-
-    public void setEndBase(Integer endBase) {
-        this.endBase = endBase;
+    public void setBedPath(String bedPath) {
+        this.bedPath = bedPath;
     }
 
     public String getBigwig1() {

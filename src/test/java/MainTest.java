@@ -309,14 +309,8 @@ public class MainTest extends TestCase {
     public void test_ScatterView() throws Exception {
         Main main = new Main();
         String arg0 = "scatterView";
-        String arg1 = "-startChr";
-        String arg2 = "chr11";
-        String arg3 = "-startBase";
-        String arg4 = "2300600";
-        String arg5 = "-endChr";
-        String arg6 = "chr11";
-        String arg15 = "-endBase";
-        String arg16 = "2721650";
+        String arg1 = "-bedPath";
+        String arg2 = "MHB_breast.bed";
         String arg7 = "-bigwig1";
         String arg8 = "P1_ESCC_MM.bw";
         String arg9 = "-bigwig2";
@@ -325,7 +319,7 @@ public class MainTest extends TestCase {
         String arg12 = "scatterView.output";
         String arg13 = "-outFormat";
         String arg14 = "png";
-        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16};
+        String[] args = {arg0, arg1, arg2, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14};
 
         System.out.println("Work direqtory: " + System.getProperty("user.dir"));
         String argsStr = "";

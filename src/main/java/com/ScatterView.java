@@ -26,6 +26,7 @@ import org.jfree.chart.plot.*;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYItemRendererState;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.Layer;
 import org.jfree.chart.urls.XYURLGenerator;
 import org.jfree.chart.util.ShapeUtils;
@@ -48,7 +49,7 @@ public class ScatterView {
     public static final Logger log = LoggerFactory.getLogger(ScatterView.class);
     ScatterViewArgs args = new ScatterViewArgs();
     Util util = new Util();
-    public static final Integer MAXSIZE = 100000;
+    public static final Integer MAXSIZE = 10000;
 
     public void scatterView(ScatterViewArgs scatterViewArgs) throws Exception {
         log.info("ScatterView start!");
@@ -78,35 +79,30 @@ public class ScatterView {
             Integer endBase = region.getEnd();
 
             // parse bigwig file get wig item list
-            ArrayList<WigItem> wigItemList1 = new ArrayList<>();
-            BBFileReader reader1 =new BBFileReader(args.getBigwig1());
-            BigWigIterator iter1 = reader1.getBigWigIterator(startChr, startBase, endChr, endBase, true);
-            while(iter1.hasNext()){
-                wigItemList1.add(iter1.next());
-            }
-            ArrayList<WigItem> wigItemList2 = new ArrayList<>();
-            BBFileReader reader2 =new BBFileReader(args.getBigwig2());
-            BigWigIterator iter2 = reader2.getBigWigIterator(startChr, startBase, endChr, endBase, true);
-            while(iter2.hasNext()){
-                wigItemList2.add(iter2.next());
-            }
-
             // get x axis and y axis value from wig item list
-            double[] xValue = new double[10000];
-            double[] yValue = new double[10000];
-            Integer index2 = 0;
-            for(Integer i = 0, j = 0; i < wigItemList1.size() && j < wigItemList2.size(); i++, j++) {
-                if (wigItemList1.get(i).getStartBase() > wigItemList2.get(j).getStartBase()) {
-                    j++;
+            double[] xValue = new double[MAXSIZE];
+            double[] yValue = new double[MAXSIZE];
+            Integer realIndex = 0;
+            BBFileReader reader1 = new BBFileReader(args.getBigwig1());
+            BigWigIterator iter1 = reader1.getBigWigIterator(startChr, startBase, endChr, endBase, true);
+            BBFileReader reader2 = new BBFileReader(args.getBigwig2());
+            BigWigIterator iter2 = reader2.getBigWigIterator(startChr, startBase, endChr, endBase, true);
+            while(iter1.hasNext() && iter2.hasNext()) {
+                WigItem wigItem1 = iter1.next();
+                WigItem wigItem2 = iter2.next();
+                if (wigItem1.getStartBase() > wigItem2.getStartBase()) {
+                    iter2.next();
                     continue;
-                } else if (wigItemList1.get(i).getStartBase() < wigItemList2.get(j).getStartBase()) {
-                    i++;
+                } else if (wigItem1.getStartBase() < wigItem2.getStartBase()) {
+                    iter1.next();
                     continue;
                 }
-                xValue[index2] = wigItemList1.get(i).getWigValue();
-                yValue[index2] = wigItemList2.get(j).getWigValue();
-                index2++;
+                xValue[realIndex] = wigItem1.getWigValue();
+                yValue[realIndex] = wigItem2.getWigValue();
+                realIndex++;
             }
+            reader1.close();
+            reader2.close();
 
             double[] xValueWithoutZero = Arrays.stream(xValue).filter(value -> value != 0).toArray();
             double[] yValueWithoutZero = Arrays.stream(yValue).filter(value -> value != 0).toArray();
@@ -142,8 +138,13 @@ public class ScatterView {
         renderer.setSeriesShape(0, new Ellipse2D.Double(0, 0, 5, 5));
         renderer.setSeriesPaint(0, Color.red);
 
+        Integer width = index / 5;
+        width = width > 14400 ? 14400 : (width < 1000 ? 1000 : width);
+        Integer height = width;
+
         NumberAxis xAxis = new NumberAxis();
         xAxis.setLabel(xAxisLabel);
+        xAxis.setLabelFont(new Font("", Font.PLAIN, width / 100));
         xAxis.setRange(new Range(0, 1));
         xAxis.setVisible(true);
         xAxis.setTickUnit(new NumberTickUnit(0.1));
@@ -151,14 +152,13 @@ public class ScatterView {
 
         NumberAxis yAxis = new NumberAxis();
         yAxis.setLabel(yAxisLabel);
+        yAxis.setLabelFont(new Font("", Font.PLAIN, width / 100));
         yAxis.setRange(new Range(0, 1));
         yAxis.setVisible(true);
         yAxis.setTickUnit(new NumberTickUnit(0.1));
         xyPlot.setRangeAxis(yAxis); // y axis
 
-        Integer width = index / 5;
-        width = width > 14400 ? 14400 : (width < 1000 ? 1000 : width);
-        Integer height = width;
+        jfreechart.setTitle(new TextTitle(title, new Font("", Font.PLAIN, width / 100)));
 
         String outputFilename = "";
         if (args.getOutFormat().equals("png")) {

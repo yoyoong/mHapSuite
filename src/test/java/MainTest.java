@@ -310,7 +310,7 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "scatterView";
         String arg1 = "-bedPath";
-        String arg2 = "MHB_breast.bed";
+        String arg2 = "hg19_cpgisland.bed";
         String arg7 = "-bigwig1";
         String arg8 = "P1_ESCC_MM.bw";
         String arg9 = "-bigwig2";

@@ -38,6 +38,6 @@ final public class Constants {
     public static final String ENDBASE_DESCRIPTION = "end base of a genome, Integer";
     public static final String BIGWIG1_DESCRIPTION = "the first input bigwig file of a metrics from a sample";
     public static final String BIGWIG2_DESCRIPTION = "the second input bigwig file of other metrics, or from other sample";
-    public static final String SAMPLEFLAG_DESCRIPTION = "whether two bigwig files generate from same sample";
+    public static final String BIGWIGS_DESCRIPTION = "multi bigwig files, split by blank character";
 
 }

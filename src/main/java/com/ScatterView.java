@@ -106,8 +106,8 @@ public class ScatterView {
 
             double[] xValueWithoutZero = Arrays.stream(xValue).filter(value -> value != 0).toArray();
             double[] yValueWithoutZero = Arrays.stream(yValue).filter(value -> value != 0).toArray();
-            double xValueOfThisRegion = Arrays.stream(xValue).sum() / xValueWithoutZero.length;
-            double yValueOfThisRegion = Arrays.stream(yValue).sum() / yValueWithoutZero.length;
+            double xValueOfThisRegion = Arrays.stream(xValueWithoutZero).sum() / xValueWithoutZero.length;
+            double yValueOfThisRegion = Arrays.stream(yValueWithoutZero).sum() / yValueWithoutZero.length;
             xyData[0][index] = xValueOfThisRegion;
             xyData[1][index] = yValueOfThisRegion;
             index++;

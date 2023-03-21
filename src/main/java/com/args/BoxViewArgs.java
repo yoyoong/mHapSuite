@@ -5,13 +5,11 @@ import com.common.Constants;
 
 import java.io.Serializable;
 
-public class ScatterViewArgs implements Serializable {
+public class BoxViewArgs implements Serializable {
     @Annotation(Constants.BEDPATH_DESCRIPTION)
     public String bedPath = "";
-    @Annotation(Constants.BIGWIG1_DESCRIPTION)
-    public String bigwig1;
-    @Annotation(Constants.BIGWIG2_DESCRIPTION)
-    public String bigwig2;
+    @Annotation(Constants.BIGWIGS_DESCRIPTION)
+    public String bigwigs;
     @Annotation(Constants.TAG_DESCRIPTION)
     public String tag = "";
     @Annotation(Constants.OUTFORMAT_DESCRIPTION)
@@ -25,20 +23,12 @@ public class ScatterViewArgs implements Serializable {
         this.bedPath = bedPath;
     }
 
-    public String getBigwig1() {
-        return bigwig1;
+    public String getBigwigs() {
+        return bigwigs;
     }
 
-    public void setBigwig1(String bigwig1) {
-        this.bigwig1 = bigwig1;
-    }
-
-    public String getBigwig2() {
-        return bigwig2;
-    }
-
-    public void setBigwig2(String bigwig2) {
-        this.bigwig2 = bigwig2;
+    public void setBigwigs(String bigwigs) {
+        this.bigwigs = bigwigs;
     }
 
     public String getTag() {

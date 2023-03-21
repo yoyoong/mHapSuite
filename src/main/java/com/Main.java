@@ -16,6 +16,7 @@ public class Main {
     static GenomeWide genomeWide = new GenomeWide();
     static MHBDiscovery mhbDiscovery = new MHBDiscovery();
     static ScatterView scatterView = new ScatterView();
+    static BoxView boxView = new BoxView();
 
     public static void main(String[] args) throws Exception {
         System.setProperty("java.awt.headless", "true");
@@ -61,7 +62,12 @@ public class Main {
                 if (scatterViewArgs != null) {
                     scatterView.scatterView(scatterViewArgs);
                 }
-            } else {
+            } else if (args[0].equals("boxView")) {
+                BoxViewArgs boxViewArgs = parseBoxView(args);
+                if (boxViewArgs != null) {
+                    boxView.boxView(boxViewArgs);
+                }
+            } else{
                 System.out.println("unrecognized command:" + args[0]);
             }
         } else { // show the help message
@@ -77,7 +83,7 @@ public class Main {
         for(Field field : fields) {
             String annotation = field.getAnnotation(Annotation.class).value();
             Option option = null;
-            if (field.getType().equals(boolean.class)) {
+            if (field.getType().equals(boolean.class) || field.getType().equals(Boolean.class)) {
                 option = OptionBuilder.withLongOpt(field.getName()).withDescription(annotation).create(field.getName());
             } else {
                 option = OptionBuilder.withLongOpt(field.getName()).hasArg().withDescription(annotation).create(field.getName());
@@ -477,5 +483,29 @@ public class Main {
         }
 
         return scatterViewArgs;
+    }
+
+    private static BoxViewArgs parseBoxView(String[] args) throws ParseException {
+        Options options = getOptions(BoxViewArgs.class.getDeclaredFields());
+        BasicParser parser = new BasicParser();
+        BoxViewArgs boxViewArgs = new BoxViewArgs();
+
+        CommandLine commandLine = parser.parse(options, args);
+        if (commandLine.getOptions().length > 0) {
+            if (commandLine.hasOption('h')) {
+                HelpFormatter helpFormatter = new HelpFormatter();
+                helpFormatter.printHelp("Options", options);
+                return null;
+            } else {
+                boxViewArgs.setBedPath(commandLine.getOptionValue("bedPath"));
+                boxViewArgs.setBigwigs(getStringFromMultiValueParameter(commandLine, "bigwigs"));
+                boxViewArgs.setTag(commandLine.getOptionValue("tag"));
+                boxViewArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
+            }
+        } else {
+            System.out.println("The paramter is null");
+        }
+
+        return boxViewArgs;
     }
 }

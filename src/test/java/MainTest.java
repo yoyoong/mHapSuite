@@ -330,4 +330,28 @@ public class MainTest extends TestCase {
 
         main.main(args);
     }
+
+    @Test
+    public void test_BoxView() throws Exception {
+        Main main = new Main();
+        String arg0 = "boxView";
+        String arg1 = "-bedPath";
+        String arg2 = "hg19_cpgisland.bed";
+        String arg7 = "-bigwigs";
+        String arg8 = "P1_BRCA_MM.bw P1_CESC_MM.bw P1_CRC_MM.bw P1_ESCC_MM.bw P1_HNSC_MM.bw P1_LIHC_MM.bw P1_LUADLUSC_MM.bw";
+        String arg11 = "-tag";
+        String arg12 = "boxView.output";
+        String arg13 = "-outFormat";
+        String arg14 = "png";
+        String[] args = {arg0, arg1, arg2, arg7, arg8, arg11, arg12, arg13, arg14};
+
+        System.out.println("Work direqtory: " + System.getProperty("user.dir"));
+        String argsStr = "";
+        for (int i = 0; i < args.length; i++) {
+            argsStr += args[i] + " ";
+        }
+        System.out.println(argsStr);
+
+        main.main(args);
+    }
 }

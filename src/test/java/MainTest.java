@@ -336,7 +336,7 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "boxView";
         String arg1 = "-bedPath";
-        String arg2 = "hg19_cpgisland.bed";
+        String arg2 = "MHB_cervix_normal.bed";
         String arg7 = "-bigwigs";
         String arg8 = "P1_BRCA_MM.bw P1_CESC_MM.bw P1_CRC_MM.bw P1_ESCC_MM.bw P1_HNSC_MM.bw P1_LIHC_MM.bw P1_LUADLUSC_MM.bw";
         String arg11 = "-tag";

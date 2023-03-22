@@ -6,6 +6,7 @@ import com.common.Util;
 import com.common.bigwigTool.BBFileReader;
 import com.common.bigwigTool.BigWigIterator;
 import com.common.bigwigTool.WigItem;
+import com.rewrite.CustomBoxAndWhiskerRenderer;
 import org.apache.commons.compress.utils.Lists;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
@@ -69,66 +70,96 @@ public class BoxView {
         }
 
         String[] bigwigs = args.getBigwigs().split(" ");
-        int threadNum = bigwigs.length;// 线程数
-        CountDownLatch countDownLatch = new CountDownLatch(threadNum);// 计数器
-        ExecutorService executorService = Executors.newFixedThreadPool(threadNum);// 创建一个线程池
-        List<Callable<Boolean>> tasks = Lists.newArrayList();// 定义一个任务集合
-        Callable<Boolean> task;// 定义一个任务
-
         DefaultBoxAndWhiskerCategoryDataset dataset = new DefaultBoxAndWhiskerCategoryDataset();
-        DefaultXYDataset scatterData = new DefaultXYDataset();
+
         for (String bigwig : bigwigs) {
-            task = new Callable<Boolean>() {
-                @Override
-                public Boolean call() throws Exception {
-                    log.info("Process " + bigwig + " begin!");
-                    ArrayList<Double> averageList = new ArrayList<>();
-                    for (Region region : regionList) {
-                        String startChr = region.getChrom();
-                        Integer startBase = region.getStart();
-                        String endChr = region.getChrom();
-                        Integer endBase = region.getEnd();
+            ArrayList<Double> averageList = new ArrayList<>();
+            for (Region region : regionList) {
+                String startChr = region.getChrom();
+                Integer startBase = region.getStart();
+                String endChr = region.getChrom();
+                Integer endBase = region.getEnd();
 
-                        double sumInRegion = 0.0;
-                        BBFileReader reader = new BBFileReader(bigwig);
-                        BigWigIterator iter = reader.getBigWigIterator(startChr, startBase, endChr, endBase, true);
-                        Integer index = 0;
-                        while(iter.hasNext()) {
-                            WigItem wigItem = iter.next();
-                            sumInRegion += wigItem.getWigValue();
-                            index++;
-                        }
-                        Double average = sumInRegion / index;
-                        averageList.add(average);
-                    }
-                    dataset.add(averageList, "", bigwig);
-                    log.info("Process " + bigwig + " end!");
-                    return true;
+                double sumInRegion = 0.0;
+                BBFileReader reader = new BBFileReader(bigwig);
+                BigWigIterator iter = reader.getBigWigIterator(startChr, startBase, endChr, endBase, true);
+                Integer index = 0;
+                while(iter.hasNext()) {
+                    WigItem wigItem = iter.next();
+                    sumInRegion += wigItem.getWigValue();
+                    index++;
                 }
-            };
-            countDownLatch.countDown(); // 减少计数器的计数
-            tasks.add(task); // 任务处理完加入集合
+                reader.close();
+                Double average = sumInRegion / index;
+                averageList.add(average);
+            }
+            String bigwigName = new File(bigwig).getName();
+            dataset.add(averageList, "", bigwigName.substring(0, bigwigName.lastIndexOf(".")));
+            log.info("Process " + bigwig + " end!");
         }
 
-        try {
-            executorService.invokeAll(tasks); // 执行给定的任务
-            countDownLatch.await(); // 等待计数器归零
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        executorService.shutdown(); // 关闭线程池
 
-        CategoryAxis xAxis = new CategoryAxis("Sample");
-        Integer labelSize = bigwigs.length * 2;
+//        int threadNum = bigwigs.length;// 线程数
+//        CountDownLatch countDownLatch = new CountDownLatch(threadNum);// 计数器
+//        ExecutorService executorService = Executors.newFixedThreadPool(threadNum);// 创建一个线程池
+//        List<Callable<Boolean>> tasks = Lists.newArrayList();// 定义一个任务集合
+//        Callable<Boolean> task;// 定义一个任务
+//
+//        for (String bigwig : bigwigs) {
+//            task = new Callable<Boolean>() {
+//                @Override
+//                public Boolean call() throws Exception {
+//                    log.info("Process " + bigwig + " begin!");
+//                    ArrayList<Double> averageList = new ArrayList<>();
+//                    for (Region region : regionList) {
+//                        String startChr = region.getChrom();
+//                        Integer startBase = region.getStart();
+//                        String endChr = region.getChrom();
+//                        Integer endBase = region.getEnd();
+//
+//                        double sumInRegion = 0.0;
+//                        BBFileReader reader = new BBFileReader(bigwig);
+//                        BigWigIterator iter = reader.getBigWigIterator(startChr, startBase, endChr, endBase, true);
+//                        Integer index = 0;
+//                        while(iter.hasNext()) {
+//                            WigItem wigItem = iter.next();
+//                            sumInRegion += wigItem.getWigValue();
+//                            index++;
+//                        }
+//                        Double average = sumInRegion / index;
+//                        averageList.add(average);
+//                    }
+//                    dataset.add(averageList, "", bigwig);
+//                    log.info("Process " + bigwig + " end!");
+//                    return true;
+//                }
+//            };
+//            countDownLatch.countDown(); // 减少计数器的计数
+//            tasks.add(task); // 任务处理完加入集合
+//        }
+//
+//        try {
+//            executorService.invokeAll(tasks); // 执行给定的任务
+//            countDownLatch.await(); // 等待计数器归零
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//        executorService.shutdown(); // 关闭线程池
+
+        CategoryAxis xAxis = new CategoryAxis();
+        xAxis.setLabel("Sample");
+        Integer labelSize = bigwigs.length * 4 < 10 ? 10 : bigwigs.length * 2;
         xAxis.setLabelFont(new Font("", Font.PLAIN, labelSize));
-        NumberAxis yAxis = new NumberAxis("Value");
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel("Value");
+        yAxis.setRange(new Range(0, 1));
         yAxis.setTickUnit(new NumberTickUnit(0.1));
         yAxis.setLabelFont(new Font("", Font.PLAIN, labelSize));
 
-        BoxAndWhiskerRenderer renderer = new BoxAndWhiskerRenderer();
+        CustomBoxAndWhiskerRenderer renderer = new CustomBoxAndWhiskerRenderer();
         renderer.setFillBox(false);
-        renderer.setMaxOutlierVisible(true);
-        renderer.setMinOutlierVisible(true);
+        renderer.setMaxOutlierVisible(false);
+        renderer.setMinOutlierVisible(false);
         renderer.setMaximumBarWidth(1 / Double.valueOf(bigwigs.length) / 2.0);
         renderer.setMeanVisible(false);
         renderer.setDefaultToolTipGenerator(new BoxAndWhiskerToolTipGenerator());
@@ -143,8 +174,8 @@ public class BoxView {
         );
         jfreechart.setBackgroundPaint(Color.WHITE);
 
-        Integer width = bigwigs.length * 100;
-        width = width > 14400 ? 14400 : width;
+        Integer width = bigwigs.length * 150;
+        width = width > 14400 ? 14400 : (width < 500 ? 500 : width);
         Integer height = 500;
 
         String outputFilename = "";

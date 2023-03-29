@@ -27,9 +27,11 @@ import org.jfree.chart.renderer.category.CategoryItemRenderer;
 import org.jfree.chart.renderer.xy.XYBlockRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleEdge;
+import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.Range;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
@@ -109,7 +111,7 @@ public class HeatMapView {
                     allNumOfWindow += numOfWindowOfRegion;
                 }
                 Double average = allNumOfWindow > 0 ? allSumOfWindow / allNumOfWindow : 0;
-                Integer xAxisPos = args.getUpLength() * (-1) + args.getWindow() * i;
+                String xAxisPos = String.valueOf(args.getUpLength() * (-1) + args.getWindow() * i);
                 lineDataset.addValue(average, bedFileLabel, xAxisPos);
             }
 
@@ -125,7 +127,7 @@ public class HeatMapView {
         List<Plot> plotList = new ArrayList<>();
         List<Integer> heightList = new ArrayList<>();
         Integer width = windowNum * 50 < 500 ? 500 : windowNum * 50;
-        CategoryPlot linePlot = generateLinePlot(lineDataset);
+        CategoryPlot linePlot = generateLinePlot(lineDataset, width);
         plotList.add(linePlot);
         plotList.addAll(heatPlotList);
         heightList.add(width / 2);
@@ -159,7 +161,7 @@ public class HeatMapView {
         return true;
     }
 
-    private CategoryPlot generateLinePlot(CategoryDataset dataset) {
+    private CategoryPlot generateLinePlot(CategoryDataset dataset, Integer width) {
         JFreeChart jFreeChart = ChartFactory.createLineChart(
                 "",//图名字
                 "",//横坐标
@@ -177,6 +179,7 @@ public class HeatMapView {
 
         // xy轴
         CategoryAxis xAxis = new CategoryAxis();
+        xAxis.setLabelFont(new Font("", 0, width / 100));
         xAxis.setLowerMargin(0);
         xAxis.setUpperMargin(0);
         categoryPlot.setDomainAxis(xAxis);
@@ -278,8 +281,12 @@ public class HeatMapView {
             if (i == 0) {
                 String bigwigName = new File(args.getBigwig()).getName();
                 String title = bigwigName.substring(0, bigwigName.lastIndexOf("."));
-                jFreeChart = new JFreeChart(title, new Font("", Font.PLAIN, width / 50), plotList.get(i), false);
-                plotWidth = plotWidth - width * 0.023;
+                jFreeChart = new JFreeChart(title, new Font("", Font.PLAIN, width / 50), plotList.get(i), true);
+                LegendTitle legendTitle = jFreeChart.getLegend();
+                legendTitle.setBorder(1, 1, 1, 2);
+                legendTitle.setItemFont(new Font("", 0, width / 100));
+
+                plotWidth = plotWidth - width * 0.0215;
             } else if (i == plotList.size() - 1) {
                 // 颜色定义
                 LookupPaintScale paintScale = new LookupPaintScale(0, 1, Color.black);
@@ -296,7 +303,7 @@ public class HeatMapView {
 
                 jFreeChart.addSubtitle(paintScaleLegend);
             } else {
-                plotWidth = plotWidth - width * 0.023;
+                plotWidth = plotWidth - width * 0.0215;
             }
             jFreeChart.setBackgroundPaint(Color.WHITE);
             Rectangle2D rectangle2D0 = new Rectangle2D.Double(0, nextHeight, plotWidth, heightList.get(i));
@@ -331,8 +338,12 @@ public class HeatMapView {
             if (i == 0) {
                 String bigwigName = new File(args.getBigwig()).getName();
                 String title = bigwigName.substring(0, bigwigName.lastIndexOf("."));
-                jFreeChart = new JFreeChart(title, new Font("", Font.PLAIN, width / 50), plotList.get(i), false);
-                plotWidth = plotWidth - width * 0.023;
+                jFreeChart = new JFreeChart(title, new Font("", Font.PLAIN, width / 50), plotList.get(i), true);
+                LegendTitle legendTitle = jFreeChart.getLegend();
+                legendTitle.setBorder(1, 1, 1, 2);
+                legendTitle.setItemFont(new Font("", 0, width / 100));
+
+                plotWidth = plotWidth - width * 0.0215;
             } else if (i == plotList.size() - 1) {
                 // 颜色定义
                 LookupPaintScale paintScale = new LookupPaintScale(0, 1, Color.black);
@@ -351,7 +362,7 @@ public class HeatMapView {
 
                 jFreeChart.addSubtitle(paintScaleLegend);
             } else {
-                plotWidth = plotWidth - width  * 0.023;
+                plotWidth = plotWidth - width  * 0.0215;
             }
 
             jFreeChart.setBackgroundPaint(Color.WHITE);

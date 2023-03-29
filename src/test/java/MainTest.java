@@ -361,7 +361,7 @@ public class MainTest extends TestCase {
         String arg0 = "heatMapView";
         String arg1 = "-bedPaths";
         // String arg2 = "MHB_cervix_normal.bed";
-        String arg2 = "MHB_cervix_normal.bed esophagus_normal_MHB.bed";
+        String arg2 = "MHB_cervix_normal.bed hg19_cpgisland.bed";
         String arg7 = "-bigwig";
         String arg8 = "P1_BRCA_MM.bw";
         String arg3 = "-upLength";
@@ -372,6 +372,37 @@ public class MainTest extends TestCase {
         String arg10 = "1000";
         String arg11 = "-tag";
         String arg12 = "heatMapView.output";
+        String arg13 = "-outFormat";
+        String arg14 = "png";
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg9, arg10, arg7, arg8, arg11, arg12, arg13, arg14};
+
+        System.out.println("Work direqtory: " + System.getProperty("user.dir"));
+        String argsStr = "";
+        for (int i = 0; i < args.length; i++) {
+            argsStr += args[i] + " ";
+        }
+        System.out.println(argsStr);
+
+        main.main(args);
+    }
+
+    @Test
+    public void test_ProfileView() throws Exception {
+        Main main = new Main();
+        String arg0 = "profileView";
+        String arg1 = "-bedPaths";
+        // String arg2 = "MHB_cervix_normal.bed";
+        String arg2 = "MHB_cervix_normal.bed esophagus_normal_MHB.bed hg19_cpgisland.bed";
+        String arg7 = "-bigwig";
+        String arg8 = "P1_BRCA_MM.bw";
+        String arg3 = "-upLength";
+        String arg4 = "2000";
+        String arg5 = "-downLength";
+        String arg6 = "2000";
+        String arg9 = "-windowNum";
+        String arg10 = "10";
+        String arg11 = "-tag";
+        String arg12 = "profileView.output";
         String arg13 = "-outFormat";
         String arg14 = "png";
         String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg9, arg10, arg7, arg8, arg11, arg12, arg13, arg14};

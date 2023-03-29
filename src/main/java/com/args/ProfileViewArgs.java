@@ -13,11 +13,11 @@ public class ProfileViewArgs implements Serializable {
     @Annotation(Constants.TAG_DESCRIPTION)
     public String tag = "";
     @Annotation(Constants.UPLENGTH_DESCRIPTION)
-    public Integer upLength = 20000;
+    public Integer upLength = 2000;
     @Annotation(Constants.DOWNLENGTH_DESCRIPTION)
-    public Integer downLength = 20000;
+    public Integer downLength = 2000;
     @Annotation(Constants.WINDOW2_DESCRIPTION)
-    public Integer window = 1000;
+    public Integer windowNum = 10;
     @Annotation(Constants.OUTFORMAT_DESCRIPTION)
     public String outFormat = "pdf";
 
@@ -61,12 +61,12 @@ public class ProfileViewArgs implements Serializable {
         this.downLength = downLength;
     }
 
-    public Integer getWindow() {
-        return window;
+    public Integer getWindowNum() {
+        return windowNum;
     }
 
-    public void setWindow(Integer window) {
-        this.window = window;
+    public void setWindowNum(Integer windowNum) {
+        this.windowNum = windowNum;
     }
 
     public String getOutFormat() {

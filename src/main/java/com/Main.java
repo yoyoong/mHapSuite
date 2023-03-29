@@ -564,7 +564,7 @@ public class Main {
                 profileViewArgs.setBigwig(commandLine.getOptionValue("bigwig"));
                 profileViewArgs.setUpLength(Integer.valueOf(commandLine.getOptionValue("upLength")));
                 profileViewArgs.setDownLength(Integer.valueOf(commandLine.getOptionValue("downLength")));
-                profileViewArgs.setWindow(Integer.valueOf(commandLine.getOptionValue("window")));
+                profileViewArgs.setWindowNum(Integer.valueOf(commandLine.getOptionValue("windowNum")));
                 profileViewArgs.setTag(commandLine.getOptionValue("tag"));
                 profileViewArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
             }

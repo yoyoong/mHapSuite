@@ -17,6 +17,8 @@ public class Main {
     static MHBDiscovery mhbDiscovery = new MHBDiscovery();
     static ScatterView scatterView = new ScatterView();
     static BoxView boxView = new BoxView();
+    static HeatMapView heatMapView = new HeatMapView();
+    static ProfileView profileView = new ProfileView();
 
     public static void main(String[] args) throws Exception {
         System.setProperty("java.awt.headless", "true");
@@ -67,7 +69,17 @@ public class Main {
                 if (boxViewArgs != null) {
                     boxView.boxView(boxViewArgs);
                 }
-            } else{
+            } else if (args[0].equals("heatMapView")) {
+                HeatMapViewArgs heatMapViewArgs = parseHeatMapView(args);
+                if (heatMapViewArgs != null) {
+                    heatMapView.heatMapView(heatMapViewArgs);
+                }
+            } else if (args[0].equals("profileView")) {
+                ProfileViewArgs profileViewArgs = parseProfileView(args);
+                if (profileViewArgs != null) {
+                    profileView.profileView(profileViewArgs);
+                }
+            } else {
                 System.out.println("unrecognized command:" + args[0]);
             }
         } else { // show the help message
@@ -429,7 +441,7 @@ public class Main {
                 helpFormatter.printHelp("Options", options);
                 return null;
             } else {
-                mhbDiscoveryArgs.setmHapPath(commandLine.getOptionValue("mhapPath"));
+                mhbDiscoveryArgs.setmHapPath(commandLine.getOptionValue("mHapPath"));
                 mhbDiscoveryArgs.setCpgPath(commandLine.getOptionValue("cpgPath"));
                 if (commandLine.hasOption("region")) {
                     mhbDiscoveryArgs.setRegion(commandLine.getOptionValue("region"));
@@ -507,5 +519,59 @@ public class Main {
         }
 
         return boxViewArgs;
+    }
+
+    private static HeatMapViewArgs parseHeatMapView(String[] args) throws ParseException {
+        Options options = getOptions(HeatMapViewArgs.class.getDeclaredFields());
+        BasicParser parser = new BasicParser();
+        HeatMapViewArgs heatMapViewArgs = new HeatMapViewArgs();
+
+        CommandLine commandLine = parser.parse(options, args);
+        if (commandLine.getOptions().length > 0) {
+            if (commandLine.hasOption('h')) {
+                HelpFormatter helpFormatter = new HelpFormatter();
+                helpFormatter.printHelp("Options", options);
+                return null;
+            } else {
+                heatMapViewArgs.setBedPaths(getStringFromMultiValueParameter(commandLine, "bedPaths"));
+                heatMapViewArgs.setBigwig(commandLine.getOptionValue("bigwig"));
+                heatMapViewArgs.setUpLength(Integer.valueOf(commandLine.getOptionValue("upLength")));
+                heatMapViewArgs.setDownLength(Integer.valueOf(commandLine.getOptionValue("downLength")));
+                heatMapViewArgs.setWindow(Integer.valueOf(commandLine.getOptionValue("window")));
+                heatMapViewArgs.setTag(commandLine.getOptionValue("tag"));
+                heatMapViewArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
+            }
+        } else {
+            System.out.println("The paramter is null");
+        }
+
+        return heatMapViewArgs;
+    }
+
+    private static ProfileViewArgs parseProfileView(String[] args) throws ParseException {
+        Options options = getOptions(ProfileViewArgs.class.getDeclaredFields());
+        BasicParser parser = new BasicParser();
+        ProfileViewArgs profileViewArgs = new ProfileViewArgs();
+
+        CommandLine commandLine = parser.parse(options, args);
+        if (commandLine.getOptions().length > 0) {
+            if (commandLine.hasOption('h')) {
+                HelpFormatter helpFormatter = new HelpFormatter();
+                helpFormatter.printHelp("Options", options);
+                return null;
+            } else {
+                profileViewArgs.setBedPaths(getStringFromMultiValueParameter(commandLine, "bedPaths"));
+                profileViewArgs.setBigwig(commandLine.getOptionValue("bigwig"));
+                profileViewArgs.setUpLength(Integer.valueOf(commandLine.getOptionValue("upLength")));
+                profileViewArgs.setDownLength(Integer.valueOf(commandLine.getOptionValue("downLength")));
+                profileViewArgs.setWindow(Integer.valueOf(commandLine.getOptionValue("window")));
+                profileViewArgs.setTag(commandLine.getOptionValue("tag"));
+                profileViewArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
+            }
+        } else {
+            System.out.println("The paramter is null");
+        }
+
+        return profileViewArgs;
     }
 }

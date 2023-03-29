@@ -50,6 +50,7 @@ public class BoxView {
     BoxViewArgs args = new BoxViewArgs();
     Util util = new Util();
     public static final Integer MAXSIZE = 10000;
+    public static final Integer MAXSAMPLE = 20;
 
     public void boxView(BoxViewArgs boxViewArgs) throws Exception {
         log.info("BoxView start!");
@@ -70,6 +71,10 @@ public class BoxView {
         }
 
         String[] bigwigs = args.getBigwigs().split(" ");
+        if (bigwigs.length > MAXSAMPLE) {
+            log.error("The input bigwid files is larger than " + MAXSAMPLE + ", please re-enter the bigwigs");
+            return;
+        }
         DefaultBoxAndWhiskerCategoryDataset dataset = new DefaultBoxAndWhiskerCategoryDataset();
 
         for (String bigwig : bigwigs) {

@@ -416,4 +416,34 @@ public class MainTest extends TestCase {
 
         main.main(args);
     }
+
+    @Test
+    public void test_EnrichmentPlot() throws Exception {
+        Main main = new Main();
+        String arg0 = "enrichmentPlot";
+        String arg1 = "-bedPaths";
+        String arg2 = "MHB_cervix_normal.bed esophagus_normal_MHB.bed";
+        String arg3 = "-openChromatin";
+        String arg4 = "hg19_cpgisland.bed";
+        String arg7 = "-bigwig";
+        String arg8 = "P1_BRCA_MM.bw";
+        String arg5 = "-groupNum";
+        String arg6 = "10";
+        String arg9 = "-groupCutoff";
+        String arg10 = "100";
+        String arg11 = "-tag";
+        String arg12 = "enrichmentPlot.output";
+        String arg13 = "-outFormat";
+        String arg14 = "png";
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg9, arg10, arg7, arg8, arg11, arg12, arg13, arg14};
+
+        System.out.println("Work direqtory: " + System.getProperty("user.dir"));
+        String argsStr = "";
+        for (int i = 0; i < args.length; i++) {
+            argsStr += args[i] + " ";
+        }
+        System.out.println(argsStr);
+
+        main.main(args);
+    }
 }

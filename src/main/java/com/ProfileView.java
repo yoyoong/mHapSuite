@@ -76,9 +76,6 @@ public class ProfileView {
                     } else if (i >= upWindowNum && i < upWindowNum + coreWindowNum) {
                         startSiteOfWindow = region.getStart() - coreWindowLength / 2 + coreWindowLength * (i - upWindowNum);
                         endSiteOfWindow = startSiteOfWindow + coreWindowLength;
-                        if (i == upWindowNum + coreWindowNum) {
-                            int g = 0;
-                        }
                     } else if (i >= upWindowNum + coreWindowNum) {
                         startSiteOfWindow = region.getEnd() + coreWindowLength / 2 + downWindowLength * (i - upWindowNum - coreWindowNum);
                         endSiteOfWindow = startSiteOfWindow + downWindowLength;

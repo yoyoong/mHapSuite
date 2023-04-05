@@ -19,6 +19,7 @@ public class Main {
     static BoxView boxView = new BoxView();
     static HeatMapView heatMapView = new HeatMapView();
     static ProfileView profileView = new ProfileView();
+    static EnrichmentPlot enrichmentPlot = new EnrichmentPlot();
 
     public static void main(String[] args) throws Exception {
         System.setProperty("java.awt.headless", "true");
@@ -78,6 +79,11 @@ public class Main {
                 ProfileViewArgs profileViewArgs = parseProfileView(args);
                 if (profileViewArgs != null) {
                     profileView.profileView(profileViewArgs);
+                }
+            } else if (args[0].equals("enrichmentPlot")) {
+                EnrichmentPlotArgs enrichmentPlotArgs = parseEnrichmentPlot(args);
+                if (enrichmentPlotArgs != null) {
+                    enrichmentPlot.enrichmentPlot(enrichmentPlotArgs);
                 }
             } else {
                 System.out.println("unrecognized command:" + args[0]);
@@ -573,5 +579,32 @@ public class Main {
         }
 
         return profileViewArgs;
+    }
+
+    private static EnrichmentPlotArgs parseEnrichmentPlot(String[] args) throws ParseException {
+        Options options = getOptions(EnrichmentPlotArgs.class.getDeclaredFields());
+        BasicParser parser = new BasicParser();
+        EnrichmentPlotArgs enrichmentPlotArgs = new EnrichmentPlotArgs();
+
+        CommandLine commandLine = parser.parse(options, args);
+        if (commandLine.getOptions().length > 0) {
+            if (commandLine.hasOption('h')) {
+                HelpFormatter helpFormatter = new HelpFormatter();
+                helpFormatter.printHelp("Options", options);
+                return null;
+            } else {
+                enrichmentPlotArgs.setBedPaths(getStringFromMultiValueParameter(commandLine, "bedPaths"));
+                enrichmentPlotArgs.setBigwig(commandLine.getOptionValue("bigwig"));
+                enrichmentPlotArgs.setOpenChromatin(commandLine.getOptionValue("openChromatin"));
+                enrichmentPlotArgs.setGroupNum(Integer.valueOf(commandLine.getOptionValue("groupNum")));
+                enrichmentPlotArgs.setGroupCutoff(Integer.valueOf(commandLine.getOptionValue("groupCutoff")));
+                enrichmentPlotArgs.setTag(commandLine.getOptionValue("tag"));
+                enrichmentPlotArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
+            }
+        } else {
+            System.out.println("The paramter is null");
+        }
+
+        return enrichmentPlotArgs;
     }
 }

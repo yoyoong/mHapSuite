@@ -16,7 +16,7 @@ public class ProfileViewArgs implements Serializable {
     public Integer upLength = 2000;
     @Annotation(Constants.DOWNLENGTH_DESCRIPTION)
     public Integer downLength = 2000;
-    @Annotation(Constants.WINDOW2_DESCRIPTION)
+    @Annotation(Constants.WINDOWNUM_DESCRIPTION)
     public Integer windowNum = 10;
     @Annotation(Constants.OUTFORMAT_DESCRIPTION)
     public String outFormat = "pdf";

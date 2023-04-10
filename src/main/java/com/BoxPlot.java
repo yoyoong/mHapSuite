@@ -1,60 +1,38 @@
 package com;
 
-import com.args.BoxViewArgs;
+import com.args.BoxPlotArgs;
 import com.bean.Region;
 import com.common.Util;
 import com.common.bigwigTool.BBFileReader;
 import com.common.bigwigTool.BigWigIterator;
 import com.common.bigwigTool.WigItem;
 import com.rewrite.CustomBoxAndWhiskerRenderer;
-import org.apache.commons.compress.utils.Lists;
-import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.labels.BoxAndWhiskerToolTipGenerator;
 import org.jfree.chart.plot.CategoryPlot;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.plot.PlotRenderingInfo;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.category.BoxAndWhiskerRenderer;
-import org.jfree.chart.renderer.category.CategoryItemRendererState;
-import org.jfree.chart.renderer.xy.XYItemRenderer;
-import org.jfree.chart.title.TextTitle;
 import org.jfree.data.Range;
-import org.jfree.data.category.CategoryDataset;
-import org.jfree.data.statistics.BoxAndWhiskerCategoryDataset;
 import org.jfree.data.statistics.DefaultBoxAndWhiskerCategoryDataset;
-import org.jfree.data.xy.DefaultXYDataset;
-import org.jfree.data.xy.XYDataset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.*;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.OptionalDouble;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
-public class BoxView {
-    public static final Logger log = LoggerFactory.getLogger(BoxView.class);
-    BoxViewArgs args = new BoxViewArgs();
+public class BoxPlot {
+    public static final Logger log = LoggerFactory.getLogger(BoxPlot.class);
+    BoxPlotArgs args = new BoxPlotArgs();
     Util util = new Util();
     public static final Integer MAXSIZE = 10000;
     public static final Integer MAXSAMPLE = 20;
 
-    public void boxView(BoxViewArgs boxViewArgs) throws Exception {
-        log.info("BoxView start!");
-        args = boxViewArgs;
+    public void boxPlot(BoxPlotArgs boxPlotArgs) throws Exception {
+        log.info("BoxPlot start!");
+        args = boxPlotArgs;
 
         // check the command
         boolean checkResult = checkArgs();
@@ -103,63 +81,23 @@ public class BoxView {
             log.info("Process " + bigwig + " end!");
         }
 
-
-//        int threadNum = bigwigs.length;// 线程数
-//        CountDownLatch countDownLatch = new CountDownLatch(threadNum);// 计数器
-//        ExecutorService executorService = Executors.newFixedThreadPool(threadNum);// 创建一个线程池
-//        List<Callable<Boolean>> tasks = Lists.newArrayList();// 定义一个任务集合
-//        Callable<Boolean> task;// 定义一个任务
-//
-//        for (String bigwig : bigwigs) {
-//            task = new Callable<Boolean>() {
-//                @Override
-//                public Boolean call() throws Exception {
-//                    log.info("Process " + bigwig + " begin!");
-//                    ArrayList<Double> averageList = new ArrayList<>();
-//                    for (Region region : regionList) {
-//                        String startChr = region.getChrom();
-//                        Integer startBase = region.getStart();
-//                        String endChr = region.getChrom();
-//                        Integer endBase = region.getEnd();
-//
-//                        double sumInRegion = 0.0;
-//                        BBFileReader reader = new BBFileReader(bigwig);
-//                        BigWigIterator iter = reader.getBigWigIterator(startChr, startBase, endChr, endBase, true);
-//                        Integer index = 0;
-//                        while(iter.hasNext()) {
-//                            WigItem wigItem = iter.next();
-//                            sumInRegion += wigItem.getWigValue();
-//                            index++;
-//                        }
-//                        Double average = sumInRegion / index;
-//                        averageList.add(average);
-//                    }
-//                    dataset.add(averageList, "", bigwig);
-//                    log.info("Process " + bigwig + " end!");
-//                    return true;
-//                }
-//            };
-//            countDownLatch.countDown(); // 减少计数器的计数
-//            tasks.add(task); // 任务处理完加入集合
-//        }
-//
-//        try {
-//            executorService.invokeAll(tasks); // 执行给定的任务
-//            countDownLatch.await(); // 等待计数器归零
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//        executorService.shutdown(); // 关闭线程池
+        Integer width = bigwigs.length * 150;
+        width = width > 14400 ? 14400 : (width < 750 ? 750 : width);
+        Integer height = 500;
 
         CategoryAxis xAxis = new CategoryAxis();
         xAxis.setLabel("Sample");
-        Integer labelSize = bigwigs.length * 4 < 10 ? 10 : bigwigs.length * 2;
-        xAxis.setLabelFont(new Font("", Font.PLAIN, labelSize));
+        xAxis.setLabelFont(new Font("", Font.PLAIN, width / 60));
+        xAxis.setTickLabelFont(new Font("", 0, width / 75));
+
         NumberAxis yAxis = new NumberAxis();
         yAxis.setLabel("Value");
+        yAxis.setLabelFont(new Font("", Font.PLAIN, width / 60));
+        yAxis.setLowerMargin(0.01);
+        yAxis.setUpperMargin(0.01);
         yAxis.setRange(new Range(0, 1));
         yAxis.setTickUnit(new NumberTickUnit(0.1));
-        yAxis.setLabelFont(new Font("", Font.PLAIN, labelSize));
+        yAxis.setTickLabelFont(new Font("", 0, width / 75));
 
         CustomBoxAndWhiskerRenderer renderer = new CustomBoxAndWhiskerRenderer();
         renderer.setFillBox(false);
@@ -173,26 +111,22 @@ public class BoxView {
         String bedName = new File(args.getBedPath()).getName();
         JFreeChart jfreechart = new JFreeChart(
                 bedName.substring(0, bedName.lastIndexOf(".")),
-                new Font("", Font.BOLD, labelSize),
+                new Font("", Font.BOLD, width / 50),
                 plot,
                 false
         );
         jfreechart.setBackgroundPaint(Color.WHITE);
 
-        Integer width = bigwigs.length * 150;
-        width = width > 14400 ? 14400 : (width < 500 ? 500 : width);
-        Integer height = 500;
-
         String outputFilename = "";
         if (args.getOutFormat().equals("png")) {
-            outputFilename = args.getTag() +  ".boxView.png";
+            outputFilename = args.getTag() +  ".boxPlot.png";
             util.saveAsPng(jfreechart, outputFilename, width, height);
         } else {
-            outputFilename = args.getTag() + ".boxView.pdf";
+            outputFilename = args.getTag() + ".boxPlot.pdf";
             util.saveAsPdf(jfreechart, outputFilename, width, height);
         }
 
-        log.info("BoxView end!");
+        log.info("BoxPlot end!");
     }
 
     private boolean checkArgs() {

@@ -25,7 +25,6 @@
 
 package com.common.bigwigTool;
 
-import com.ScatterView;
 import htsjdk.samtools.seekablestream.SeekableStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

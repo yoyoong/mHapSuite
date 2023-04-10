@@ -306,17 +306,17 @@ public class MainTest extends TestCase {
     }
 
     @Test
-    public void test_ScatterView() throws Exception {
+    public void test_ScatterPlot() throws Exception {
         Main main = new Main();
-        String arg0 = "scatterView";
+        String arg0 = "scatterPlot";
         String arg1 = "-bedPath";
-        String arg2 = "hg19_cpgisland.bed";
+        String arg2 = "MHB_cervix_normal.bed";
         String arg7 = "-bigwig1";
         String arg8 = "P1_ESCC_MM.bw";
         String arg9 = "-bigwig2";
-        String arg10 = "P1_ESCC_R2.bw";
+        String arg10 = "P1_BRCA_MM.bw";
         String arg11 = "-tag";
-        String arg12 = "scatterView.output";
+        String arg12 = "scatterPlot.output";
         String arg13 = "-outFormat";
         String arg14 = "png";
         String[] args = {arg0, arg1, arg2, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14};
@@ -332,15 +332,15 @@ public class MainTest extends TestCase {
     }
 
     @Test
-    public void test_BoxView() throws Exception {
+    public void test_BoxPlot() throws Exception {
         Main main = new Main();
-        String arg0 = "boxView";
+        String arg0 = "boxPlot";
         String arg1 = "-bedPath";
         String arg2 = "MHB_cervix_normal.bed";
         String arg7 = "-bigwigs";
         String arg8 = "P1_BRCA_MM.bw P1_CESC_MM.bw P1_CRC_MM.bw P1_ESCC_MM.bw P1_HNSC_MM.bw P1_LIHC_MM.bw P1_LUADLUSC_MM.bw";
         String arg11 = "-tag";
-        String arg12 = "boxView.output";
+        String arg12 = "boxPlot.output";
         String arg13 = "-outFormat";
         String arg14 = "png";
         String[] args = {arg0, arg1, arg2, arg7, arg8, arg11, arg12, arg13, arg14};
@@ -356,12 +356,12 @@ public class MainTest extends TestCase {
     }
 
     @Test
-    public void test_HeatMapView() throws Exception {
+    public void test_HeatMapPlot() throws Exception {
         Main main = new Main();
-        String arg0 = "heatMapView";
+        String arg0 = "heatMapPlot";
         String arg1 = "-bedPaths";
         // String arg2 = "MHB_cervix_normal.bed";
-        String arg2 = "MHB_cervix_normal.bed hg19_cpgisland.bed";
+        String arg2 = "MHB_cervix_normal.bed esophagus_normal_MHB.bed";
         String arg7 = "-bigwig";
         String arg8 = "P1_BRCA_MM.bw";
         String arg3 = "-upLength";
@@ -371,7 +371,7 @@ public class MainTest extends TestCase {
         String arg9 = "-window";
         String arg10 = "1000";
         String arg11 = "-tag";
-        String arg12 = "heatMapView.output";
+        String arg12 = "heatMapPlot.output";
         String arg13 = "-outFormat";
         String arg14 = "png";
         String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg9, arg10, arg7, arg8, arg11, arg12, arg13, arg14};
@@ -387,9 +387,9 @@ public class MainTest extends TestCase {
     }
 
     @Test
-    public void test_ProfileView() throws Exception {
+    public void test_ProfilePlot() throws Exception {
         Main main = new Main();
-        String arg0 = "profileView";
+        String arg0 = "profilePlot";
         String arg1 = "-bedPaths";
         // String arg2 = "MHB_cervix_normal.bed";
         String arg2 = "MHB_cervix_normal.bed esophagus_normal_MHB.bed hg19_cpgisland.bed";
@@ -402,7 +402,7 @@ public class MainTest extends TestCase {
         String arg9 = "-windowNum";
         String arg10 = "10";
         String arg11 = "-tag";
-        String arg12 = "profileView.output";
+        String arg12 = "profilePlot.output";
         String arg13 = "-outFormat";
         String arg14 = "png";
         String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg9, arg10, arg7, arg8, arg11, arg12, arg13, arg14};

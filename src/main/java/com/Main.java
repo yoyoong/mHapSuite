@@ -15,10 +15,10 @@ public class Main {
     static Stat stat = new Stat();
     static GenomeWide genomeWide = new GenomeWide();
     static MHBDiscovery mhbDiscovery = new MHBDiscovery();
-    static ScatterView scatterView = new ScatterView();
-    static BoxView boxView = new BoxView();
-    static HeatMapView heatMapView = new HeatMapView();
-    static ProfileView profileView = new ProfileView();
+    static ScatterPlot scatterPlot = new ScatterPlot();
+    static BoxPlot boxPlot = new BoxPlot();
+    static HeatMapPlot heatMapPlot = new HeatMapPlot();
+    static ProfilePlot profilePlot = new ProfilePlot();
     static EnrichmentPlot enrichmentPlot = new EnrichmentPlot();
 
     public static void main(String[] args) throws Exception {
@@ -60,25 +60,25 @@ public class Main {
                 if (mhbDiscoveryArgs != null) {
                     mhbDiscovery.MHBDiscovery(mhbDiscoveryArgs);
                 }
-            } else if (args[0].equals("scatterView")) {
-                ScatterViewArgs scatterViewArgs = parseScatterView(args);
-                if (scatterViewArgs != null) {
-                    scatterView.scatterView(scatterViewArgs);
+            } else if (args[0].equals("scatterPlot")) {
+                ScatterPlotArgs scatterPlotArgs = parseScatterPlot(args);
+                if (scatterPlotArgs != null) {
+                    scatterPlot.scatterPlot(scatterPlotArgs);
                 }
-            } else if (args[0].equals("boxView")) {
-                BoxViewArgs boxViewArgs = parseBoxView(args);
-                if (boxViewArgs != null) {
-                    boxView.boxView(boxViewArgs);
+            } else if (args[0].equals("boxPlot")) {
+                BoxPlotArgs boxPlotArgs = parseBoxPlot(args);
+                if (boxPlotArgs != null) {
+                    boxPlot.boxPlot(boxPlotArgs);
                 }
-            } else if (args[0].equals("heatMapView")) {
-                HeatMapViewArgs heatMapViewArgs = parseHeatMapView(args);
-                if (heatMapViewArgs != null) {
-                    heatMapView.heatMapView(heatMapViewArgs);
+            } else if (args[0].equals("heatMapPlot")) {
+                HeatMapPlotArgs heatMapPlotArgs = parseHeatMapPlot(args);
+                if (heatMapPlotArgs != null) {
+                    heatMapPlot.heatMapPlot(heatMapPlotArgs);
                 }
-            } else if (args[0].equals("profileView")) {
-                ProfileViewArgs profileViewArgs = parseProfileView(args);
-                if (profileViewArgs != null) {
-                    profileView.profileView(profileViewArgs);
+            } else if (args[0].equals("profilePlot")) {
+                ProfilePlotArgs profilePlotArgs = parseProfilePlot(args);
+                if (profilePlotArgs != null) {
+                    profilePlot.profilePlot(profilePlotArgs);
                 }
             } else if (args[0].equals("enrichmentPlot")) {
                 EnrichmentPlotArgs enrichmentPlotArgs = parseEnrichmentPlot(args);
@@ -478,10 +478,10 @@ public class Main {
         return mhbDiscoveryArgs;
     }
 
-    private static ScatterViewArgs parseScatterView(String[] args) throws ParseException {
-        Options options = getOptions(ScatterViewArgs.class.getDeclaredFields());
+    private static ScatterPlotArgs parseScatterPlot(String[] args) throws ParseException {
+        Options options = getOptions(ScatterPlotArgs.class.getDeclaredFields());
         BasicParser parser = new BasicParser();
-        ScatterViewArgs scatterViewArgs = new ScatterViewArgs();
+        ScatterPlotArgs scatterPlotArgs = new ScatterPlotArgs();
 
         CommandLine commandLine = parser.parse(options, args);
         if (commandLine.getOptions().length > 0) {
@@ -490,23 +490,23 @@ public class Main {
                 helpFormatter.printHelp("Options", options);
                 return null;
             } else {
-                scatterViewArgs.setBedPath(commandLine.getOptionValue("bedPath"));
-                scatterViewArgs.setBigwig1(commandLine.getOptionValue("bigwig1"));
-                scatterViewArgs.setBigwig2(commandLine.getOptionValue("bigwig2"));
-                scatterViewArgs.setTag(commandLine.getOptionValue("tag"));
-                scatterViewArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
+                scatterPlotArgs.setBedPath(commandLine.getOptionValue("bedPath"));
+                scatterPlotArgs.setBigwig1(commandLine.getOptionValue("bigwig1"));
+                scatterPlotArgs.setBigwig2(commandLine.getOptionValue("bigwig2"));
+                scatterPlotArgs.setTag(commandLine.getOptionValue("tag"));
+                scatterPlotArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
             }
         } else {
             System.out.println("The paramter is null");
         }
 
-        return scatterViewArgs;
+        return scatterPlotArgs;
     }
 
-    private static BoxViewArgs parseBoxView(String[] args) throws ParseException {
-        Options options = getOptions(BoxViewArgs.class.getDeclaredFields());
+    private static BoxPlotArgs parseBoxPlot(String[] args) throws ParseException {
+        Options options = getOptions(BoxPlotArgs.class.getDeclaredFields());
         BasicParser parser = new BasicParser();
-        BoxViewArgs boxViewArgs = new BoxViewArgs();
+        BoxPlotArgs boxPlotArgs = new BoxPlotArgs();
 
         CommandLine commandLine = parser.parse(options, args);
         if (commandLine.getOptions().length > 0) {
@@ -515,22 +515,22 @@ public class Main {
                 helpFormatter.printHelp("Options", options);
                 return null;
             } else {
-                boxViewArgs.setBedPath(commandLine.getOptionValue("bedPath"));
-                boxViewArgs.setBigwigs(getStringFromMultiValueParameter(commandLine, "bigwigs"));
-                boxViewArgs.setTag(commandLine.getOptionValue("tag"));
-                boxViewArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
+                boxPlotArgs.setBedPath(commandLine.getOptionValue("bedPath"));
+                boxPlotArgs.setBigwigs(getStringFromMultiValueParameter(commandLine, "bigwigs"));
+                boxPlotArgs.setTag(commandLine.getOptionValue("tag"));
+                boxPlotArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
             }
         } else {
             System.out.println("The paramter is null");
         }
 
-        return boxViewArgs;
+        return boxPlotArgs;
     }
 
-    private static HeatMapViewArgs parseHeatMapView(String[] args) throws ParseException {
-        Options options = getOptions(HeatMapViewArgs.class.getDeclaredFields());
+    private static HeatMapPlotArgs parseHeatMapPlot(String[] args) throws ParseException {
+        Options options = getOptions(HeatMapPlotArgs.class.getDeclaredFields());
         BasicParser parser = new BasicParser();
-        HeatMapViewArgs heatMapViewArgs = new HeatMapViewArgs();
+        HeatMapPlotArgs heatMapPlotArgs = new HeatMapPlotArgs();
 
         CommandLine commandLine = parser.parse(options, args);
         if (commandLine.getOptions().length > 0) {
@@ -539,25 +539,25 @@ public class Main {
                 helpFormatter.printHelp("Options", options);
                 return null;
             } else {
-                heatMapViewArgs.setBedPaths(getStringFromMultiValueParameter(commandLine, "bedPaths"));
-                heatMapViewArgs.setBigwig(commandLine.getOptionValue("bigwig"));
-                heatMapViewArgs.setUpLength(Integer.valueOf(commandLine.getOptionValue("upLength")));
-                heatMapViewArgs.setDownLength(Integer.valueOf(commandLine.getOptionValue("downLength")));
-                heatMapViewArgs.setWindow(Integer.valueOf(commandLine.getOptionValue("window")));
-                heatMapViewArgs.setTag(commandLine.getOptionValue("tag"));
-                heatMapViewArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
+                heatMapPlotArgs.setBedPaths(getStringFromMultiValueParameter(commandLine, "bedPaths"));
+                heatMapPlotArgs.setBigwig(commandLine.getOptionValue("bigwig"));
+                heatMapPlotArgs.setUpLength(Integer.valueOf(commandLine.getOptionValue("upLength")));
+                heatMapPlotArgs.setDownLength(Integer.valueOf(commandLine.getOptionValue("downLength")));
+                heatMapPlotArgs.setWindow(Integer.valueOf(commandLine.getOptionValue("window")));
+                heatMapPlotArgs.setTag(commandLine.getOptionValue("tag"));
+                heatMapPlotArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
             }
         } else {
             System.out.println("The paramter is null");
         }
 
-        return heatMapViewArgs;
+        return heatMapPlotArgs;
     }
 
-    private static ProfileViewArgs parseProfileView(String[] args) throws ParseException {
-        Options options = getOptions(ProfileViewArgs.class.getDeclaredFields());
+    private static ProfilePlotArgs parseProfilePlot(String[] args) throws ParseException {
+        Options options = getOptions(ProfilePlotArgs.class.getDeclaredFields());
         BasicParser parser = new BasicParser();
-        ProfileViewArgs profileViewArgs = new ProfileViewArgs();
+        ProfilePlotArgs profilePlotArgs = new ProfilePlotArgs();
 
         CommandLine commandLine = parser.parse(options, args);
         if (commandLine.getOptions().length > 0) {
@@ -566,19 +566,19 @@ public class Main {
                 helpFormatter.printHelp("Options", options);
                 return null;
             } else {
-                profileViewArgs.setBedPaths(getStringFromMultiValueParameter(commandLine, "bedPaths"));
-                profileViewArgs.setBigwig(commandLine.getOptionValue("bigwig"));
-                profileViewArgs.setUpLength(Integer.valueOf(commandLine.getOptionValue("upLength")));
-                profileViewArgs.setDownLength(Integer.valueOf(commandLine.getOptionValue("downLength")));
-                profileViewArgs.setWindowNum(Integer.valueOf(commandLine.getOptionValue("windowNum")));
-                profileViewArgs.setTag(commandLine.getOptionValue("tag"));
-                profileViewArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
+                profilePlotArgs.setBedPaths(getStringFromMultiValueParameter(commandLine, "bedPaths"));
+                profilePlotArgs.setBigwig(commandLine.getOptionValue("bigwig"));
+                profilePlotArgs.setUpLength(Integer.valueOf(commandLine.getOptionValue("upLength")));
+                profilePlotArgs.setDownLength(Integer.valueOf(commandLine.getOptionValue("downLength")));
+                profilePlotArgs.setWindowNum(Integer.valueOf(commandLine.getOptionValue("windowNum")));
+                profilePlotArgs.setTag(commandLine.getOptionValue("tag"));
+                profilePlotArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
             }
         } else {
             System.out.println("The paramter is null");
         }
 
-        return profileViewArgs;
+        return profilePlotArgs;
     }
 
     private static EnrichmentPlotArgs parseEnrichmentPlot(String[] args) throws ParseException {

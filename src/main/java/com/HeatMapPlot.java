@@ -1,6 +1,6 @@
 package com;
 
-import com.args.HeatMapViewArgs;
+import com.args.HeatMapPlotArgs;
 import com.bean.Region;
 import com.common.Util;
 import com.common.bigwigTool.BBFileReader;
@@ -23,43 +23,38 @@ import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.LookupPaintScale;
-import org.jfree.chart.renderer.category.CategoryItemRenderer;
 import org.jfree.chart.renderer.xy.XYBlockRenderer;
-import org.jfree.chart.renderer.xy.XYItemRenderer;
-import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleEdge;
-import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.Range;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.xy.DefaultXYDataset;
 import org.jfree.data.xy.DefaultXYZDataset;
+import org.jfree.data.xy.XYDataset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-public class HeatMapView {
-    public static final Logger log = LoggerFactory.getLogger(HeatMapView.class);
-    HeatMapViewArgs args = new HeatMapViewArgs();
+public class HeatMapPlot {
+    public static final Logger log = LoggerFactory.getLogger(HeatMapPlot.class);
+    HeatMapPlotArgs args = new HeatMapPlotArgs();
     Util util = new Util();
     public static final Integer MAXSIZE = 10000;
 
-    public void heatMapView(HeatMapViewArgs heatMapViewArgs) throws Exception {
-        log.info("HeatMapView start!");
-        args = heatMapViewArgs;
+    public void heatMapPlot(HeatMapPlotArgs heatMapPlotArgs) throws Exception {
+        log.info("HeatMapPlot start!");
+        args = heatMapPlotArgs;
 
         // check the command
         boolean checkResult = checkArgs();
@@ -68,13 +63,16 @@ public class HeatMapView {
             return;
         }
 
+
         // get bedfile list
         String[] bedPaths = args.getBedPaths().split(" ");
         Integer windowNum = (args.getUpLength() + args.getDownLength()) / args.getWindow() + 1;
+        Integer width = windowNum * 50 < 500 ? 500 : windowNum * 50;
+
         BBFileReader reader = new BBFileReader(args.getBigwig());
         List<Plot> heatPlotList = new ArrayList<>();
         List<Integer> heatHeightList = new ArrayList<>();
-        DefaultCategoryDataset lineDataset = new DefaultCategoryDataset();
+        DefaultXYDataset lineDataset = new DefaultXYDataset();
         for (String bedPath : bedPaths) {
             String bedFileName = new File(bedPath).getName();
             String bedFileLabel = bedFileName.substring(0, bedFileName.lastIndexOf("."));
@@ -84,6 +82,7 @@ public class HeatMapView {
                 continue;
             }
 
+            double[][] xyData = new double[2][windowNum];
             Double[][] valueList = new Double[regionList.size()][windowNum];
             for (int i = 0; i < windowNum; i++) {
                 Double allSumOfWindow = 0.0;
@@ -111,11 +110,13 @@ public class HeatMapView {
                     allNumOfWindow += numOfWindowOfRegion;
                 }
                 Double average = allNumOfWindow > 0 ? allSumOfWindow / allNumOfWindow : 0;
-                String xAxisPos = String.valueOf(args.getUpLength() * (-1) + args.getWindow() * i);
-                lineDataset.addValue(average, bedFileLabel, xAxisPos);
+                Integer xAxisPos = args.getUpLength() * (-1) + args.getWindow() * i;
+                xyData[0][i] = xAxisPos;
+                xyData[1][i] = average;
             }
+            lineDataset.addSeries(bedFileLabel, xyData);
 
-            XYPlot heatPlot = generateHeatPlot(valueList, bedFileLabel);
+            XYPlot heatPlot = generateHeatPlot(valueList, bedFileLabel, width);
             heatPlotList.add(heatPlot);
             Integer height = regionList.size() / 20 < 500 ? 500 : regionList.size() / 20;
             heatHeightList.add(height);
@@ -126,22 +127,21 @@ public class HeatMapView {
         // merge the line plot and heat plot
         List<Plot> plotList = new ArrayList<>();
         List<Integer> heightList = new ArrayList<>();
-        Integer width = windowNum * 50 < 500 ? 500 : windowNum * 50;
-        CategoryPlot linePlot = generateLinePlot(lineDataset, width);
+        XYPlot linePlot = generateLinePlot(lineDataset, width);
         plotList.add(linePlot);
         plotList.addAll(heatPlotList);
         heightList.add(width / 2);
         heightList.addAll(heatHeightList);
 
         // 输出到文件
-        String outputPath = args.getTag() + ".heatMapView." + args.getOutFormat();
+        String outputPath = args.getTag() + ".heatMapPlot." + args.getOutFormat();
         if (args.getOutFormat().equals("pdf")) {
             saveAsPdf(plotList, outputPath, width, heightList);
         } else if (args.getOutFormat().equals("png")) {
             saveAsPng(plotList, outputPath, width, heightList);
         }
 
-        log.info("HeatMapView end!");
+        log.info("HeatMapPlot end!");
     }
 
     private boolean checkArgs() {
@@ -161,8 +161,8 @@ public class HeatMapView {
         return true;
     }
 
-    private CategoryPlot generateLinePlot(CategoryDataset dataset, Integer width) {
-        JFreeChart jFreeChart = ChartFactory.createLineChart(
+    private XYPlot generateLinePlot(XYDataset dataset, Integer width) {
+        JFreeChart jFreeChart = ChartFactory.createXYLineChart(
                 "",//图名字
                 "",//横坐标
                 "",//纵坐标
@@ -172,28 +172,31 @@ public class HeatMapView {
                 true, // 采用标准生成器
                 false);// 是否生成超链接
 
-        CategoryPlot categoryPlot = (CategoryPlot) jFreeChart.getPlot();
-        categoryPlot.setBackgroundPaint(Color.WHITE);
-        categoryPlot.setRangeGridlinesVisible(false);
-        categoryPlot.setOutlinePaint(Color.BLACK);
+        XYPlot xyPlot = (XYPlot) jFreeChart.getPlot();
+        xyPlot.setBackgroundPaint(Color.WHITE);
+        xyPlot.setRangeGridlinesVisible(false);
+        xyPlot.setOutlinePaint(Color.BLACK);
 
         // xy轴
-        CategoryAxis xAxis = new CategoryAxis();
-        xAxis.setLabelFont(new Font("", 0, width / 100));
-        xAxis.setLowerMargin(0);
-        xAxis.setUpperMargin(0);
-        categoryPlot.setDomainAxis(xAxis);
+        NumberAxis xAxis = new NumberAxis();
+        xAxis.setTickUnit(new NumberTickUnit(5 * args.getWindow()));
+        xAxis.setTickLabelFont(new Font("", 0, width / 100));
+        xAxis.setLowerMargin(0.02);
+        xAxis.setUpperMargin(0.02);
+        xyPlot.setDomainAxis(xAxis);
 
         NumberAxis yAxis = new NumberAxis();
         yAxis.setTickUnit(new NumberTickUnit(0.2));
+        yAxis.setTickLabelFont(new Font("", 0, width / 100));
         yAxis.setRange(new Range(0, 1));
-        categoryPlot.setRangeAxis(yAxis);
+        yAxis.setLabelFont(new Font("", Font.PLAIN, width / 75));
+        xyPlot.setRangeAxis(yAxis);
 
-        return categoryPlot;
+        return xyPlot;
     }
 
 
-    private XYPlot generateHeatPlot(Double[][] dataMatrix, String yAxisLable) {
+    private XYPlot generateHeatPlot(Double[][] dataMatrix, String yAxisLable, Integer width) {
         // 创建数据集
         DefaultXYZDataset dataset = new DefaultXYZDataset();
         double x[] = new double[dataMatrix.length * dataMatrix[0].length];
@@ -224,7 +227,7 @@ public class HeatMapView {
         yAxis.setAxisLineVisible(false);
         yAxis.setVisible(true);
         yAxis.setLabel(yAxisLable);
-        yAxis.setLabelFont(new Font("", Font.PLAIN, 15));
+        yAxis.setLabelFont(new Font("", Font.PLAIN, width / 75));
 
         // 颜色定义
         LookupPaintScale paintScale = new LookupPaintScale(0, 1, Color.black);
@@ -284,7 +287,7 @@ public class HeatMapView {
                 jFreeChart = new JFreeChart(title, new Font("", Font.PLAIN, width / 50), plotList.get(i), true);
                 LegendTitle legendTitle = jFreeChart.getLegend();
                 legendTitle.setBorder(1, 1, 1, 2);
-                legendTitle.setItemFont(new Font("", 0, width / 100));
+                legendTitle.setItemFont(new Font("", 0, width / 75));
 
                 plotWidth = plotWidth - width * 0.0215;
             } else if (i == plotList.size() - 1) {
@@ -341,7 +344,7 @@ public class HeatMapView {
                 jFreeChart = new JFreeChart(title, new Font("", Font.PLAIN, width / 50), plotList.get(i), true);
                 LegendTitle legendTitle = jFreeChart.getLegend();
                 legendTitle.setBorder(1, 1, 1, 2);
-                legendTitle.setItemFont(new Font("", 0, width / 100));
+                legendTitle.setItemFont(new Font("", 0, width / 75));
 
                 plotWidth = plotWidth - width * 0.0215;
             } else if (i == plotList.size() - 1) {

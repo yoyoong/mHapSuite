@@ -5,7 +5,7 @@ import com.common.Constants;
 
 import java.io.Serializable;
 
-public class BoxViewArgs implements Serializable {
+public class BoxPlotArgs implements Serializable {
     @Annotation(Constants.BEDPATH_DESCRIPTION)
     public String bedPath = "";
     @Annotation(Constants.BIGWIGS_DESCRIPTION)

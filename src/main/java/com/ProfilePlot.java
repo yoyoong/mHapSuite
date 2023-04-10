@@ -1,6 +1,6 @@
 package com;
 
-import com.args.ProfileViewArgs;
+import com.args.ProfilePlotArgs;
 import com.bean.Region;
 import com.common.Util;
 import com.common.bigwigTool.BBFileReader;
@@ -22,18 +22,17 @@ import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 
-public class ProfileView {
-    public static final Logger log = LoggerFactory.getLogger(ProfileView.class);
-    ProfileViewArgs args = new ProfileViewArgs();
+public class ProfilePlot {
+    public static final Logger log = LoggerFactory.getLogger(ProfilePlot.class);
+    ProfilePlotArgs args = new ProfilePlotArgs();
     Util util = new Util();
     public static final Integer MAXSIZE = 10000;
 
-    public void profileView(ProfileViewArgs profileViewArgs) throws Exception {
-        log.info("ProfileView start!");
-        args = profileViewArgs;
+    public void profilePlot(ProfilePlotArgs profilePlotArgs) throws Exception {
+        log.info("ProfilePlot start!");
+        args = profilePlotArgs;
 
         // check the command
         boolean checkResult = checkArgs();
@@ -106,6 +105,7 @@ public class ProfileView {
                 }
                 lineDataset.addValue(average, bedFileLabel, xAxisPos);
             }
+            log.info("Read " + bedPath + " end!");
         }
 
         Integer width = coreWindowNum * 100 < 500 ? 500 : coreWindowNum * 100;
@@ -114,14 +114,14 @@ public class ProfileView {
 
         String outputFilename = "";
         if (args.getOutFormat().equals("png")) {
-            outputFilename = args.getTag() +  ".profileView.png";
+            outputFilename = args.getTag() +  ".profilePlot.png";
             util.saveAsPng(jfreechart, outputFilename, width, height);
         } else {
-            outputFilename = args.getTag() + ".profileView.pdf";
+            outputFilename = args.getTag() + ".profilePlot.pdf";
             util.saveAsPdf(jfreechart, outputFilename, width, height);
         }
 
-        log.info("ProfileView end!");
+        log.info("ProfilePlot end!");
     }
 
     private boolean checkArgs() {
@@ -155,7 +155,7 @@ public class ProfileView {
                 false);// 是否生成超链接
         LegendTitle legendTitle = jFreeChart.getLegend();
         legendTitle.setBorder(1, 1, 1, 2);
-        legendTitle.setItemFont(new Font("", 0, width / 100));
+        legendTitle.setItemFont(new Font("", 0, width / 60));
 
         CategoryPlot categoryPlot = (CategoryPlot) jFreeChart.getPlot();
         categoryPlot.setBackgroundPaint(Color.WHITE);
@@ -164,13 +164,16 @@ public class ProfileView {
 
         // xy轴
         CategoryAxis xAxis = new CategoryAxis();
-        xAxis.setLabelFont(new Font("", 0, width / 100));
+        xAxis.setLabelFont(new Font("", 0, width / 75));
+        xAxis.setTickLabelFont(new Font("", 0, width / 100));
         xAxis.setLowerMargin(0);
         xAxis.setUpperMargin(0);
         categoryPlot.setDomainAxis(xAxis);
 
         NumberAxis yAxis = new NumberAxis();
         yAxis.setTickUnit(new NumberTickUnit(0.2));
+        yAxis.setTickLabelFont(new Font("", 0, width / 100));
+        yAxis.setLabelFont(new Font("", 0, width / 75));
         yAxis.setRange(new Range(0, 1));
         categoryPlot.setRangeAxis(yAxis);
 

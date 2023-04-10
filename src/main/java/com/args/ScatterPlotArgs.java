@@ -5,7 +5,7 @@ import com.common.Constants;
 
 import java.io.Serializable;
 
-public class ScatterViewArgs implements Serializable {
+public class ScatterPlotArgs implements Serializable {
     @Annotation(Constants.BEDPATH_DESCRIPTION)
     public String bedPath = "";
     @Annotation(Constants.BIGWIG1_DESCRIPTION)

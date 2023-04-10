@@ -25,7 +25,6 @@
 
 package com.common.bigwigTool;
 
-import com.ScatterView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +41,7 @@ import java.util.zip.Inflater;
  */
 public class CompressionUtils {
 
-    public static final Logger log = LoggerFactory.getLogger(ScatterView.class);
+    public static final Logger log = LoggerFactory.getLogger(CompressionUtils.class);
 
     private Deflater deflater;
     private Inflater decompressor;

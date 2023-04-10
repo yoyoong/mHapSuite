@@ -25,7 +25,6 @@
 
 package com.common.bigwigTool;
 
-import com.ScatterView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +46,7 @@ import org.slf4j.LoggerFactory;
 
 abstract class RPTreeNodeItem {
 
-    public static final Logger log = LoggerFactory.getLogger(ScatterView.class);
+    public static final Logger log = LoggerFactory.getLogger(RPTreeNodeItem.class);
 
 
     protected RPChromosomeRegion chromosomeBounds; // chromosome bounds for item

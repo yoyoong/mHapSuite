@@ -177,32 +177,32 @@ public class EnrichmentPlot {
                 true, // 显示图例
                 true, // 采用标准生成器
                 false);// 是否生成超链接
-        TextTitle textTitle = new TextTitle(title, new Font("", 0, width / 25));
+        TextTitle textTitle = new TextTitle(title, new Font("", 0, width / 30));
         jFreeChart.setTitle(textTitle);
 
         LegendTitle legendTitle = jFreeChart.getLegend();
         legendTitle.setBorder(1, 1, 1, 2);
         legendTitle.setItemFont(new Font("", 0, width / 50));
 
-        XYPlot categoryPlot = (XYPlot) jFreeChart.getPlot();
-        categoryPlot.setBackgroundPaint(Color.WHITE);
-        categoryPlot.setRangeGridlinesVisible(false);
-        categoryPlot.setOutlinePaint(Color.BLACK);
+        XYPlot xyPlot = (XYPlot) jFreeChart.getPlot();
+        xyPlot.setBackgroundPaint(Color.WHITE);
+        xyPlot.setRangeGridlinesVisible(false);
+        xyPlot.setOutlinePaint(Color.BLACK);
 
         // xy轴
         NumberAxis xAxis = new NumberAxis();
         xAxis.setTickUnit(new NumberTickUnit(0.1));
         xAxis.setTickLabelFont(new Font("", 0, width / 75));
         xAxis.setRange(new Range(0, 1));
-        categoryPlot.setDomainAxis(xAxis);
+        xyPlot.setDomainAxis(xAxis);
 
         NumberAxis yAxis = new NumberAxis();
         yAxis.setLabel("The percentage of genomic feature overlap with TCGA-ATAC peaks(%)");
-        yAxis.setLabelFont(new Font("", 0, width / 40));
+        yAxis.setLabelFont(new Font("", 0, width / 50));
         yAxis.setTickUnit(new NumberTickUnit(20));
         yAxis.setTickLabelFont(new Font("", 0, width / 75));
         yAxis.setRange(new Range(0, 100));
-        categoryPlot.setRangeAxis(yAxis);
+        xyPlot.setRangeAxis(yAxis);
 
         return jFreeChart;
     }

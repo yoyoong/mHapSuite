@@ -25,7 +25,6 @@
 
 package com.common.bigwigTool;
 
-import com.ScatterView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +41,7 @@ import org.slf4j.LoggerFactory;
  */
 public class RPTreeLeafNodeItem extends RPTreeNodeItem {
 
-    public static final Logger log = LoggerFactory.getLogger(ScatterView.class);
+    public static final Logger log = LoggerFactory.getLogger(RPTreeLeafNodeItem.class);
 
     private long dataOffset;      // file offset to data item
     private long dataSize;        // size of data item

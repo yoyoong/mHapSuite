@@ -22,7 +22,7 @@ public class MHBDiscoveryArgs implements Serializable {
     public Double pvalue = 0.05;
     @Annotation(Constants.OUTPUTDIR_DESCRIPTION)
     public String outputDir = "";
-    @Annotation(Constants.TAG_DESCRIPTION)
+    @Annotation(Constants.TAG_DESCRIPTION + ", default: MHBDiscovery_out")
     public String tag = "MHBDiscovery_out";
     @Annotation(Constants.QCFLAG_DESCRIPTION)
     public boolean qcFlag = false;

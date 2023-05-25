@@ -193,7 +193,7 @@ public class Convert {
             log.error("-o opt should be followed by a .mhap.gz file.");
             return false;
         }
-        if (!args.getBedFile().isEmpty() && !args.getBedFile().endsWith(".bed")) {
+        if (!args.getBedPath().isEmpty() && !args.getBedPath().endsWith(".bed")) {
             log.error("-b opt should be followed by a .bed file.");
             return false;
         }
@@ -204,7 +204,7 @@ public class Convert {
     private boolean initData() {
         if (args.getRegion() != null && !args.getRegion().isEmpty()) {
             regionType = RegionType.SINGLE_REGION;
-        } else if (args.getBedFile() != null && !args.getBedFile().isEmpty()) {
+        } else if (args.getBedPath() != null && !args.getBedPath().isEmpty()) {
             regionType = RegionType.MULTI_REGION;
         } else if (args.getInputFile() != null && !args.getInputFile().isEmpty()
                 && args.getCpgPath() != null && !args.getCpgPath().isEmpty()) {
@@ -247,7 +247,7 @@ public class Convert {
     }
 
     private boolean getMultiRegionData(BufferedWriter bufferedWriter) throws Exception {
-        File bedFile = new File(args.getBedFile()); // 打开bed文件
+        File bedFile = new File(args.getBedPath()); // 打开bed文件
         InputStream inputStream = new FileInputStream(bedFile);  // 文件流
         AsciiLineReader asciiLineReader = new AsciiLineReader(inputStream); // 行阅读器
         LineIteratorImpl lineIterator = new LineIteratorImpl(asciiLineReader);

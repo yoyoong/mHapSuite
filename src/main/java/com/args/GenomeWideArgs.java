@@ -6,7 +6,7 @@ import com.common.Constants;
 import java.io.Serializable;
 
 public class GenomeWideArgs implements Serializable {
-    @Annotation(Constants.TAG_DESCRIPTION)
+    @Annotation(Constants.TAG_DESCRIPTION + ", default: genomeWide_out")
     public String tag = "genomeWide_out";
     @Annotation(Constants.MHAPPATH_DESCRIPTION)
     public String mhapPath = "";

@@ -1,25 +1,26 @@
 package com.args;
 
 import com.common.Annotation;
+import com.common.Constants;
 
 import java.io.Serializable;
 
 public class ConvertArgs implements Serializable {
-    @Annotation("input file, SAM/BAM format, should be sorted by samtools")
+    @Annotation(Constants.SAMBAMPATH_DESCRIPTION)
     public String inputFile = "";
-    @Annotation("genomic CpG file, gz format and indexed")
+    @Annotation(Constants.CPGPATH_DESCRIPTION)
     public String cpgPath = "";
-    @Annotation("one region, in the format of chr:start-end")
+    @Annotation(Constants.CPGPATH_DESCRIPTION)
     public String region = "";
-    @Annotation("bed file, one query region per line")
-    public String bedFile = "";
-    @Annotation("non-directional, do not group results by the direction of reads")
+    @Annotation(Constants.BEDPATH_DESCRIPTION)
+    public String bedPath = "";
+    @Annotation(Constants.NONDIRECTIONAL_DESCRIPTION)
     public boolean nonDirectional = false;
-    @Annotation("output filename. (default: out.mhap.gz)")
+    @Annotation(Constants.OUTPUTFILE_DESCRIPTION + "[out.mhap.gz]")
     public String outPutFile = "";
-    @Annotation("sequencing mode. ( TAPS | BS (default) )")
+    @Annotation(Constants.MODE_DESCRIPTION)
     public String mode = "BS";
-    @Annotation("whether inputPath is pat file")
+    @Annotation(Constants.PAT_DESCRIPTION)
     public boolean pat = false;
 
     public String getInputFile() {
@@ -46,12 +47,12 @@ public class ConvertArgs implements Serializable {
         this.region = region;
     }
 
-    public String getBedFile() {
-        return bedFile;
+    public String getBedPath() {
+        return bedPath;
     }
 
-    public void setBedFile(String bedFile) {
-        this.bedFile = bedFile;
+    public void setBedPath(String bedPath) {
+        this.bedPath = bedPath;
     }
 
     public boolean isNonDirectional() {

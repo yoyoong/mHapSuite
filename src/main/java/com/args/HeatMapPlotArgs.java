@@ -12,9 +12,9 @@ public class HeatMapPlotArgs implements Serializable {
     public String bigwig;
     @Annotation(Constants.TAG_DESCRIPTION)
     public String tag = "";
-    @Annotation(Constants.UPLENGTH_DESCRIPTION)
+    @Annotation(Constants.UPLENGTH_DESCRIPTION + "[20000]")
     public Integer upLength = 20000;
-    @Annotation(Constants.DOWNLENGTH_DESCRIPTION)
+    @Annotation(Constants.DOWNLENGTH_DESCRIPTION + "[20000]")
     public Integer downLength = 20000;
     @Annotation(Constants.WINDOW2_DESCRIPTION)
     public Integer window = 1000;

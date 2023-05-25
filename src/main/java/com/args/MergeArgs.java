@@ -1,15 +1,16 @@
 package com.args;
 
 import com.common.Annotation;
+import com.common.Constants;
 
 import java.io.Serializable;
 
 public class MergeArgs implements Serializable {
-    @Annotation("input files, multiple .mhap.gz files to merge")
+    @Annotation(Constants.SAMBAMPATHS_DESCRIPTION)
     public String inputFile = "";
-    @Annotation("genomic CpG file, gz format and Indexed")
+    @Annotation(Constants.CPGPATH_DESCRIPTION)
     public String cpgPath = "";
-    @Annotation("output filename [out.mhap.gz]")
+    @Annotation(Constants.OUTPUTFILE_DESCRIPTION + "[out.mhap.gz]")
     public String outPutFile = "";
 
     public String getInputFile() {

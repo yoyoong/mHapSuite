@@ -151,7 +151,7 @@ public class Main {
                     convertArgs.setRegion(commandLine.getOptionValue("region"));
                 }
                 if (commandLine.hasOption("bedPath")) {
-                    convertArgs.setBedFile(commandLine.getOptionValue("bedPath"));
+                    convertArgs.setBedPath(commandLine.getOptionValue("bedPath"));
                 }
                 if (commandLine.hasOption("nonDirectional")) {
                     convertArgs.setNonDirectional(true);
@@ -232,7 +232,7 @@ public class Main {
                 tanghuluArgs.setMhapPath(commandLine.getOptionValue("mhapPath"));
                 tanghuluArgs.setCpgPath(commandLine.getOptionValue("cpgPath"));
                 tanghuluArgs.setRegion(commandLine.getOptionValue("region"));
-                tanghuluArgs.setOutputFile(commandLine.getOptionValue("outputFile"));
+                tanghuluArgs.setTag(commandLine.getOptionValue("tag"));
                 if (commandLine.hasOption("outFormat")) {
                     tanghuluArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
                 }
@@ -541,9 +541,15 @@ public class Main {
             } else {
                 heatMapPlotArgs.setBedPaths(getStringFromMultiValueParameter(commandLine, "bedPaths"));
                 heatMapPlotArgs.setBigwig(commandLine.getOptionValue("bigwig"));
-                heatMapPlotArgs.setUpLength(Integer.valueOf(commandLine.getOptionValue("upLength")));
-                heatMapPlotArgs.setDownLength(Integer.valueOf(commandLine.getOptionValue("downLength")));
-                heatMapPlotArgs.setWindow(Integer.valueOf(commandLine.getOptionValue("window")));
+                if (commandLine.hasOption("upLength")) {
+                    heatMapPlotArgs.setUpLength(Integer.valueOf(commandLine.getOptionValue("upLength")));
+                }
+                if (commandLine.hasOption("downLength")) {
+                    heatMapPlotArgs.setDownLength(Integer.valueOf(commandLine.getOptionValue("downLength")));
+                }
+                if (commandLine.hasOption("window")) {
+                    heatMapPlotArgs.setWindow(Integer.valueOf(commandLine.getOptionValue("window")));
+                }
                 heatMapPlotArgs.setTag(commandLine.getOptionValue("tag"));
                 heatMapPlotArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
             }
@@ -568,9 +574,15 @@ public class Main {
             } else {
                 profilePlotArgs.setBedPaths(getStringFromMultiValueParameter(commandLine, "bedPaths"));
                 profilePlotArgs.setBigwig(commandLine.getOptionValue("bigwig"));
-                profilePlotArgs.setUpLength(Integer.valueOf(commandLine.getOptionValue("upLength")));
-                profilePlotArgs.setDownLength(Integer.valueOf(commandLine.getOptionValue("downLength")));
-                profilePlotArgs.setWindowNum(Integer.valueOf(commandLine.getOptionValue("windowNum")));
+                if (commandLine.hasOption("upLength")) {
+                    profilePlotArgs.setUpLength(Integer.valueOf(commandLine.getOptionValue("upLength")));
+                }
+                if (commandLine.hasOption("downLength")) {
+                    profilePlotArgs.setDownLength(Integer.valueOf(commandLine.getOptionValue("downLength")));
+                }
+                if (commandLine.hasOption("windowNum")) {
+                    profilePlotArgs.setWindowNum(Integer.valueOf(commandLine.getOptionValue("windowNum")));
+                }
                 profilePlotArgs.setTag(commandLine.getOptionValue("tag"));
                 profilePlotArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
             }
@@ -596,8 +608,12 @@ public class Main {
                 enrichmentPlotArgs.setBedPaths(getStringFromMultiValueParameter(commandLine, "bedPaths"));
                 enrichmentPlotArgs.setBigwig(commandLine.getOptionValue("bigwig"));
                 enrichmentPlotArgs.setOpenChromatin(commandLine.getOptionValue("openChromatin"));
-                enrichmentPlotArgs.setGroupNum(Integer.valueOf(commandLine.getOptionValue("groupNum")));
-                enrichmentPlotArgs.setGroupCutoff(Integer.valueOf(commandLine.getOptionValue("groupCutoff")));
+                if (commandLine.hasOption("groupNum")) {
+                    enrichmentPlotArgs.setGroupNum(Integer.valueOf(commandLine.getOptionValue("groupNum")));
+                }
+                if (commandLine.hasOption("groupCutoff")) {
+                    enrichmentPlotArgs.setGroupCutoff(Integer.valueOf(commandLine.getOptionValue("groupCutoff")));
+                }
                 enrichmentPlotArgs.setTag(commandLine.getOptionValue("tag"));
                 enrichmentPlotArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
             }

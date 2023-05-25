@@ -298,13 +298,13 @@ public class Tanghulu {
         rangeAxis.setRange(range);
 
         // 输出到文件
-        String outputFile = "";
+        String Tag = "";
         if (args.getOutFormat().equals("png")) {
-            outputFile = args.getOutputFile() + "_" + region.toFileString() + ".tanghulu.png";
-            util.saveAsPng(jfreechart, outputFile, width, height);
+            Tag = args.getTag() + "_" + region.toFileString() + ".tanghulu.png";
+            util.saveAsPng(jfreechart, Tag, width, height);
         } else {
-            outputFile = args.getOutputFile() + "_" + region.toFileString() + ".tanghulu.pdf";
-            util.saveAsPdf(jfreechart, outputFile, width, height);
+            Tag = args.getTag() + "_" + region.toFileString() + ".tanghulu.pdf";
+            util.saveAsPdf(jfreechart, Tag, width, height);
         }
 
         return true;
@@ -657,13 +657,13 @@ public class Tanghulu {
         rangeAxis.setVisible(false);
 
         // 输出到文件
-        String outputFile = "";
+        String Tag = "";
         if (args.getOutFormat().equals("png")) {
-            outputFile = args.getOutputFile() + ".simulation.png";
-            util.saveAsPng(jfreechart, outputFile, width, height);
+            Tag = args.getTag() + ".simulation.png";
+            util.saveAsPng(jfreechart, Tag, width, height);
         } else {
-            outputFile = args.getOutputFile() + ".simulation.pdf";
-            util.saveAsPdf(jfreechart, outputFile, width, height);
+            Tag = args.getTag() + ".simulation.pdf";
+            util.saveAsPdf(jfreechart, Tag, width, height);
         }
 
         return true;

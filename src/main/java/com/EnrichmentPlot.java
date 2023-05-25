@@ -83,7 +83,7 @@ public class EnrichmentPlot {
                 Double average = sumInRegion / numInRegion;
                 Integer groupIndex = (int) (average >= 1 ? args.getGroupNum() - 1 : average * args.getGroupNum());
                 Integer regionLength = region.getEnd() - region.getStart() + 1;
-                Integer coverLength = getRegionCoverLength(openChromatin, 0, openChromatin.size(), region);
+                Integer coverLength = getRegionCoverLength(openChromatin, 0, openChromatin.size() - 1, region);
                 totalLengthArray[groupIndex] += regionLength;
                 coverLengthArray[groupIndex] += coverLength;
                 regionNumArray[groupIndex] += 1;

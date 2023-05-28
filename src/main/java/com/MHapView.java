@@ -305,8 +305,9 @@ public class MHapView {
         NumberAxis yAxis = new NumberAxis();
         yAxis.setTickUnit(new NumberTickUnit(cpgHpMatInRegion.length * 2)); // 不让它显示y轴
         yAxis.setRange(new Range(1, cpgHpMatInRegion.length));
+        yAxis.setAxisLineVisible(false);
         yAxis.setVisible(true);
-        yAxis.setLabel("cpg");
+        yAxis.setLabel("read methylation status");
         yAxis.setLabelFont(new Font("", Font.PLAIN, width / 100));
 
         LookupPaintScale paintScale = new LookupPaintScale(-1, 2, Color.black);
@@ -440,8 +441,9 @@ public class MHapView {
         NumberAxis yAxis = new NumberAxis();
         yAxis.setTickUnit(new NumberTickUnit(cpgHpMatInRegion.length * 2)); // 不让它显示y轴
         yAxis.setRange(new Range(1, cpgHpMatInRegion.length));
+        yAxis.setAxisLineVisible(false);
         yAxis.setVisible(true);
-        yAxis.setLabel("MHapView HeatMap");
+        yAxis.setLabel("R2 HeatMap");
         yAxis.setLabelFont(new Font("", Font.PLAIN, width / 100));
 
         // 颜色定义
@@ -499,7 +501,13 @@ public class MHapView {
             JFreeChart jFreeChart = new JFreeChart("", null, plotList.get(i), false);
             if (i == 0) {
                 jFreeChart = new JFreeChart(region.toHeadString(), new Font("", Font.PLAIN, sumHeight / 30), plotList.get(i), false);
-            } else if (i == plotList.size() - 1) {
+            }
+
+            jFreeChart.setBackgroundPaint(Color.WHITE);
+            Rectangle2D rectangle2D0 = new Rectangle2D.Double(0, nextHeight, width, heightList.get(i));
+            jFreeChart.draw(graphics2D, rectangle2D0);
+
+            if (i == plotList.size() - 1) {
                 // 颜色定义
                 LookupPaintScale paintScale = new LookupPaintScale(-1, 1, Color.black);
                 for (Double j = 0.0; j < 255.0; j++) {
@@ -514,13 +522,12 @@ public class MHapView {
                 paintScaleLegend.setStripWidth(width / cpgPosListInRegion.size() / 5);
                 paintScaleLegend.setPosition(RectangleEdge.RIGHT);
                 paintScaleLegend.setAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
-                paintScaleLegend.setMargin(heightList.get(i) * 1 / 3, 0, heightList.get(i) * 1 / 3, 0);
-                jFreeChart.addSubtitle(paintScaleLegend);
+                paintScaleLegend.setMargin(heightList.get(i) / 3, 0, heightList.get(i) / 3, 0);
+                Rectangle2D legendRectangle2D = new Rectangle2D.Double(width - width / cpgPosListInRegion.size(), nextHeight + (heightList.get(i) / 2),
+                        width / cpgPosListInRegion.size(), heightList.get(i) / 3);
+                paintScaleLegend.draw(graphics2D, legendRectangle2D);
             }
-            jFreeChart.setBackgroundPaint(Color.WHITE);
 
-            Rectangle2D rectangle2D0 = new Rectangle2D.Double(0, nextHeight, width, heightList.get(i));
-            jFreeChart.draw(graphics2D, rectangle2D0);
             pdfContentByte.addTemplate(pdfTemplate, 0, 0);
             nextHeight += heightList.get(i);
         }
@@ -543,11 +550,16 @@ public class MHapView {
         Integer nextHeight = 0;
         for (int i = 0; i < plotList.size(); i++) {
             Graphics2D graphics2D = bufferedImage.createGraphics();
-
             JFreeChart jFreeChart = new JFreeChart("", null, plotList.get(i), false);
             if (i == 0) {
                 jFreeChart = new JFreeChart(region.toHeadString(), new Font("", Font.PLAIN, sumHeight / 30), plotList.get(i), false);
-            } else if (i == plotList.size() - 1) {
+            }
+
+            jFreeChart.setBackgroundPaint(Color.WHITE);
+            Rectangle2D rectangle2D0 = new Rectangle2D.Double(0, nextHeight, width, heightList.get(i));
+            jFreeChart.draw(graphics2D, rectangle2D0);
+
+            if (i == plotList.size() - 1) {
                 // 颜色定义
                 LookupPaintScale paintScale = new LookupPaintScale(-1, 1, Color.black);
                 for (Double j = 0.0; j < 255.0; j++) {
@@ -562,12 +574,12 @@ public class MHapView {
                 paintScaleLegend.setStripWidth(width / cpgPosListInRegion.size() / 5);
                 paintScaleLegend.setPosition(RectangleEdge.RIGHT);
                 paintScaleLegend.setAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
-                paintScaleLegend.setMargin(heightList.get(i) * 1 / 3, 0, heightList.get(i) * 1 / 3, 0);
-                jFreeChart.addSubtitle(paintScaleLegend);
+                paintScaleLegend.setMargin(heightList.get(i) / 3, 0, heightList.get(i) / 3, 0);
+                Rectangle2D legendRectangle2D = new Rectangle2D.Double(width - width / cpgPosListInRegion.size(), nextHeight + (heightList.get(i) / 2),
+                        width / cpgPosListInRegion.size(), heightList.get(i) / 3);
+                paintScaleLegend.draw(graphics2D, legendRectangle2D);
             }
-            jFreeChart.setBackgroundPaint(Color.WHITE);
-            Rectangle2D rectangle2D0 = new Rectangle2D.Double(0, nextHeight, width, heightList.get(i));
-            jFreeChart.draw(graphics2D, rectangle2D0);
+
             nextHeight += heightList.get(i);
             graphics2D.dispose();
         }

@@ -53,12 +53,12 @@ public class CustomXYBlockRenderer extends XYBlockRenderer {
         }
 
         Double blockWidth = dataArea.getWidth() / this.blockNum;
-        Double halfBlockWidth = dataArea.getWidth() / this.blockNum / 2;
+        Double halfBlockWidth = blockWidth / 2;
                 
-        int xa = (int) (dataArea.getX() * 1.05 + halfBlockWidth + blockWidth * x + halfBlockWidth * y);
-        int xb = (int) (dataArea.getX() * 1.05 + blockWidth * x + halfBlockWidth * y);
-        int xc = (int) (dataArea.getX() * 1.05 + halfBlockWidth + blockWidth * x + halfBlockWidth * y);
-        int xd = (int) (dataArea.getX() * 1.05 + blockWidth + blockWidth * x + halfBlockWidth * y);
+        int xa = (int) (dataArea.getX() + halfBlockWidth + blockWidth * x + halfBlockWidth * y);
+        int xb = (int) (dataArea.getX() + blockWidth * x + halfBlockWidth * y);
+        int xc = (int) (dataArea.getX() + halfBlockWidth + blockWidth * x + halfBlockWidth * y);
+        int xd = (int) (dataArea.getX() + blockWidth + blockWidth * x + halfBlockWidth * y);
         int ya = (int) (dataArea.getY() + halfBlockWidth / Math.sqrt(3) * y);
         int yb = (int) (dataArea.getY() + halfBlockWidth / Math.sqrt(3) + (halfBlockWidth / Math.sqrt(3)) * y);
         int yc = (int) (dataArea.getY() + blockWidth / Math.sqrt(3) + (halfBlockWidth / Math.sqrt(3)) * y);

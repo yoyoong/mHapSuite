@@ -113,20 +113,20 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "mHapView";
         String arg1 = "-mhapPath";
-        String arg2 = "/sibcb2/bioinformatics2/fengyan/Plot/Process/figure6/G/Human/Plot/sort/sperm.mhap.gz";
+        String arg2 = "esophagus_T.mhap.gz";
         String arg3 = "-cpgPath";
-        String arg4 = "/sibcb2/bioinformatics2/zhangzhiqiang/genome/CpG/hg19/hg19_CpG.gz";
+        String arg4 = "hg19_CpG.gz";
         String arg5 = "-region";
-        String arg6 = "chr11:2720600-2721650";
+        String arg6 = "chr1:2121159-2121449";
         String arg7 = "-bedPath";
         String arg8 = "/sibcb2/bioinformatics2/fengyan/Plot/Process/figure6/MHB_Bulk/sperm_MHB.bed";
         String arg9 = "-tag";
-        String arg10 = "test";
+        String arg10 = "esophagus_T_test";
         String arg11 = "-outFormat";
         String arg12 = "png";
         String arg13 = "-strand";
         String arg14 = "both";
-        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14};
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg9, arg10, arg11, arg12, arg13, arg14};
 
         System.out.println("Work direqtory: " + System.getProperty("user.dir"));
         String argsStr = "";

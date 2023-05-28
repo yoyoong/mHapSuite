@@ -6,7 +6,7 @@ import com.common.Constants;
 import java.io.Serializable;
 
 public class StatArgs implements Serializable {
-    @Annotation(Constants.METRICS_DESCRIPTION)
+    @Annotation("mHap-level metrics, including Cov,MM,PDR,CHALM,MHL,MCR,MBS,Entropy,and R2")
     public String metrics = "";
     @Annotation(Constants.MHAPPATH_DESCRIPTION)
     public String mhapPath = "";
@@ -18,9 +18,9 @@ public class StatArgs implements Serializable {
     public String bedPath;
     @Annotation(Constants.OUTPUTFILE_DESCRIPTION + "[stat.out.tsv]")
     public String outputFile = "";
-    @Annotation(Constants.METRICS_DESCRIPTION)
+    @Annotation(Constants.MINK_DESCRIPTION)
     public Integer minK = 1;
-    @Annotation(Constants.METRICS_DESCRIPTION)
+    @Annotation(Constants.MAXK_DESCRIPTION)
     public Integer maxK = 10;
     @Annotation(Constants.K_DESCRIPTION)
     public Integer K = 4;

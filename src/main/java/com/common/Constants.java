@@ -25,7 +25,7 @@ final public class Constants {
     public static final String MAXK_DESCRIPTION = "maximum k-mer length for MHL [10]";
     public static final String K_DESCRIPTION = "k-mer length for entropy, PDR, and CHALM, can be 3, 4, or 5 [4]";
     public static final String R2COV_DESCRIPTION = "minimal number of reads that cover two CpGs for R2 calculation [20]";
-    public static final String METRICS_DESCRIPTION = "mHap-level metrics, including M,PDR,CHALM,MHL,MCR,MBS,Entropy,and R2";
+    public static final String METRICS_DESCRIPTION = "mHap-level metrics, including MM,PDR,CHALM,MHL,MCR,MBS,Entropy,and R2";
     public static final String OUTPUTDIR_DESCRIPTION = "output directory, created in advance";
     public static final String CPGCOV_DESCRIPTION = "minimal number of CpG coverage for MM calculation [5]";
     public static final String K4PLUS_DESCRIPTION = "minimal number of reads that cover 4 or more CpGs for PDR, CHALM, MHL, MCR, MBS and Entropy [5]";

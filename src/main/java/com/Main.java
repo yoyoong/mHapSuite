@@ -3,7 +3,10 @@ package com;
 import com.args.*;
 import com.common.Annotation;
 import org.apache.commons.cli.*;
+import org.apache.commons.io.Charsets;
 
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -25,7 +28,9 @@ public class Main {
         System.setProperty("java.awt.headless", "true");
 
         if (args != null && args[0] != null && !"".equals(args[0])) {
-            if (args[0].equals("convert")) {
+            if (args[0].equals("help") || args[0].equals("h")) {
+                printHelp();
+            } else if (args[0].equals("convert")) {
                 ConvertArgs convertArgs = parseConvert(args);
                 if (convertArgs != null) {
                     convert.convert(convertArgs);
@@ -89,7 +94,90 @@ public class Main {
                 System.out.println("unrecognized command:" + args[0]);
             }
         } else { // show the help message
+            printHelp();
+        }
+    }
 
+    private static void printHelp() {
+        PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out, Charsets.UTF_8), true);
+        pw.println(new String(new char[110]).replace("\0", "*"));
+        pw.println("*********\t\t\tmHapSuite: a tool kit for analysis of DNA methylation haplotypes.\t\t\t\t**********");
+        pw.println(new String(new char[110]).replace("\0", "*"));
+        pw.println("\nIt has 12 sub-commands:\n");
+
+        HelpFormatter hf = new HelpFormatter();
+        hf.setWidth(110);
+        hf.setSyntaxPrefix("");
+        String footer = new String(new char[110]).replace("\0", "-");
+
+        pw.println(getCommandPrintHeader("convert"));
+        Options options1 = getOptions(ConvertArgs.class.getDeclaredFields());
+        hf.printHelp("Options:", options1);
+        pw.println(footer + "\n");
+
+        pw.println(getCommandPrintHeader("merge"));
+        Options options2 = getOptions(MergeArgs.class.getDeclaredFields());
+        hf.printHelp("Options:", options2);
+        pw.println(footer + "\n");
+
+        pw.println(getCommandPrintHeader("tanghulu"));
+        Options options3 = getOptions(TanghuluArgs.class.getDeclaredFields());
+        hf.printHelp("Options:", options3);
+        pw.println(footer + "\n");
+
+        pw.println(getCommandPrintHeader("mHapView"));
+        Options options4 = getOptions(MHapViewArgs.class.getDeclaredFields());
+        hf.printHelp("Options:", options4);
+        pw.println(footer + "\n");
+
+        pw.println(getCommandPrintHeader("stat"));
+        Options options5 = getOptions(StatArgs.class.getDeclaredFields());
+        hf.printHelp("Options:", options5);
+        pw.println(footer + "\n");
+
+        pw.println(getCommandPrintHeader("genomeWide"));
+        Options options6 = getOptions(GenomeWideArgs.class.getDeclaredFields());
+        hf.printHelp("Options:", options6);
+        pw.println(footer + "\n");
+
+        pw.println(getCommandPrintHeader("MHBDiscovery"));
+        Options options7 = getOptions(MHBDiscoveryArgs.class.getDeclaredFields());
+        hf.printHelp("Options:", options7);
+        pw.println(footer + "\n");
+
+        pw.println(getCommandPrintHeader("scatterPlot"));
+        Options options8 = getOptions(ScatterPlotArgs.class.getDeclaredFields());
+        hf.printHelp("Options:", options8);
+        pw.println(footer + "\n");
+
+        pw.println(getCommandPrintHeader("boxPlot"));
+        Options options9 = getOptions(BoxPlotArgs.class.getDeclaredFields());
+        hf.printHelp("Options:", options9);
+        pw.println(footer + "\n");
+
+        pw.println(getCommandPrintHeader("heatMapPlot"));
+        Options options10 = getOptions(HeatMapPlotArgs.class.getDeclaredFields());
+        hf.printHelp("Options:", options10);
+        pw.println(footer + "\n");
+
+        pw.println(getCommandPrintHeader("profilePlot"));
+        Options options11 = getOptions(ProfilePlotArgs.class.getDeclaredFields());
+        hf.printHelp("Options:", options11);
+        pw.println(footer + "\n");
+
+        pw.println(getCommandPrintHeader("enrichmentPlot"));
+        Options options12 = getOptions(EnrichmentPlotArgs.class.getDeclaredFields());
+        hf.printHelp("Options:", options12);
+        pw.println(footer + "\n");
+    }
+
+    private static String getCommandPrintHeader(String command) {
+        Integer preLength = (110 - command.length() - 2) / 2;
+        String headerPre = new String(new char[preLength]).replace("\0", "#");
+        if (command.length() % 2 == 0) {
+            return (headerPre + " " + command + " " + headerPre);
+        } else {
+            return (headerPre + " " + command + " " + headerPre + "#");
         }
     }
 
@@ -142,6 +230,8 @@ public class Main {
         if (commandLine.getOptions().length > 0) {
             if (commandLine.hasOption('h')) {
                 HelpFormatter hf = new HelpFormatter();
+                hf.setWidth(110);
+                hf.setSyntaxPrefix("");
                 hf.printHelp("Options:", options);
                 return null;
             } else {
@@ -181,8 +271,10 @@ public class Main {
         CommandLine commandLine = parser.parse(options, args);
         if (commandLine.getOptions().length > 0) {
             if (commandLine.hasOption('h')) {
-                HelpFormatter hf = new HelpFormatter();
-                hf.printHelp("Options:", options);
+                HelpFormatter helpFormatter = new HelpFormatter();
+                helpFormatter.setWidth(110);
+                helpFormatter.setSyntaxPrefix("");
+                helpFormatter.printHelp("Options", options);
                 return null;
             } else {
                 if (commandLine.hasOption("inputFile")) {
@@ -226,6 +318,8 @@ public class Main {
         if (commandLine.getOptions().length > 0) {
             if (commandLine.hasOption('h')) {
                 HelpFormatter helpFormatter = new HelpFormatter();
+                helpFormatter.setWidth(110);
+                helpFormatter.setSyntaxPrefix("");
                 helpFormatter.printHelp("Options", options);
                 return null;
             } else {
@@ -271,6 +365,8 @@ public class Main {
         if (commandLine.getOptions().length > 0) {
             if (commandLine.hasOption('h')) {
                 HelpFormatter helpFormatter = new HelpFormatter();
+                helpFormatter.setWidth(110);
+                helpFormatter.setSyntaxPrefix("");
                 helpFormatter.printHelp("Options", options);
                 return null;
             } else {
@@ -304,6 +400,8 @@ public class Main {
         if (commandLine.getOptions().length > 0) {
             if (commandLine.hasOption('h')) {
                 HelpFormatter helpFormatter = new HelpFormatter();
+                helpFormatter.setWidth(110);
+                helpFormatter.setSyntaxPrefix("");
                 helpFormatter.printHelp("Options", options);
                 return null;
             } else {
@@ -372,6 +470,8 @@ public class Main {
         if (commandLine.getOptions().length > 0) {
             if (commandLine.hasOption('h')) {
                 HelpFormatter helpFormatter = new HelpFormatter();
+                helpFormatter.setWidth(110);
+                helpFormatter.setSyntaxPrefix("");
                 helpFormatter.printHelp("Options:", options);
                 return null;
             } else {
@@ -444,10 +544,12 @@ public class Main {
         if (commandLine.getOptions().length > 0) {
             if (commandLine.hasOption('h')) {
                 HelpFormatter helpFormatter = new HelpFormatter();
+                helpFormatter.setWidth(110);
+                helpFormatter.setSyntaxPrefix("");
                 helpFormatter.printHelp("Options", options);
                 return null;
             } else {
-                mhbDiscoveryArgs.setmHapPath(commandLine.getOptionValue("mHapPath"));
+                mhbDiscoveryArgs.setMhapPath(commandLine.getOptionValue("mhapPath"));
                 mhbDiscoveryArgs.setCpgPath(commandLine.getOptionValue("cpgPath"));
                 if (commandLine.hasOption("region")) {
                     mhbDiscoveryArgs.setRegion(commandLine.getOptionValue("region"));
@@ -466,9 +568,9 @@ public class Main {
                 }
                 mhbDiscoveryArgs.setOutputDir(commandLine.getOptionValue("outputDir"));
                 mhbDiscoveryArgs.setTag(commandLine.getOptionValue("tag"));
-                if (commandLine.hasOption("qcFlag")) {
-                    mhbDiscoveryArgs.setQcFlag(true);
-                }
+//                if (commandLine.hasOption("qcFlag")) {
+//                    mhbDiscoveryArgs.setQcFlag(true);
+//                }
 
             }
         } else {
@@ -487,14 +589,18 @@ public class Main {
         if (commandLine.getOptions().length > 0) {
             if (commandLine.hasOption('h')) {
                 HelpFormatter helpFormatter = new HelpFormatter();
-                helpFormatter.printHelp("Options", options);
+                helpFormatter.setWidth(110);
+                helpFormatter.setSyntaxPrefix("");
+                helpFormatter.printHelp("Options: ", options);
                 return null;
             } else {
                 scatterPlotArgs.setBedPath(commandLine.getOptionValue("bedPath"));
                 scatterPlotArgs.setBigwig1(commandLine.getOptionValue("bigwig1"));
                 scatterPlotArgs.setBigwig2(commandLine.getOptionValue("bigwig2"));
                 scatterPlotArgs.setTag(commandLine.getOptionValue("tag"));
-                scatterPlotArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
+                if (commandLine.hasOption("outFormat")) {
+                    scatterPlotArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
+                }
             }
         } else {
             System.out.println("The paramter is null");
@@ -512,13 +618,17 @@ public class Main {
         if (commandLine.getOptions().length > 0) {
             if (commandLine.hasOption('h')) {
                 HelpFormatter helpFormatter = new HelpFormatter();
-                helpFormatter.printHelp("Options", options);
+                helpFormatter.setWidth(110);
+                helpFormatter.setSyntaxPrefix("");
+                helpFormatter.printHelp("Options: ", options);
                 return null;
             } else {
                 boxPlotArgs.setBedPath(commandLine.getOptionValue("bedPath"));
                 boxPlotArgs.setBigwigs(getStringFromMultiValueParameter(commandLine, "bigwigs"));
                 boxPlotArgs.setTag(commandLine.getOptionValue("tag"));
-                boxPlotArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
+                if (commandLine.hasOption("outFormat")) {
+                    boxPlotArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
+                }
             }
         } else {
             System.out.println("The paramter is null");
@@ -536,7 +646,9 @@ public class Main {
         if (commandLine.getOptions().length > 0) {
             if (commandLine.hasOption('h')) {
                 HelpFormatter helpFormatter = new HelpFormatter();
-                helpFormatter.printHelp("Options", options);
+                helpFormatter.setWidth(110);
+                helpFormatter.setSyntaxPrefix("");
+                helpFormatter.printHelp("Options:", options);
                 return null;
             } else {
                 heatMapPlotArgs.setBedPaths(getStringFromMultiValueParameter(commandLine, "bedPaths"));
@@ -551,7 +663,9 @@ public class Main {
                     heatMapPlotArgs.setWindow(Integer.valueOf(commandLine.getOptionValue("window")));
                 }
                 heatMapPlotArgs.setTag(commandLine.getOptionValue("tag"));
-                heatMapPlotArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
+                if (commandLine.hasOption("outFormat")) {
+                    heatMapPlotArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
+                }
             }
         } else {
             System.out.println("The paramter is null");
@@ -569,7 +683,9 @@ public class Main {
         if (commandLine.getOptions().length > 0) {
             if (commandLine.hasOption('h')) {
                 HelpFormatter helpFormatter = new HelpFormatter();
-                helpFormatter.printHelp("Options", options);
+                helpFormatter.setWidth(110);
+                helpFormatter.setSyntaxPrefix("");
+                helpFormatter.printHelp("Options:", options);
                 return null;
             } else {
                 profilePlotArgs.setBedPaths(getStringFromMultiValueParameter(commandLine, "bedPaths"));
@@ -584,7 +700,9 @@ public class Main {
                     profilePlotArgs.setWindowNum(Integer.valueOf(commandLine.getOptionValue("windowNum")));
                 }
                 profilePlotArgs.setTag(commandLine.getOptionValue("tag"));
-                profilePlotArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
+                if (commandLine.hasOption("outFormat")) {
+                    profilePlotArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
+                }
             }
         } else {
             System.out.println("The paramter is null");
@@ -602,7 +720,9 @@ public class Main {
         if (commandLine.getOptions().length > 0) {
             if (commandLine.hasOption('h')) {
                 HelpFormatter helpFormatter = new HelpFormatter();
-                helpFormatter.printHelp("Options", options);
+                helpFormatter.setWidth(110);
+                helpFormatter.setSyntaxPrefix("");
+                helpFormatter.printHelp("Options:", options);
                 return null;
             } else {
                 enrichmentPlotArgs.setBedPaths(getStringFromMultiValueParameter(commandLine, "bedPaths"));
@@ -615,7 +735,9 @@ public class Main {
                     enrichmentPlotArgs.setGroupCutoff(Integer.valueOf(commandLine.getOptionValue("groupCutoff")));
                 }
                 enrichmentPlotArgs.setTag(commandLine.getOptionValue("tag"));
-                enrichmentPlotArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
+                if (commandLine.hasOption("outFormat")) {
+                    enrichmentPlotArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
+                }
             }
         } else {
             System.out.println("The paramter is null");

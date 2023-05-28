@@ -31,25 +31,25 @@ public class MHBDiscovery {
             return;
         }
 
-        if (args.isQcFlag()) {
-            boolean doQCResult = doQC();
-            if (!doQCResult) {
-                log.error("do QC fail, please check the command.");
-                return;
-            }
-        } else {
+//        if (args.isQcFlag()) {
+//            boolean doQCResult = doQC();
+//            if (!doQCResult) {
+//                log.error("do QC fail, please check the command.");
+//                return;
+//            }
+//        } else {
             boolean getMHBResult = getMHB();
             if (!getMHBResult) {
                 log.error("get MHB fail, please check the command.");
                 return;
             }
-        }
+//        }
 
         log.info("MHBDiscovery end!");
     }
 
     private boolean checkArgs() {
-        if (args.getmHapPath().equals("")) {
+        if (args.getMhapPath().equals("")) {
             log.error("mhapPath can not be null.");
             return false;
         }
@@ -77,7 +77,7 @@ public class MHBDiscovery {
         for (Region region : regionList) {
             region.setStart(region.getStart() - 1);
             // parse the mhap file
-            List<MHapInfo> mHapInfoList = util.parseMhapFile(args.getmHapPath(), region, "both", true);
+            List<MHapInfo> mHapInfoList = util.parseMhapFile(args.getMhapPath(), region, "both", true);
             if (mHapInfoList.size() < 1) {
                 continue;
             }
@@ -205,7 +205,7 @@ public class MHBDiscovery {
                 regionList.addAll(util.splitRegionToSmallRegion(region, 1000000, 1000));
             }
         } else {
-//            List<Region> wholeRegionList = util.getWholeRegionFromMHapFile(args.getmHapPath());
+//            List<Region> wholeRegionList = util.getWholeRegionFromMHapFile(args.getMhapPath());
             List<Region> wholeRegionList = new ArrayList<>();
             Map<String, List<Integer>> cpgPostListMap = util.parseWholeCpgFile(args.getCpgPath());
             Iterator<String> iterator = cpgPostListMap.keySet().iterator();
@@ -230,8 +230,8 @@ public class MHBDiscovery {
         Map<String, String> mhbInfoListMap = new HashMap<>();
         for (Region region : regionList) {
             // parse the mhap file
-            //List<MHapInfo> mHapInfoList = util.parseMhapFile(args.getmHapPath(), region, "both", true);
-            List<MHapInfo> mHapInfoList = util.parseMhapFile(args.getmHapPath(), region, "both", true);
+            //List<MHapInfo> mHapInfoList = util.parseMhapFile(args.getMhapPath(), region, "both", true);
+            List<MHapInfo> mHapInfoList = util.parseMhapFile(args.getMhapPath(), region, "both", true);
             if (mHapInfoList.size() < 1) {
                 continue;
             }

@@ -5,6 +5,13 @@ import org.junit.Test;
 import java.io.File;
 
 public class MainTest extends TestCase {
+    @Test
+    public void test_help() throws Exception {
+        Main main = new Main();
+        String arg0 = "help";
+        String[] args = {arg0};
+        main.main(args);
+    }
 
     @Test
     public void test_convert() throws Exception {

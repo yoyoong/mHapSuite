@@ -7,7 +7,7 @@ import java.io.Serializable;
 
 public class MHBDiscoveryArgs implements Serializable {
     @Annotation(Constants.MHAPPATH_DESCRIPTION)
-    public String mHapPath = "";
+    public String mhapPath = "";
     @Annotation(Constants.CPGPATH_DESCRIPTION)
     public String cpgPath = "";
     @Annotation(Constants.REGION_DESCRIPTION)
@@ -24,15 +24,15 @@ public class MHBDiscoveryArgs implements Serializable {
     public String outputDir = "";
     @Annotation(Constants.TAG_DESCRIPTION + ", default: MHBDiscovery_out")
     public String tag = "MHBDiscovery_out";
-    @Annotation(Constants.QCFLAG_DESCRIPTION)
-    public boolean qcFlag = false;
+//    @Annotation(Constants.QCFLAG_DESCRIPTION)
+//    public boolean qcFlag = false;
 
-    public String getmHapPath() {
-        return mHapPath;
+    public String getMhapPath() {
+        return mhapPath;
     }
 
-    public void setmHapPath(String mHapPath) {
-        this.mHapPath = mHapPath;
+    public void setMhapPath(String mhapPath) {
+        this.mhapPath = mhapPath;
     }
 
     public String getBedPath() {
@@ -99,11 +99,11 @@ public class MHBDiscoveryArgs implements Serializable {
         this.tag = tag;
     }
 
-    public boolean isQcFlag() {
-        return qcFlag;
-    }
-
-    public void setQcFlag(boolean qcFlag) {
-        this.qcFlag = qcFlag;
-    }
+//    public boolean isQcFlag() {
+//        return qcFlag;
+//    }
+//
+//    public void setQcFlag(boolean qcFlag) {
+//        this.qcFlag = qcFlag;
+//    }
 }

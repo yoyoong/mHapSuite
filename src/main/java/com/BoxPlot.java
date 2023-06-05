@@ -138,6 +138,14 @@ public class BoxPlot {
             log.error("The bigwig files can not be null.");
             return false;
         }
+        if (args.getTag() == null || args.getTag().equals("")) {
+            log.error("The tag can not be null.");
+            return false;
+        }
+        if (!args.getOutFormat().equals("png") && !args.getOutFormat().equals("pdf")) {
+            log.error("The output format must be pdf or png");
+            return false;
+        }
         return true;
     }
 

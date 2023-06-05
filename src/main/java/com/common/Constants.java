@@ -44,4 +44,5 @@ final public class Constants {
     public static final String OPENCHROMATIN_DESCRIPTION = "a open chromatin regions file, one region per line";
     public static final String GROUPNUM_DESCRIPTION = "the group number of the metrics value [10]";
     public static final String GROUPCUTOFF_DESCRIPTION = "the minimum valid value number in the group [100]";
+    public static final String MATRIXFLAG_DESCRIPTION = "whether generate matrix file";
 }

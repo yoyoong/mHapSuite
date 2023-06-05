@@ -23,7 +23,10 @@ import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.LookupPaintScale;
+import org.jfree.chart.renderer.category.LineAndShapeRenderer;
+import org.jfree.chart.renderer.xy.StandardXYItemRenderer;
 import org.jfree.chart.renderer.xy.XYBlockRenderer;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.title.TextTitle;
@@ -44,7 +47,10 @@ import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.DoubleStream;
 
 public class HeatMapPlot {
     public static final Logger log = LoggerFactory.getLogger(HeatMapPlot.class);
@@ -66,7 +72,11 @@ public class HeatMapPlot {
 
         // get bedfile list
         String[] bedPaths = args.getBedPaths().split(" ");
-        Integer windowNum = (args.getUpLength() + args.getDownLength()) / args.getWindow() + 1;
+        Integer windowNum = (args.getUpLength() + args.getDownLength()) / args.getWindow();
+        if (windowNum > 500) {
+            log.error("The upLength/downLength is too big or window is too small, please input again.");
+            return;
+        }
         Integer width = windowNum * 50 < 500 ? 500 : windowNum * 50;
 
         BBFileReader reader = new BBFileReader(args.getBigwig());
@@ -84,6 +94,7 @@ public class HeatMapPlot {
 
             double[][] xyData = new double[2][windowNum];
             Double[][] valueList = new Double[regionList.size()][windowNum];
+
             for (int i = 0; i < windowNum; i++) {
                 Double allSumOfWindow = 0.0;
                 Integer allNumOfWindow = 0;
@@ -104,7 +115,7 @@ public class HeatMapPlot {
                         sumOfWindowOfRegion += wigItem.getWigValue();
                         numOfWindowOfRegion ++;
                     }
-                    Double averageOfWindowOfRegion = numOfWindowOfRegion > 0 ? sumOfWindowOfRegion / numOfWindowOfRegion : 0;
+                    Double averageOfWindowOfRegion = numOfWindowOfRegion > 0 ? sumOfWindowOfRegion / numOfWindowOfRegion : Double.NaN;
                     valueList[j][i] = averageOfWindowOfRegion;
                     allSumOfWindow += sumOfWindowOfRegion;
                     allNumOfWindow += numOfWindowOfRegion;
@@ -115,6 +126,34 @@ public class HeatMapPlot {
                 xyData[1][i] = average;
             }
             lineDataset.addSeries(bedFileLabel, xyData);
+
+            if (args.isMatrixFlag()) {
+                BufferedWriter bufferedWriter = util.createOutputFile("", bedFileLabel + ".matrix.txt");
+                String matrixHead = "";
+                for (int i = 0; i < windowNum; i++) {
+                    Integer startSiteOfWindow = 0 - args.getUpLength() + args.getWindow() * i;
+                    Integer endSiteOfWindow = startSiteOfWindow + args.getWindow();
+                    matrixHead += "\t" + startSiteOfWindow + "-" + endSiteOfWindow;;
+                }
+                bufferedWriter.write(matrixHead + "\n");
+                for (int i = 0; i < valueList.length - 1; i++) {
+                    String matrixLine = regionList.get(i).toHeadString();
+                    for (int j = 0; j < valueList[0].length - 1; j++) {
+                        matrixLine += "\t" + valueList[i][j];
+                    }
+                    bufferedWriter.write(matrixLine + "\n");
+                }
+                bufferedWriter.close();
+            }
+
+            // sort the regionList and valueList according the not-null value number
+            Arrays.sort(valueList, new Comparator<Double[]>() {
+                @Override
+                public int compare(Double[] o1, Double[] o2) {
+                    return ((int) Arrays.stream(o2).filter(value -> !value.isNaN()).count()) -
+                            ((int) Arrays.stream(o1).filter(value -> !value.isNaN()).count());
+                }
+            });
 
             XYPlot heatPlot = generateHeatPlot(valueList, bedFileLabel, width);
             heatPlotList.add(heatPlot);
@@ -130,7 +169,7 @@ public class HeatMapPlot {
         XYPlot linePlot = generateLinePlot(lineDataset, width);
         plotList.add(linePlot);
         plotList.addAll(heatPlotList);
-        heightList.add(width / 2);
+        heightList.add(width / 3);
         heightList.addAll(heatHeightList);
 
         // 输出到文件
@@ -153,11 +192,14 @@ public class HeatMapPlot {
             log.error("The bed file can not be null.");
             return false;
         }
-        if (args.getTag() == null) {
+        if (args.getTag() == null || args.getTag().equals("")) {
             log.error("The tag can not be null.");
             return false;
         }
-
+        if (!args.getOutFormat().equals("png") && !args.getOutFormat().equals("pdf")) {
+            log.error("The output format must be pdf or png");
+            return false;
+        }
         return true;
     }
 
@@ -176,6 +218,12 @@ public class HeatMapPlot {
         xyPlot.setBackgroundPaint(Color.WHITE);
         xyPlot.setRangeGridlinesVisible(false);
         xyPlot.setOutlinePaint(Color.BLACK);
+
+        XYItemRenderer renderer = new StandardXYItemRenderer();
+        for (int i = 0; i < dataset.getSeriesCount(); i++) {
+            renderer.setSeriesStroke(i, new BasicStroke(width / 750));
+        }
+        xyPlot.setRenderer(renderer);
 
         // xy轴
         NumberAxis xAxis = new NumberAxis();
@@ -227,7 +275,7 @@ public class HeatMapPlot {
         yAxis.setAxisLineVisible(false);
         yAxis.setVisible(true);
         yAxis.setLabel(yAxisLable);
-        yAxis.setLabelFont(new Font("", Font.PLAIN, width / 75));
+        yAxis.setLabelFont(new Font("", Font.PLAIN, width / 100));
 
         // 颜色定义
         LookupPaintScale paintScale = new LookupPaintScale(0, 1, Color.black);
@@ -289,8 +337,14 @@ public class HeatMapPlot {
                 legendTitle.setBorder(1, 1, 1, 2);
                 legendTitle.setItemFont(new Font("", 0, width / 75));
 
-                plotWidth = plotWidth - width * 0.0215;
-            } else if (i == plotList.size() - 1) {
+                plotWidth = plotWidth - width * 0.025;
+            } else {
+                plotWidth = plotWidth - width * 0.025;
+            }
+            jFreeChart.setBackgroundPaint(Color.WHITE);
+            Rectangle2D rectangle2D0 = new Rectangle2D.Double(0, nextHeight, plotWidth, heightList.get(i));
+            jFreeChart.draw(graphics2D, rectangle2D0);
+            if (i == plotList.size() - 1) {
                 // 颜色定义
                 LookupPaintScale paintScale = new LookupPaintScale(0, 1, Color.black);
                 for (Double j = 0.0; j < 255.0; j++) {
@@ -302,15 +356,10 @@ public class HeatMapPlot {
                 paintScaleLegend.setPosition(RectangleEdge.RIGHT);
                 paintScaleLegend.setAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
                 paintScaleLegend.setMargin(heightList.get(i) / 3, 0, heightList.get(i) / 3, 0);
-                paintScaleLegend.setVisible(true);
-
-                jFreeChart.addSubtitle(paintScaleLegend);
-            } else {
-                plotWidth = plotWidth - width * 0.0215;
+                Rectangle2D legendRectangle2D = new Rectangle2D.Double(plotWidth * 1.005, nextHeight + (heightList.get(i) / 3),
+                        width * 0.025, heightList.get(i) / 3);
+                paintScaleLegend.draw(graphics2D, legendRectangle2D);
             }
-            jFreeChart.setBackgroundPaint(Color.WHITE);
-            Rectangle2D rectangle2D0 = new Rectangle2D.Double(0, nextHeight, plotWidth, heightList.get(i));
-            jFreeChart.draw(graphics2D, rectangle2D0);
             pdfContentByte.addTemplate(pdfTemplate, 0, 0);
             nextHeight += heightList.get(i);
         }
@@ -346,31 +395,29 @@ public class HeatMapPlot {
                 legendTitle.setBorder(1, 1, 1, 2);
                 legendTitle.setItemFont(new Font("", 0, width / 75));
 
-                plotWidth = plotWidth - width * 0.0215;
-            } else if (i == plotList.size() - 1) {
+                plotWidth = plotWidth - width * 0.025;
+            } else {
+                plotWidth = plotWidth - width * 0.025;
+            }
+            jFreeChart.setBackgroundPaint(Color.WHITE);
+            Rectangle2D rectangle2D0 = new Rectangle2D.Double(0, nextHeight, plotWidth, heightList.get(i));
+            jFreeChart.draw(graphics2D, rectangle2D0);
+            if (i == plotList.size() - 1) {
                 // 颜色定义
                 LookupPaintScale paintScale = new LookupPaintScale(0, 1, Color.black);
                 for (Double j = 0.0; j < 255.0; j++) {
                     paintScale.add((255 - j) / 255, new Color((int) (255.0 - j / 3 * 2), (int) (255.0 - j / 3 * 2), j.intValue()));
                 }
                 // 颜色示意图
-                NumberAxis numberAxis = new NumberAxis();
-                numberAxis.setTickUnit(new NumberTickUnit(0.1));
-                PaintScaleLegend paintScaleLegend = new PaintScaleLegend(paintScale, numberAxis);
+                PaintScaleLegend paintScaleLegend = new PaintScaleLegend(paintScale, new NumberAxis());
                 paintScaleLegend.setStripWidth(width / 100);
                 paintScaleLegend.setPosition(RectangleEdge.RIGHT);
                 paintScaleLegend.setAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
                 paintScaleLegend.setMargin(heightList.get(i) / 3, 0, heightList.get(i) / 3, 0);
-                paintScaleLegend.setVisible(true);
-
-                jFreeChart.addSubtitle(paintScaleLegend);
-            } else {
-                plotWidth = plotWidth - width  * 0.0215;
+                Rectangle2D legendRectangle2D = new Rectangle2D.Double(plotWidth * 1.005, nextHeight + (heightList.get(i) / 3),
+                        width * 0.025, heightList.get(i) / 3);
+                paintScaleLegend.draw(graphics2D, legendRectangle2D);
             }
-
-            jFreeChart.setBackgroundPaint(Color.WHITE);
-            Rectangle2D rectangle2D0 = new Rectangle2D.Double(0, nextHeight, plotWidth, heightList.get(i));
-            jFreeChart.draw(graphics2D, rectangle2D0);
             nextHeight += heightList.get(i);
             graphics2D.dispose();
         }

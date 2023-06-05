@@ -28,7 +28,7 @@ public class Main {
         System.setProperty("java.awt.headless", "true");
 
         if (args != null && args[0] != null && !"".equals(args[0])) {
-            if (args[0].equals("help") || args[0].equals("h")) {
+            if (args[0].equals("help") || args[0].equals("h") || args[0].equals("-help") || args[0].equals("-h")) {
                 printHelp();
             } else if (args[0].equals("convert")) {
                 ConvertArgs convertArgs = parseConvert(args);
@@ -101,7 +101,7 @@ public class Main {
     private static void printHelp() {
         PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out, Charsets.UTF_8), true);
         pw.println(new String(new char[110]).replace("\0", "*"));
-        pw.println("*********\t\t\tmHapSuite: a tool kit for analysis of DNA methylation haplotypes.\t\t\t\t**********");
+        pw.println("\t\t\tmHapSuite: a tool kit for analysis of DNA methylation haplotypes.");
         pw.println(new String(new char[110]).replace("\0", "*"));
         pw.println("\nIt has 12 sub-commands:\n");
 
@@ -665,6 +665,9 @@ public class Main {
                 heatMapPlotArgs.setTag(commandLine.getOptionValue("tag"));
                 if (commandLine.hasOption("outFormat")) {
                     heatMapPlotArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
+                }
+                if (commandLine.hasOption("matrixFlag")) {
+                    heatMapPlotArgs.setMatrixFlag(true);
                 }
             }
         } else {

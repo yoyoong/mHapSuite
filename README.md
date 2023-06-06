@@ -216,7 +216,7 @@ java -jar mHapSuite-2.0-jar-with-dependencies.jar heatMapPlot -bedPaths MHB_cerv
 A line plot show the average metric values of each windows in core/upstream/downstream of the regions from multi bed files.
 You can refer to [plotProfile](https://deeptools.readthedocs.io/en/develop/content/tools/plotProfile.html).
 ```Shell
-usage: java -jar mHapSuite-2.0-jar-with-dependencies.jar profilePlot --bedPaths <first.bed second.bed> --bigwig <in.bw> [--upLength <upLength>] [--downLength <downLength>] [--windowNum <windowNum>] --tag <tag> --outFormat <outFormat> 
+usage: java -jar mHapSuite-2.0-jar-with-dependencies.jar profilePlot --bedPaths <first.bed second.bed> --bigwig <in.bw> [--upLength <upLength>] [--downLength <downLength>] [--windowNum <windowNum>] --tag <tag> --outFormat <outFormat> [-matrixFlag]
 Options:
  -bedPaths,--bedPaths <arg>       multi bed files path, one query region per line in a bed file
  -bigwig,--bigwig <arg>           the input bigwig file of a metrics from a sample
@@ -225,10 +225,11 @@ Options:
  -windowNum,--windowNum <arg>     the window number of the core region [10]
  -tag,--tag <arg>                 prefix of the output file(s)
  -outFormat,--outFormat <arg>     output format,pdf or png [pdf]
+ -matrixFlag     whether generate matrix file
  ```
 Example of usage:
 ```Shell
-java -jar mHapSuite-2.0-jar-with-dependencies.jar profilePlot -bedPaths MHB_cervix_normal.bed esophagus_normal_MHB.bed hg19_cpgisland.bed -upLength 2000 -downLength 2000 -windowNum 10 -bigwig P1_BRCA_MM.bw -tag profilePlot.output -outFormat png 
+java -jar mHapSuite-2.0-jar-with-dependencies.jar profilePlot -bedPaths MHB_cervix_normal.bed esophagus_normal_MHB.bed hg19_cpgisland.bed -upLength 2000 -downLength 2000 -windowNum 10 -bigwig P1_BRCA_MM.bw -tag profilePlot.output -outFormat png -matrixFlag
 ```
 
 ## enrichmentPlot

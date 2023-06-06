@@ -706,6 +706,9 @@ public class Main {
                 if (commandLine.hasOption("outFormat")) {
                     profilePlotArgs.setOutFormat(commandLine.getOptionValue("outFormat"));
                 }
+                if (commandLine.hasOption("matrixFlag")) {
+                    profilePlotArgs.setMatrixFlag(true);
+                }
             }
         } else {
             System.out.println("The paramter is null");

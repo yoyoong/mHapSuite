@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.*;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.util.List;
 
@@ -60,23 +61,25 @@ public class ProfilePlot {
                 continue;
             }
 
-            for (int i = 0; i < upWindowNum + coreWindowNum + downWindowNum + 1; i++) {
-                Double allSumOfWindow = 0.0;
-                Integer allNumOfWindow = 0;
+            Double[][] matrix = new Double[regionList.size()][upWindowNum + coreWindowNum + downWindowNum];
+            for (int i = 0; i < upWindowNum + coreWindowNum + downWindowNum; i++) {
+                Double sumAverageOfWindow = 0.0;
+                Integer notNaNAverageNumOfWindow = 0;
                 String xAxisPos = "";
-                for (Region region : regionList) {
+                for (int j = 0; j < regionList.size(); j++) {
+                    Region region = regionList.get(j);
                     Integer regionLength = region.getEnd() - region.getStart() + 1;
-                    Integer coreWindowLength = regionLength / (coreWindowNum - 1);
+                    Integer coreWindowLength = regionLength / coreWindowNum;
                     Integer startSiteOfWindow = 0;
                     Integer endSiteOfWindow = 0;
                     if (i < upWindowNum) {
-                        startSiteOfWindow = region.getStart() - coreWindowLength / 2 - args.getUpLength() + upWindowLength * i;
+                        startSiteOfWindow = region.getStart() - args.getUpLength() + upWindowLength * i;
                         endSiteOfWindow = startSiteOfWindow + upWindowLength;
                     } else if (i >= upWindowNum && i < upWindowNum + coreWindowNum) {
-                        startSiteOfWindow = region.getStart() - coreWindowLength / 2 + coreWindowLength * (i - upWindowNum);
+                        startSiteOfWindow = region.getStart() + coreWindowLength * (i - upWindowNum);
                         endSiteOfWindow = startSiteOfWindow + coreWindowLength;
                     } else if (i >= upWindowNum + coreWindowNum) {
-                        startSiteOfWindow = region.getEnd() + coreWindowLength / 2 + downWindowLength * (i - upWindowNum - coreWindowNum);
+                        startSiteOfWindow = region.getEnd() + downWindowLength * (i - upWindowNum - coreWindowNum);
                         endSiteOfWindow = startSiteOfWindow + downWindowLength;
                     }
 
@@ -88,10 +91,14 @@ public class ProfilePlot {
                         sumOfWindowOfRegion += wigItem.getWigValue();
                         numOfWindowOfRegion ++;
                     }
-                    allSumOfWindow += sumOfWindowOfRegion;
-                    allNumOfWindow += numOfWindowOfRegion;
+                    Double averageOfWindowOfRegion = numOfWindowOfRegion > 0 ? sumOfWindowOfRegion / numOfWindowOfRegion : Double.NaN;
+                    matrix[j][i] = averageOfWindowOfRegion;
+                    if (!averageOfWindowOfRegion.isNaN()) {
+                        sumAverageOfWindow += averageOfWindowOfRegion;
+                        notNaNAverageNumOfWindow++;
+                    }
                 }
-                Double average = allNumOfWindow > 0 ? allSumOfWindow / allNumOfWindow : 0;
+                Double average = sumAverageOfWindow > 0 ? sumAverageOfWindow / notNaNAverageNumOfWindow : 0;
                 if (i < upWindowNum) {
                     xAxisPos = String.valueOf(-args.getUpLength() + upWindowLength * i);
                 } else if (i == upWindowNum) {
@@ -106,6 +113,18 @@ public class ProfilePlot {
                 lineDataset.addValue(average, bedFileLabel, xAxisPos);
             }
             log.info("Read " + bedPath + " end!");
+
+            if (args.isMatrixFlag()) {
+                BufferedWriter bufferedWriter = util.createOutputFile("", bedFileLabel + ".profilePlot_matrix.txt");
+                for (int i = 0; i < matrix.length; i++) {
+                    String matrixLine = regionList.get(i).toHeadString();
+                    for (int j = 0; j < matrix[0].length; j++) {
+                        matrixLine += "\t" + matrix[i][j];
+                    }
+                    bufferedWriter.write(matrixLine + "\n");
+                }
+                bufferedWriter.close();
+            }
         }
 
         Integer width = coreWindowNum * 100 < 500 ? 500 : coreWindowNum * 100;

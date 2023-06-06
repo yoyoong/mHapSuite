@@ -96,8 +96,8 @@ public class HeatMapPlot {
             Double[][] valueList = new Double[regionList.size()][windowNum];
 
             for (int i = 0; i < windowNum; i++) {
-                Double allSumOfWindow = 0.0;
-                Integer allNumOfWindow = 0;
+                Double sumAverageOfWindow = 0.0;
+                Integer notNaNAverageNumOfWindow = 0;
                 for (int j = 0; j < regionList.size(); j++) {
                     Region region = regionList.get(j);
                     Integer midSiteOfRegion = (region.getStart() + region.getEnd()) / 2;
@@ -117,10 +117,12 @@ public class HeatMapPlot {
                     }
                     Double averageOfWindowOfRegion = numOfWindowOfRegion > 0 ? sumOfWindowOfRegion / numOfWindowOfRegion : Double.NaN;
                     valueList[j][i] = averageOfWindowOfRegion;
-                    allSumOfWindow += sumOfWindowOfRegion;
-                    allNumOfWindow += numOfWindowOfRegion;
+                    if (!averageOfWindowOfRegion.isNaN()) {
+                        sumAverageOfWindow += averageOfWindowOfRegion;
+                        notNaNAverageNumOfWindow++;
+                    }
                 }
-                Double average = allNumOfWindow > 0 ? allSumOfWindow / allNumOfWindow : 0;
+                Double average = sumAverageOfWindow > 0 ? sumAverageOfWindow / notNaNAverageNumOfWindow : 0;
                 Integer xAxisPos = args.getUpLength() * (-1) + args.getWindow() * i;
                 xyData[0][i] = xAxisPos;
                 xyData[1][i] = average;
@@ -128,7 +130,7 @@ public class HeatMapPlot {
             lineDataset.addSeries(bedFileLabel, xyData);
 
             if (args.isMatrixFlag()) {
-                BufferedWriter bufferedWriter = util.createOutputFile("", bedFileLabel + ".matrix.txt");
+                BufferedWriter bufferedWriter = util.createOutputFile("", bedFileLabel + ".heatMapPlot_matrix.txt");
                 String matrixHead = "";
                 for (int i = 0; i < windowNum; i++) {
                     Integer startSiteOfWindow = 0 - args.getUpLength() + args.getWindow() * i;
@@ -136,9 +138,9 @@ public class HeatMapPlot {
                     matrixHead += "\t" + startSiteOfWindow + "-" + endSiteOfWindow;;
                 }
                 bufferedWriter.write(matrixHead + "\n");
-                for (int i = 0; i < valueList.length - 1; i++) {
+                for (int i = 0; i < valueList.length; i++) {
                     String matrixLine = regionList.get(i).toHeadString();
-                    for (int j = 0; j < valueList[0].length - 1; j++) {
+                    for (int j = 0; j < valueList[0].length; j++) {
                         matrixLine += "\t" + valueList[i][j];
                     }
                     bufferedWriter.write(matrixLine + "\n");

@@ -20,6 +20,8 @@ public class ProfilePlotArgs implements Serializable {
     public Integer windowNum = 10;
     @Annotation(Constants.OUTFORMAT_DESCRIPTION)
     public String outFormat = "pdf";
+    @Annotation(Constants.MATRIXFLAG_DESCRIPTION)
+    public boolean matrixFlag = false;
 
     public String getBedPaths() {
         return bedPaths;
@@ -75,5 +77,13 @@ public class ProfilePlotArgs implements Serializable {
 
     public void setOutFormat(String outFormat) {
         this.outFormat = outFormat;
+    }
+
+    public boolean isMatrixFlag() {
+        return matrixFlag;
+    }
+
+    public void setMatrixFlag(boolean matrixFlag) {
+        this.matrixFlag = matrixFlag;
     }
 }

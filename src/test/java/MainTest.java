@@ -322,7 +322,7 @@ public class MainTest extends TestCase {
         // String arg2 = "MHB_cervix_normal.bed";
         String arg2 = "ESCC_Hyper_Promoter.BED ESCC_Hypo_Promoter.BED";
         String arg7 = "-bigwig";
-        String arg8 = "esophagus_T_MM.bw";
+        String arg8 = "esophagus_N_MM.bw";
         String arg3 = "-upLength";
         String arg4 = "5000";
         String arg5 = "-downLength";
@@ -352,9 +352,9 @@ public class MainTest extends TestCase {
         String arg0 = "profilePlot";
         String arg1 = "-bedPaths";
         // String arg2 = "MHB_cervix_normal.bed";
-        String arg2 = "MHB_cervix_normal.bed esophagus_normal_MHB.bed hg19_cpgisland.bed";
+        String arg2 = "ESCC_Hyper_Promoter.BED ESCC_Hypo_Promoter.BED";
         String arg7 = "-bigwig";
-        String arg8 = "P1_BRCA_MM.bw";
+        String arg8 = "esophagus_T_MM.bw";
         String arg3 = "-upLength";
         String arg4 = "2000";
         String arg5 = "-downLength";
@@ -365,7 +365,8 @@ public class MainTest extends TestCase {
         String arg12 = "profilePlot.output";
         String arg13 = "-outFormat";
         String arg14 = "png";
-        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg9, arg10, arg7, arg8, arg11, arg12, arg13, arg14};
+        String arg15 = "-matrixFlag";
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg9, arg10, arg7, arg8, arg11, arg12, arg13, arg14, arg15};
 
         System.out.println("Work direqtory: " + System.getProperty("user.dir"));
         String argsStr = "";

@@ -320,13 +320,13 @@ public class MainTest extends TestCase {
         String arg0 = "heatMapPlot";
         String arg1 = "-bedPaths";
         // String arg2 = "MHB_cervix_normal.bed";
-        String arg2 = "ESCC_Hyper_Promoter.BED ESCC_Hypo_Promoter.BED";
+        String arg2 = "test.bed";
         String arg7 = "-bigwig";
         String arg8 = "esophagus_N_MM.bw";
         String arg3 = "-upLength";
-        String arg4 = "400";
+        String arg4 = "15000";
         String arg5 = "-downLength";
-        String arg6 = "400";
+        String arg6 = "10000";
         String arg9 = "-window";
         String arg10 = "200";
         String arg16 = "-sortRegions";

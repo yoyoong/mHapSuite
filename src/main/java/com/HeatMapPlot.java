@@ -158,10 +158,10 @@ public class HeatMapPlot {
                 Integer xAxisPos = args.getUpLength() * (-1) + args.getWindow() * i;
                 Double kbPos = Double.valueOf(xAxisPos) / 1000;
                 String xAisLabel = "";
-                if (String.valueOf(kbPos).endsWith("0.0")) {
+                if (xAxisPos == 0) {
                     xAisLabel = "center";
                 } else {
-                    if (String.valueOf(kbPos).endsWith(".0")) {
+                    if (Math.abs(kbPos - Math.round(kbPos)) < Double.MIN_VALUE) {
                         xAisLabel = kbPos.intValue() + "Kb";
                     } else {
                         xAisLabel = kbPos + "Kb";
@@ -292,18 +292,17 @@ public class HeatMapPlot {
         // xy轴
         CategoryAxis xAxis = new HeatMapCategoryAxis();
         xAxis.setTickLabelFont(new Font("", 0, width / 50));
-        xAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
-        xAxis.setLowerMargin(0.01);
-        xAxis.setUpperMargin(0.01);
+        xAxis.setLowerMargin(0.02);
+        xAxis.setUpperMargin(0.02);
         xAxis.setTickMarksVisible(false);
         xAxis.setAxisLineVisible(false);
         categoryPlot.setDomainAxis(xAxis);
 
         NumberAxis yAxis = new NumberAxis();
         yAxis.setTickUnit(new NumberTickUnit(0.2));
-        yAxis.setTickLabelFont(new Font("", 0, width / 50));
+        yAxis.setTickLabelFont(new Font("", 0, width / 60));
         yAxis.setRange(new Range(0, 1));
-        yAxis.setLabelFont(new Font("", Font.PLAIN, width / 50));
+        yAxis.setLabelFont(new Font("", Font.PLAIN, width / 60));
         yAxis.setTickMarksVisible(false);
         yAxis.setAxisLineVisible(false);
         categoryPlot.setRangeAxis(yAxis);

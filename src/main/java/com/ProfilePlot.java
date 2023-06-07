@@ -122,7 +122,7 @@ public class ProfilePlot {
                 } else if (i > upWindowNum + coreWindowNum) {
                     xAxisPos = String.valueOf(downWindowLength * (i - upWindowNum - coreWindowNum));
                     Double kbPos = Double.valueOf(xAxisPos) / 1000;
-                    if (String.valueOf(kbPos).endsWith(".0")) {
+                    if (Math.abs(kbPos - Math.round(kbPos)) < Double.MIN_VALUE) {
                         xAisLabel = kbPos.intValue() + "Kb";
                     } else {
                         xAisLabel = kbPos + "Kb";

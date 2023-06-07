@@ -18,6 +18,8 @@ public class HeatMapPlotArgs implements Serializable {
     public Integer downLength = 20000;
     @Annotation(Constants.WINDOW2_DESCRIPTION)
     public Integer window = 1000;
+    @Annotation(Constants.SORTREGIONS_DESCRIPTION)
+    public String sortRegions = "keep";
     @Annotation(Constants.OUTFORMAT_DESCRIPTION)
     public String outFormat = "pdf";
     @Annotation(Constants.MATRIXFLAG_DESCRIPTION)
@@ -69,6 +71,14 @@ public class HeatMapPlotArgs implements Serializable {
 
     public void setWindow(Integer window) {
         this.window = window;
+    }
+
+    public String getSortRegions() {
+        return sortRegions;
+    }
+
+    public void setSortRegions(String sortRegions) {
+        this.sortRegions = sortRegions;
     }
 
     public String getOutFormat() {

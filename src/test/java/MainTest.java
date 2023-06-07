@@ -320,7 +320,7 @@ public class MainTest extends TestCase {
         String arg0 = "heatMapPlot";
         String arg1 = "-bedPaths";
         // String arg2 = "MHB_cervix_normal.bed";
-        String arg2 = "ESCC_Hyper_Promoter.BED ESCC_Hypo_Promoter.BED";
+        String arg2 = "test.bed";
         String arg7 = "-bigwig";
         String arg8 = "esophagus_N_MM.bw";
         String arg3 = "-upLength";
@@ -329,12 +329,14 @@ public class MainTest extends TestCase {
         String arg6 = "5000";
         String arg9 = "-window";
         String arg10 = "200";
+        String arg16 = "-sortRegions";
+        String arg17 = "descend";
         String arg11 = "-tag";
         String arg12 = "heatMapPlot.output";
         String arg13 = "-outFormat";
         String arg14 = "png";
         String arg15 = "-matrixFlag";
-        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg9, arg10, arg7, arg8, arg11, arg12, arg13, arg14, arg15};
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg9, arg10, arg7, arg8, arg11, arg12, arg13, arg14, arg15, arg16, arg17};
 
         System.out.println("Work direqtory: " + System.getProperty("user.dir"));
         String argsStr = "";
@@ -352,7 +354,7 @@ public class MainTest extends TestCase {
         String arg0 = "profilePlot";
         String arg1 = "-bedPaths";
         // String arg2 = "MHB_cervix_normal.bed";
-        String arg2 = "ESCC_Hyper_Promoter.BED ESCC_Hypo_Promoter.BED";
+        String arg2 = "test.bed";
         String arg7 = "-bigwig";
         String arg8 = "esophagus_T_MM.bw";
         String arg3 = "-upLength";

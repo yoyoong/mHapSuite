@@ -40,6 +40,7 @@ final public class Constants {
     public static final String UPLENGTH_DESCRIPTION = "the length of upstream region from the center point";
     public static final String DOWNLENGTH_DESCRIPTION = "the length of downstream region from the center point";
     public static final String WINDOW2_DESCRIPTION = "the length of the window [1000]";
+    public static final String SORTREGIONS_DESCRIPTION = "the sort of the region in heatmap, can be keep, descend, ascend and missingValues [missingValues]";
     public static final String WINDOWNUM_DESCRIPTION = "the window number of the core region [10]";
     public static final String OPENCHROMATIN_DESCRIPTION = "a open chromatin regions file, one region per line";
     public static final String GROUPNUM_DESCRIPTION = "the group number of the metrics value [10]";

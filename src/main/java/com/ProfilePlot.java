@@ -6,13 +6,18 @@ import com.common.Util;
 import com.common.bigwigTool.BBFileReader;
 import com.common.bigwigTool.BigWigIterator;
 import com.common.bigwigTool.WigItem;
+import com.rewrite.ProfileCategoryAxis;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.CategoryAxis;
+import org.jfree.chart.axis.CategoryLabelPositions;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.renderer.category.CategoryItemRenderer;
+import org.jfree.chart.renderer.category.DefaultCategoryItemRenderer;
+import org.jfree.chart.renderer.category.LineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.data.Range;
 import org.jfree.data.category.CategoryDataset;
@@ -61,8 +66,8 @@ public class ProfilePlot {
                 continue;
             }
 
-            Double[][] matrix = new Double[regionList.size()][upWindowNum + coreWindowNum + downWindowNum];
-            for (int i = 0; i < upWindowNum + coreWindowNum + downWindowNum; i++) {
+            Double[][] matrix = new Double[regionList.size()][upWindowNum + coreWindowNum + downWindowNum + 1];
+            for (int i = 0; i < upWindowNum + coreWindowNum + downWindowNum + 1; i++) {
                 Double sumAverageOfWindow = 0.0;
                 Integer notNaNAverageNumOfWindow = 0;
                 String xAxisPos = "";
@@ -99,18 +104,31 @@ public class ProfilePlot {
                     }
                 }
                 Double average = sumAverageOfWindow > 0 ? sumAverageOfWindow / notNaNAverageNumOfWindow : 0;
+                String xAisLabel = "";
                 if (i < upWindowNum) {
                     xAxisPos = String.valueOf(-args.getUpLength() + upWindowLength * i);
+                    Double kbPos = Double.valueOf(xAxisPos) / 1000;
+                    if (String.valueOf(kbPos).endsWith(".0")) {
+                        xAisLabel = kbPos.intValue() + "Kb";
+                    } else {
+                        xAisLabel = kbPos + "Kb";
+                    }
                 } else if (i == upWindowNum) {
-                    xAxisPos = "START";
+                    xAisLabel = "start";
                 } else if (i > upWindowNum && i < upWindowNum + coreWindowNum) {
-                    xAxisPos = String.valueOf( i - upWindowNum);
+                    xAisLabel = String.valueOf( i - upWindowNum);
                 } else if (i == upWindowNum + coreWindowNum) {
-                    xAxisPos = "END";
+                    xAisLabel = "end";
                 } else if (i > upWindowNum + coreWindowNum) {
                     xAxisPos = String.valueOf(downWindowLength * (i - upWindowNum - coreWindowNum));
+                    Double kbPos = Double.valueOf(xAxisPos) / 1000;
+                    if (String.valueOf(kbPos).endsWith(".0")) {
+                        xAisLabel = kbPos.intValue() + "Kb";
+                    } else {
+                        xAisLabel = kbPos + "Kb";
+                    }
                 }
-                lineDataset.addValue(average, bedFileLabel, xAxisPos);
+                lineDataset.addValue(average, bedFileLabel, xAisLabel);
             }
             log.info("Read " + bedPath + " end!");
 
@@ -176,27 +194,40 @@ public class ProfilePlot {
                 true, // 采用标准生成器
                 false);// 是否生成超链接
         LegendTitle legendTitle = jFreeChart.getLegend();
-        legendTitle.setBorder(1, 1, 1, 2);
-        legendTitle.setItemFont(new Font("", 0, width / 60));
+        legendTitle.setBorder(0, 0, 0, 0);
+        legendTitle.setItemFont(new Font("", 0, width / 50));
 
         CategoryPlot categoryPlot = (CategoryPlot) jFreeChart.getPlot();
         categoryPlot.setBackgroundPaint(Color.WHITE);
         categoryPlot.setRangeGridlinesVisible(false);
         categoryPlot.setOutlinePaint(Color.BLACK);
 
+        LineAndShapeRenderer renderer = new LineAndShapeRenderer();
+        renderer.setDefaultShapesVisible(false);
+        for (int i = 0; i < dataset.getRowCount(); i++) {
+            renderer.setSeriesStroke(i, new BasicStroke(width / 300));
+        }
+        categoryPlot.setRenderer(renderer);
+
         // xy轴
-        CategoryAxis xAxis = new CategoryAxis();
-        xAxis.setLabelFont(new Font("", 0, width / 75));
-        xAxis.setTickLabelFont(new Font("", 0, width / 100));
+        CategoryAxis xAxis = new ProfileCategoryAxis();
+        xAxis.setMinorTickMarkInsideLength(3);
+        xAxis.setLabelFont(new Font("", 0, width / 60));
+        xAxis.setTickLabelFont(new Font("", 0, width / 60));
+        xAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
         xAxis.setLowerMargin(0);
         xAxis.setUpperMargin(0);
+        xAxis.setTickMarksVisible(false);
+        xAxis.setAxisLineVisible(false);
         categoryPlot.setDomainAxis(xAxis);
 
         NumberAxis yAxis = new NumberAxis();
         yAxis.setTickUnit(new NumberTickUnit(0.2));
-        yAxis.setTickLabelFont(new Font("", 0, width / 100));
-        yAxis.setLabelFont(new Font("", 0, width / 75));
+        yAxis.setTickLabelFont(new Font("", 0, width / 50));
+        yAxis.setLabelFont(new Font("", 0, width / 50));
         yAxis.setRange(new Range(0, 1));
+        yAxis.setTickMarksVisible(false);
+        yAxis.setAxisLineVisible(false);
         categoryPlot.setRangeAxis(yAxis);
 
         return jFreeChart;

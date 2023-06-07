@@ -662,6 +662,9 @@ public class Main {
                 if (commandLine.hasOption("window")) {
                     heatMapPlotArgs.setWindow(Integer.valueOf(commandLine.getOptionValue("window")));
                 }
+                if (commandLine.hasOption("sortRegions")) {
+                    heatMapPlotArgs.setSortRegions(commandLine.getOptionValue("sortRegions"));
+                }
                 heatMapPlotArgs.setTag(commandLine.getOptionValue("tag"));
                 if (commandLine.hasOption("outFormat")) {
                     heatMapPlotArgs.setOutFormat(commandLine.getOptionValue("outFormat"));

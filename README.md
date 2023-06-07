@@ -196,20 +196,21 @@ A hybrid plot include 2 part: the upper plot is line plot show the average metri
 the lower plot is a heatmap plot show the average metric values of each windows in each regions from multi bed files.
 You can refer to [plotHeatmap](https://deeptools.readthedocs.io/en/develop/content/tools/plotHeatmap.html).
 ```Shell
-usage: java -jar mHapSuite-2.0-jar-with-dependencies.jar heatMapPlot --bedPaths <first.bed second.bed> --bigwig <in.bw> [--upLength <upLength>] [--downLength <downLength>] [--window <window>] --tag <tag> --outFormat <outFormat> [-matrixFlag]
+usage: java -jar mHapSuite-2.0-jar-with-dependencies.jar heatMapPlot --bedPaths <first.bed second.bed> --bigwig <in.bw> [--upLength <upLength>] [--downLength <downLength>] [--window <window>] [--sortRegions <sortRegions>] --tag <tag> --outFormat <outFormat> [-matrixFlag]
 Options:
  -bedPaths,--bedPaths <arg>       multi bed files path, one query region per line in a bed file
  -bigwig,--bigwig <arg>           the input bigwig file of a metrics from a sample
  -upLength,--upLength <arg>       the length of upstream region from the center point [20000]
  -downLength,--downLength <arg>   the length of downstream region from the center point [20000]
  -window,--window <arg>           the length of the window [1000]
+ -sortRegions,--sortRegions <arg> the sort of the region in heatmap, can be keep, descend, ascend and missingValues [missingValues]
  -tag,--tag <arg>                 prefix of the output file(s)
  -outFormat,--outFormat <arg>     output format,pdf or png [pdf]
- -matrixFlag     whether generate matrix file
+ -matrixFlag,--outFormat          whether generate matrix file
  ```
 Example of usage:
 ```Shell
-java -jar mHapSuite-2.0-jar-with-dependencies.jar heatMapPlot -bedPaths MHB_cervix_normal.bed esophagus_normal_MHB.bed -upLength 20000 -downLength 20000 -window 1000 -bigwig P1_BRCA_MM.bw -tag heatMapPlot.output -outFormat png -matrixFlag
+java -jar mHapSuite-2.0-jar-with-dependencies.jar heatMapPlot -bedPaths MHB_cervix_normal.bed esophagus_normal_MHB.bed -upLength 20000 -downLength 20000 -window 1000 -sortRegions keep -bigwig P1_BRCA_MM.bw -tag heatMapPlot.output -outFormat png -matrixFlag
 ```
 
 ## profilePlot
@@ -225,7 +226,7 @@ Options:
  -windowNum,--windowNum <arg>     the window number of the core region [10]
  -tag,--tag <arg>                 prefix of the output file(s)
  -outFormat,--outFormat <arg>     output format,pdf or png [pdf]
- -matrixFlag     whether generate matrix file
+ -matrixFlag,--outFormat          whether generate matrix file
  ```
 Example of usage:
 ```Shell

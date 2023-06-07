@@ -6,14 +6,20 @@ import com.common.Util;
 import com.common.bigwigTool.BBFileReader;
 import com.common.bigwigTool.BigWigIterator;
 import com.common.bigwigTool.WigItem;
+import org.checkerframework.checker.units.qual.A;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.AxisLabelLocation;
 import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.category.LineAndShapeRenderer;
+import org.jfree.chart.renderer.xy.DefaultXYItemRenderer;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.data.Range;
@@ -104,9 +110,9 @@ public class EnrichmentPlot {
             xyDataset.addSeries(bedFileLabel, xyData);
         }
 
-        Integer width = args.getGroupNum() * 100 < 500 ? 500 : args.getGroupNum() * 100;
-        JFreeChart jfreechart = generateLinePlot(xyDataset, width);
+        Integer width = 1000;
         Integer height = width;
+        JFreeChart jfreechart = generateLinePlot(xyDataset, width);
 
         String outputFilename = "";
         if (args.getOutFormat().equals("png")) {
@@ -177,31 +183,45 @@ public class EnrichmentPlot {
                 true, // 显示图例
                 true, // 采用标准生成器
                 false);// 是否生成超链接
-        TextTitle textTitle = new TextTitle(title, new Font("", 0, width / 30));
+        TextTitle textTitle = new TextTitle(title, new Font("", 0, width / 25));
         jFreeChart.setTitle(textTitle);
 
         LegendTitle legendTitle = jFreeChart.getLegend();
-        legendTitle.setBorder(1, 1, 1, 2);
-        legendTitle.setItemFont(new Font("", 0, width / 50));
+        legendTitle.setBorder(0, 0, 0, 0);
+        legendTitle.setItemFont(new Font("", 0, width / 40));
 
         XYPlot xyPlot = (XYPlot) jFreeChart.getPlot();
         xyPlot.setBackgroundPaint(Color.WHITE);
         xyPlot.setRangeGridlinesVisible(false);
         xyPlot.setOutlinePaint(Color.BLACK);
 
+        XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
+        renderer.setDefaultShapesVisible(false);
+        for (int i = 0; i < dataset.getSeriesCount(); i++) {
+            renderer.setSeriesStroke(i, new BasicStroke(width / 200));
+        }
+        xyPlot.setRenderer(renderer);
+
         // xy轴
         NumberAxis xAxis = new NumberAxis();
+        xAxis.setLabel("Mean signal");
+        xAxis.setLabelLocation(AxisLabelLocation.MIDDLE);
+        xAxis.setLabelFont(new Font("", 0, width / 30));
+        xAxis.setTickLabelFont(new Font("", 0, width / 40));
         xAxis.setTickUnit(new NumberTickUnit(0.1));
-        xAxis.setTickLabelFont(new Font("", 0, width / 75));
         xAxis.setRange(new Range(0, 1));
+        xAxis.setTickMarksVisible(false);
+        xAxis.setAxisLineVisible(false);
         xyPlot.setDomainAxis(xAxis);
 
         NumberAxis yAxis = new NumberAxis();
-        yAxis.setLabel("The percentage of genomic feature overlap with TCGA-ATAC peaks(%)");
-        yAxis.setLabelFont(new Font("", 0, width / 50));
+        yAxis.setLabel("The percentage of genomic features (%)");
+        yAxis.setLabelFont(new Font("", 0, width / 30));
         yAxis.setTickUnit(new NumberTickUnit(20));
-        yAxis.setTickLabelFont(new Font("", 0, width / 75));
+        yAxis.setTickLabelFont(new Font("", 0, width / 40));
         yAxis.setRange(new Range(0, 100));
+        yAxis.setTickMarksVisible(false);
+        yAxis.setAxisLineVisible(false);
         xyPlot.setRangeAxis(yAxis);
 
         return jFreeChart;

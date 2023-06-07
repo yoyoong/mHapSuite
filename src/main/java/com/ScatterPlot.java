@@ -93,14 +93,16 @@ public class ScatterPlot {
         }
         dataset.addSeries("xyData", xyData);
 
-        Integer width = index / 10;
-        width = width > 2000 ? 2000 : (width < 500 ? 500 : width);
+        Integer width = 1000;
         Integer height = width;
 
         // 绘制XY图
-        String title = new File(args.getBedPath()).getName();
-        String xAxisLabel = new File(args.getBigwig1()).getName();
-        String yAxisLabel = new File(args.getBigwig2()).getName();
+        String bedName = new File(args.getBedPath()).getName();
+        String title = bedName.substring(0, bedName.lastIndexOf("."));
+        String bigwig1Name = new File(args.getBigwig1()).getName();
+        String bigwig2Name = new File(args.getBigwig2()).getName();
+        String xAxisLabel = bigwig1Name.substring(0, bigwig1Name.lastIndexOf("."));
+        String yAxisLabel = bigwig2Name.substring(0, bigwig2Name.lastIndexOf("."));
         JFreeChart jfreechart = ChartFactory.createScatterPlot(title, // 标题
                 xAxisLabel, // X轴标签
                 yAxisLabel, // Y轴的标签
@@ -109,14 +111,14 @@ public class ScatterPlot {
                 false, // legend
                 false, // tooltips
                 false); // URLs
-        TextTitle textTitle = new TextTitle(title, new Font("", 0, width / 40));
+        TextTitle textTitle = new TextTitle(title, new Font("", 0, width / 25));
         jfreechart.setTitle(textTitle);
 
         XYPlot xyPlot = jfreechart.getXYPlot( );
         xyPlot.setBackgroundPaint(Color.WHITE); // 背景色
         xyPlot.setDomainGridlinesVisible(false); // 不显示X轴网格线
         xyPlot.setRangeGridlinesVisible(false); // 不显示Y轴网格线
-        xyPlot.setOutlineVisible(false); // 不显示数据区的边界线条
+        xyPlot.setOutlineVisible(true); // 不显示数据区的边界线条
 
         XYItemRenderer renderer = xyPlot.getRenderer();
         //renderer.setSeriesShape(0, ShapeUtils.createDiamond(1));
@@ -125,20 +127,24 @@ public class ScatterPlot {
 
         NumberAxis xAxis = new NumberAxis();
         xAxis.setLabel(xAxisLabel);
-        xAxis.setLabelFont(new Font("", Font.PLAIN, width / 50));
+        xAxis.setLabelFont(new Font("", Font.PLAIN, width / 30));
         xAxis.setRange(new Range(0, 1));
         xAxis.setVisible(true);
         xAxis.setTickUnit(new NumberTickUnit(0.1));
-        xAxis.setTickLabelFont(new Font("", 0, width / 75));
+        xAxis.setTickLabelFont(new Font("", 0, width / 40));
+        xAxis.setTickMarksVisible(false);
+        xAxis.setAxisLineVisible(false);
         xyPlot.setDomainAxis(xAxis); // x axis
 
         NumberAxis yAxis = new NumberAxis();
         yAxis.setLabel(yAxisLabel);
-        yAxis.setLabelFont(new Font("", Font.PLAIN, width / 50));
+        yAxis.setLabelFont(new Font("", Font.PLAIN, width / 30));
         yAxis.setRange(new Range(0, 1));
         yAxis.setVisible(true);
         yAxis.setTickUnit(new NumberTickUnit(0.1));
-        yAxis.setTickLabelFont(new Font("", 0, width / 75));
+        yAxis.setTickLabelFont(new Font("", 0, width / 40));
+        yAxis.setTickMarksVisible(false);
+        yAxis.setAxisLineVisible(false);
         xyPlot.setRangeAxis(yAxis); // y axis
 
         String outputFilename = "";

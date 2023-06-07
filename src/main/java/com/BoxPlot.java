@@ -9,6 +9,7 @@ import com.common.bigwigTool.WigItem;
 import com.rewrite.CustomBoxAndWhiskerRenderer;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.CategoryAxis;
+import org.jfree.chart.axis.CategoryLabelPositions;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.labels.BoxAndWhiskerToolTipGenerator;
@@ -81,23 +82,22 @@ public class BoxPlot {
             log.info("Process " + bigwig + " end!");
         }
 
-        Integer width = bigwigs.length * 150;
-        width = width > 14400 ? 14400 : (width < 750 ? 750 : width);
-        Integer height = 500;
+        Integer width = bigwigs.length * 250;
+        width = width > 14400 ? 14400 : (width < 1000 ? 1000 : width);
+        Integer height = 1000;
 
         CategoryAxis xAxis = new CategoryAxis();
-        xAxis.setLabel("Sample");
-        xAxis.setLabelFont(new Font("", Font.PLAIN, width / 60));
-        xAxis.setTickLabelFont(new Font("", 0, width / 75));
+        xAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
+        xAxis.setTickLabelFont(new Font("", 0, width / 50));
 
         NumberAxis yAxis = new NumberAxis();
         yAxis.setLabel("Value");
-        yAxis.setLabelFont(new Font("", Font.PLAIN, width / 60));
+        yAxis.setLabelFont(new Font("", Font.PLAIN, width / 40));
         yAxis.setLowerMargin(0.01);
         yAxis.setUpperMargin(0.01);
         yAxis.setRange(new Range(0, 1));
         yAxis.setTickUnit(new NumberTickUnit(0.1));
-        yAxis.setTickLabelFont(new Font("", 0, width / 75));
+        yAxis.setTickLabelFont(new Font("", 0, width / 50));
 
         CustomBoxAndWhiskerRenderer renderer = new CustomBoxAndWhiskerRenderer();
         renderer.setFillBox(false);
@@ -111,7 +111,7 @@ public class BoxPlot {
         String bedName = new File(args.getBedPath()).getName();
         JFreeChart jfreechart = new JFreeChart(
                 bedName.substring(0, bedName.lastIndexOf(".")),
-                new Font("", Font.BOLD, width / 50),
+                new Font("", Font.BOLD, width / 40),
                 plot,
                 false
         );

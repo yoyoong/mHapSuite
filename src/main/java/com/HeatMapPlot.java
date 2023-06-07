@@ -212,7 +212,7 @@ public class HeatMapPlot {
         // merge the line plot and heat plot
         List<Plot> plotList = new ArrayList<>();
         List<Integer> heightList = new ArrayList<>();
-        CategoryPlot linePlot = generateLinePlot(lineDataset, width, windowNum);
+        CategoryPlot linePlot = generateLinePlot(lineDataset, width);
         plotList.add(linePlot);
         plotList.addAll(heatPlotList);
         heightList.add(width / 2);
@@ -266,7 +266,7 @@ public class HeatMapPlot {
         return true;
     }
 
-    private CategoryPlot generateLinePlot(CategoryDataset dataset, Integer width, Integer windowNum) {
+    private CategoryPlot generateLinePlot(CategoryDataset dataset, Integer width) {
         JFreeChart jFreeChart = ChartFactory.createLineChart(
                 "",//图名字
                 "",//横坐标

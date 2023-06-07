@@ -35,6 +35,7 @@ import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleEdge;
+import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.Range;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
@@ -157,7 +158,7 @@ public class HeatMapPlot {
                 Integer xAxisPos = args.getUpLength() * (-1) + args.getWindow() * i;
                 Double kbPos = Double.valueOf(xAxisPos) / 1000;
                 String xAisLabel = "";
-                if (kbPos.intValue() == 0) {
+                if (String.valueOf(kbPos).endsWith("0.0")) {
                     xAisLabel = "center";
                 } else {
                     if (String.valueOf(kbPos).endsWith(".0")) {
@@ -250,6 +251,18 @@ public class HeatMapPlot {
             log.error("The sortRegions format must be keep, descend, ascend or missingValues");
             return false;
         }
+        if (args.getUpLength() != null) {
+            if (args.getUpLength() % args.getWindow() != 0) {
+                log.error("The upLength should be a multiple of window");
+                return false;
+            }
+        }
+        if (args.getDownLength() != null) {
+            if (args.getDownLength() % args.getWindow() != 0) {
+                log.error("The upLength should be a multiple of window");
+                return false;
+            }
+        }
         return true;
     }
 
@@ -272,13 +285,14 @@ public class HeatMapPlot {
         LineAndShapeRenderer renderer = new LineAndShapeRenderer();
         renderer.setDefaultShapesVisible(false);
         for (int i = 0; i < dataset.getRowCount(); i++) {
-            renderer.setSeriesStroke(i, new BasicStroke(width / 500));
+            renderer.setSeriesStroke(i, new BasicStroke(width / 300));
         }
         categoryPlot.setRenderer(renderer);
 
         // xy轴
         CategoryAxis xAxis = new HeatMapCategoryAxis();
         xAxis.setTickLabelFont(new Font("", 0, width / 50));
+        xAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
         xAxis.setLowerMargin(0.01);
         xAxis.setUpperMargin(0.01);
         xAxis.setTickMarksVisible(false);
@@ -388,7 +402,6 @@ public class HeatMapPlot {
                 String title = bigwigName.substring(0, bigwigName.lastIndexOf("."));
                 jFreeChart = new JFreeChart(title, new Font("", Font.PLAIN, width / 50), plotList.get(i), true);
                 LegendTitle legendTitle = jFreeChart.getLegend();
-                legendTitle.setMargin(width / 50, 0, 0, 0);
                 legendTitle.setBorder(0, 0, 0, 0);
                 legendTitle.setItemFont(new Font("", 0, width / 50));
                 plotWidth = plotWidth - width * 0.025;
@@ -446,7 +459,6 @@ public class HeatMapPlot {
                 String title = bigwigName.substring(0, bigwigName.lastIndexOf("."));
                 jFreeChart = new JFreeChart(title, new Font("", Font.PLAIN, width / 50), plotList.get(i), true);
                 LegendTitle legendTitle = jFreeChart.getLegend();
-                legendTitle.setMargin(width / 50, 0, 0, 0);
                 legendTitle.setBorder(0, 0, 0, 0);
                 legendTitle.setItemFont(new Font("", 0, width / 50));
                 plotWidth = plotWidth - width * 0.025;

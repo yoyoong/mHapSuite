@@ -33,54 +33,34 @@ public class ProfileCategoryAxis extends CategoryAxis {
         }
 
         List ticks = new ArrayList();
-        if (!(dataArea.getHeight() <= 0.0D) && !(dataArea.getWidth() < 0.0D)) {
-            List categories = plot.getCategoriesForAxis(this);
-            double max = 0.0D;
-            if (categories != null) {
-                CategoryLabelPosition position = this.categoryLabelPositions.getLabelPosition(edge);
-                float r = this.maximumCategoryLabelWidthRatio;
-                if ((double)r <= 0.0D) {
-                    r = position.getWidthRatio();
+        List<?> categories = plot.getCategoriesForAxis(this);
+        double max = 0.0;
+        if (categories != null) {
+            CategoryLabelPosition position = super.getCategoryLabelPositions().getLabelPosition(edge);
+            int categoryIndex = 0;
+            for (Object o : categories) {
+                Comparable<?> category = (Comparable<?>) o;
+                g2.setFont(getTickLabelFont(category));
+                TextBlock label = new TextBlock();
+                label.addLine(category.toString(), getTickLabelFont(category), getTickLabelPaint(category));
+                if (edge == RectangleEdge.TOP || edge == RectangleEdge.BOTTOM) {
+                    max = Math.max(max, calculateTextBlockHeight(label, position, g2));
+                } else if (edge == RectangleEdge.LEFT || edge == RectangleEdge.RIGHT) {
+                    max = Math.max(max, calculateTextBlockWidth(label, position, g2));
                 }
 
-                float l;
-                if (position.getWidthType() == CategoryLabelWidthType.CATEGORY) {
-                    l = (float)this.calculateCategorySize(categories.size(), dataArea, edge);
-                } else if (RectangleEdge.isLeftOrRight(edge)) {
-                    l = (float)dataArea.getWidth();
+                if (categoryIndex == 0 || categoryIndex == startIndex || categoryIndex == endIndex || categoryIndex == categories.size() - 1) {
+                    Tick tick = new CategoryTick(category, label, position.getLabelAnchor(), position.getRotationAnchor(), position.getAngle());
+                    ticks.add(tick);
                 } else {
-                    l = (float)dataArea.getHeight();
+                    Tick tick = new CategoryTick(category, new TextBlock(), position.getLabelAnchor(), position.getRotationAnchor(), position.getAngle());
+                    ticks.add(tick);
                 }
-
-                int categoryIndex = 0;
-
-                for(Iterator iterator = categories.iterator(); iterator.hasNext(); ++categoryIndex) {
-                    Comparable category = (Comparable)iterator.next();
-                    g2.setFont(this.getTickLabelFont(category));
-                    TextBlock label = this.createLabel(category, l * r, edge, g2);
-                    if (edge != RectangleEdge.TOP && edge != RectangleEdge.BOTTOM) {
-                        if (edge == RectangleEdge.LEFT || edge == RectangleEdge.RIGHT) {
-                            max = Math.max(max, this.calculateTextBlockWidth(label, position, g2));
-                        }
-                    } else {
-                        max = Math.max(max, this.calculateTextBlockHeight(label, position, g2));
-                    }
-
-                    if (categoryIndex == 0 || categoryIndex == startIndex || categoryIndex == endIndex || categoryIndex == categories.size() - 1) {
-                        Tick tick = new CategoryTick(category, label, position.getLabelAnchor(), position.getRotationAnchor(), position.getAngle());
-                        ticks.add(tick);
-                    } else {
-                        Tick tick = new CategoryTick(category, new TextBlock(), position.getLabelAnchor(), position.getRotationAnchor(), position.getAngle());
-                        ticks.add(tick);
-                    }
-                }
+                categoryIndex = categoryIndex + 1;
             }
-
-            state.setMax(max);
-            return ticks;
-        } else {
-            return ticks;
         }
+        state.setMax(max);
+        return ticks;
     }
 
 }

@@ -51,6 +51,9 @@ public class HeatMapCategoryAxis extends CategoryAxis {
                 if (categoryIndex == 0 || categoryIndex == centerIndex || categoryIndex == categories.size() - 1) {
                     Tick tick = new CategoryTick(category, label, position.getLabelAnchor(), position.getRotationAnchor(), position.getAngle());
                     ticks.add(tick);
+                } else {
+                    Tick tick = new CategoryTick(category, new TextBlock(), position.getLabelAnchor(), position.getRotationAnchor(), position.getAngle());
+                    ticks.add(tick);
                 }
                 categoryIndex = categoryIndex + 1;
             }

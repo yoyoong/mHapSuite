@@ -194,6 +194,7 @@ public class ProfilePlot {
                 true, // 采用标准生成器
                 false);// 是否生成超链接
         LegendTitle legendTitle = jFreeChart.getLegend();
+        legendTitle.setMargin(0, 0, 0, width / 50);
         legendTitle.setBorder(0, 0, 0, 0);
         legendTitle.setItemFont(new Font("", 0, width / 50));
 
@@ -212,9 +213,8 @@ public class ProfilePlot {
         // xy轴
         CategoryAxis xAxis = new ProfileCategoryAxis();
         xAxis.setMinorTickMarkInsideLength(3);
-        xAxis.setLabelFont(new Font("", 0, width / 60));
-        xAxis.setTickLabelFont(new Font("", 0, width / 60));
-        xAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
+        xAxis.setLabelFont(new Font("", 0, width / 50));
+        xAxis.setTickLabelFont(new Font("", 0, width / 50));
         xAxis.setLowerMargin(0);
         xAxis.setUpperMargin(0);
         xAxis.setTickMarksVisible(false);

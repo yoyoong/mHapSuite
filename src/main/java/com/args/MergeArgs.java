@@ -6,7 +6,7 @@ import com.common.Constants;
 import java.io.Serializable;
 
 public class MergeArgs implements Serializable {
-    @Annotation(Constants.SAMBAMPATHS_DESCRIPTION)
+    @Annotation(Constants.MULTIMHAPPATH_DESCRIPTION)
     public String inputFile = "";
     @Annotation(Constants.CPGPATH_DESCRIPTION)
     public String cpgPath = "";

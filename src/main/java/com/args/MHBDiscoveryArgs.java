@@ -14,11 +14,11 @@ public class MHBDiscoveryArgs implements Serializable {
     public String region = "";
     @Annotation(Constants.BEDPATH_DESCRIPTION)
     public String bedPath = "";
-    @Annotation(Constants.WINDOW_DESCRIPTION)
+    @Annotation(Constants.WINDOW_DESCRIPTION + " [5]")
     public Integer window = 5;
-    @Annotation(Constants.R2_DESCRIPTION)
+    @Annotation(Constants.R2_DESCRIPTION + " [0.5]")
     public Double r2 = 0.5;
-    @Annotation(Constants.PVALUE_DESCRIPTION)
+    @Annotation(Constants.PVALUE_DESCRIPTION + " [0.05]")
     public Double pvalue = 0.05;
     @Annotation(Constants.OUTPUTDIR_DESCRIPTION)
     public String outputDir = "";

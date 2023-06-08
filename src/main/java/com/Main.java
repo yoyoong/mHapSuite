@@ -100,85 +100,24 @@ public class Main {
 
     private static void printHelp() {
         PrintWriter pw = new PrintWriter(new OutputStreamWriter(System.out, Charsets.UTF_8), true);
-        pw.println(new String(new char[110]).replace("\0", "*"));
-        pw.println("\t\t\tmHapSuite: a tool kit for analysis of DNA methylation haplotypes.");
-        pw.println(new String(new char[110]).replace("\0", "*"));
-        pw.println("\nIt has 12 sub-commands:\n");
+        pw.println("mHapSuite: a tool kit for analysis of DNA methylation haplotypes.");
+        pw.println("Usage: java -jar mHapSuite <command> [options]");
+        pw.println("\nCommands:");
 
         HelpFormatter hf = new HelpFormatter();
         hf.setWidth(110);
-        hf.setSyntaxPrefix("");
-        String footer = new String(new char[110]).replace("\0", "-");
-
-        pw.println(getCommandPrintHeader("convert"));
-        Options options1 = getOptions(ConvertArgs.class.getDeclaredFields());
-        hf.printHelp("Options:", options1);
-        pw.println(footer + "\n");
-
-        pw.println(getCommandPrintHeader("merge"));
-        Options options2 = getOptions(MergeArgs.class.getDeclaredFields());
-        hf.printHelp("Options:", options2);
-        pw.println(footer + "\n");
-
-        pw.println(getCommandPrintHeader("tanghulu"));
-        Options options3 = getOptions(TanghuluArgs.class.getDeclaredFields());
-        hf.printHelp("Options:", options3);
-        pw.println(footer + "\n");
-
-        pw.println(getCommandPrintHeader("mHapView"));
-        Options options4 = getOptions(MHapViewArgs.class.getDeclaredFields());
-        hf.printHelp("Options:", options4);
-        pw.println(footer + "\n");
-
-        pw.println(getCommandPrintHeader("stat"));
-        Options options5 = getOptions(StatArgs.class.getDeclaredFields());
-        hf.printHelp("Options:", options5);
-        pw.println(footer + "\n");
-
-        pw.println(getCommandPrintHeader("genomeWide"));
-        Options options6 = getOptions(GenomeWideArgs.class.getDeclaredFields());
-        hf.printHelp("Options:", options6);
-        pw.println(footer + "\n");
-
-        pw.println(getCommandPrintHeader("MHBDiscovery"));
-        Options options7 = getOptions(MHBDiscoveryArgs.class.getDeclaredFields());
-        hf.printHelp("Options:", options7);
-        pw.println(footer + "\n");
-
-        pw.println(getCommandPrintHeader("scatterPlot"));
-        Options options8 = getOptions(ScatterPlotArgs.class.getDeclaredFields());
-        hf.printHelp("Options:", options8);
-        pw.println(footer + "\n");
-
-        pw.println(getCommandPrintHeader("boxPlot"));
-        Options options9 = getOptions(BoxPlotArgs.class.getDeclaredFields());
-        hf.printHelp("Options:", options9);
-        pw.println(footer + "\n");
-
-        pw.println(getCommandPrintHeader("heatMapPlot"));
-        Options options10 = getOptions(HeatMapPlotArgs.class.getDeclaredFields());
-        hf.printHelp("Options:", options10);
-        pw.println(footer + "\n");
-
-        pw.println(getCommandPrintHeader("profilePlot"));
-        Options options11 = getOptions(ProfilePlotArgs.class.getDeclaredFields());
-        hf.printHelp("Options:", options11);
-        pw.println(footer + "\n");
-
-        pw.println(getCommandPrintHeader("enrichmentPlot"));
-        Options options12 = getOptions(EnrichmentPlotArgs.class.getDeclaredFields());
-        hf.printHelp("Options:", options12);
-        pw.println(footer + "\n");
-    }
-
-    private static String getCommandPrintHeader(String command) {
-        Integer preLength = (110 - command.length() - 2) / 2;
-        String headerPre = new String(new char[preLength]).replace("\0", "#");
-        if (command.length() % 2 == 0) {
-            return (headerPre + " " + command + " " + headerPre);
-        } else {
-            return (headerPre + " " + command + " " + headerPre + "#");
-        }
+//        hf.setSyntaxPrefix("");
+        pw.println("\tconvert\t\t\tconvert BAM files to mHap files");
+        pw.println("\tmerge\t\t\tplot the DNA methylation status for mHaps in a region");
+        pw.println("\ttanghulu\t\tshow linkage disequilibrium (LD) scores of CpGs in a region");
+        pw.println("\tMHBDiscovery\tidentification of methylation haplotype blocks within a region or genome-wide");
+        pw.println("\tstat\t\t\tcalculate DNA methylation metrics for mHaps that cover predefined regions");
+        pw.println("\tgenomeWide\t\tcalculate DNA methylation metrics for mHaps that cover each CpG site across the genome");
+        pw.println("\tscatterPlot\t\tshow a scatter plot for two DNA methylation metrics");
+        pw.println("\tboxPlot\t\t\tshow the distribution of metric values from multiple samples as a boxplot");
+        pw.println("\theatMapPlot\t\tshow signals around the center of given regions as a heatmap");
+        pw.println("\tprofilePlot\t\tshow the average profiles of signals in the predefined intervals and their flanking regions");
+        pw.println("\tenrichmentPlot\tshow the perventage of genomic features that overlap with predefined open chromatin regions");
     }
 
     private static Options getOptions(Field[] declaredFields) {

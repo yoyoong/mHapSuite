@@ -10,7 +10,7 @@ public class TanghuluArgs implements Serializable {
     public String mhapPath = "";
     @Annotation(Constants.MHAPPATH_DESCRIPTION)
     public String cpgPath = ""; 
-    @Annotation(Constants.MHAPPATH_DESCRIPTION)
+    @Annotation(Constants.REGION_DESCRIPTION)
     public String region = ""; 
     @Annotation(Constants.TAG_DESCRIPTION)
     public String tag = "";

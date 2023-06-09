@@ -110,14 +110,14 @@ public class Main {
         pw.println("\tconvert\t\t\tconvert BAM files to mHap files");
         pw.println("\tmerge\t\t\tplot the DNA methylation status for mHaps in a region");
         pw.println("\ttanghulu\t\tshow linkage disequilibrium (LD) scores of CpGs in a region");
-        pw.println("\tMHBDiscovery\tidentification of methylation haplotype blocks within a region or genome-wide");
+        pw.println("\tMHBDiscovery\t\tidentification of methylation haplotype blocks within a region or genome-wide");
         pw.println("\tstat\t\t\tcalculate DNA methylation metrics for mHaps that cover predefined regions");
         pw.println("\tgenomeWide\t\tcalculate DNA methylation metrics for mHaps that cover each CpG site across the genome");
         pw.println("\tscatterPlot\t\tshow a scatter plot for two DNA methylation metrics");
         pw.println("\tboxPlot\t\t\tshow the distribution of metric values from multiple samples as a boxplot");
         pw.println("\theatMapPlot\t\tshow signals around the center of given regions as a heatmap");
         pw.println("\tprofilePlot\t\tshow the average profiles of signals in the predefined intervals and their flanking regions");
-        pw.println("\tenrichmentPlot\tshow the perventage of genomic features that overlap with predefined open chromatin regions");
+        pw.println("\tenrichmentPlot\t\tshow the perventage of genomic features that overlap with predefined open chromatin regions");
     }
 
     private static Options getOptions(Field[] declaredFields) {

@@ -16,8 +16,8 @@ public class HeatMapPlotArgs implements Serializable {
     public Integer upLength = 5000;
     @Annotation(Constants.DOWNLENGTH_DESCRIPTION + " [5000]")
     public Integer downLength = 5000;
-    @Annotation(Constants.WINDOW2_DESCRIPTION + " [1000]")
-    public Integer window = 1000;
+    @Annotation(Constants.WINDOW2_DESCRIPTION + " [100]")
+    public Integer window = 100;
     @Annotation(Constants.SORTREGIONS_DESCRIPTION)
     public String sortRegions = "keep";
     @Annotation(Constants.OUTFORMAT_DESCRIPTION)

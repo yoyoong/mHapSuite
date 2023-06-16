@@ -118,7 +118,7 @@ public class MHapView {
         Integer[][] cpgHpMatInRegion = util.getCpgHpMat(mHapList, cpgPosList, cpgPosListInRegion);
 
         // 画布大小设置
-        width = cpgHpMatInRegion[0].length * 50;
+        width = cpgHpMatInRegion[0].length * 200;
 
         CategoryPlot cellCntPlot = createReadCntPlot(mHapList, cpgPosListInRegion);
         CategoryPlot mmPlot = createMMPlot(cpgPosListInRegion, cpgHpMatInRegion);
@@ -132,17 +132,17 @@ public class MHapView {
         List<Plot> plotList = new ArrayList<>();
         List<Integer> heightList = new ArrayList<>();
         plotList.add(cellCntPlot);
-        heightList.add(width * 7 / 50);
+        heightList.add(width * 20 / 100);
         plotList.add(mmPlot);
-        heightList.add(width / 10);
+        heightList.add(width * 15 / 100);
         plotList.add(whiteBlackPlot);
-        heightList.add(width * 2 / 5);
+        heightList.add(width * 45 / 100);
         if (args.getBedPath() != null && !args.getBedPath().equals("")) {
             plotList.add(bedRegionPlot);
-            heightList.add(width * 3 / 50);
+            heightList.add(width * 10 / 100);
         }
         plotList.add(MHapViewHeatMapPlot);
-        heightList.add(width * 3 / 10);
+        heightList.add(width * 35 / 100);
 
         // 输出到文件
         String outputPath = args.getTag() + "_" + region.toFileString() + ".mHapView." + args.getOutFormat();
@@ -187,9 +187,9 @@ public class MHapView {
         valueAxis.setRange(new Range(1, maxCellCnt * 1.1));
         valueAxis.setVisible(true);
         valueAxis.setTickUnit(new NumberTickUnit(maxCellCnt / 2));
-        valueAxis.setTickLabelFont(new Font("", Font.PLAIN, width / 150));
+        valueAxis.setTickLabelFont(new Font("", Font.PLAIN, width / 75));
         valueAxis.setLabel("read count");
-        valueAxis.setLabelFont(new Font("", Font.PLAIN, width / 100));
+        valueAxis.setLabelFont(new Font("", Font.PLAIN, width / 60));
 
         // renderer
         BarRenderer barRenderer = new BarRenderer();
@@ -244,12 +244,12 @@ public class MHapView {
 
         // Y axis
         NumberAxis valueAxis = new NumberAxis();
-        valueAxis.setRange(new Range(0, 1.1));
+        valueAxis.setRange(new Range(0.01, 1.1));
         valueAxis.setVisible(true);
         valueAxis.setTickUnit(new NumberTickUnit(0.5));
-        valueAxis.setTickLabelFont(new Font("", Font.PLAIN, width / 150));
+        valueAxis.setTickLabelFont(new Font("", Font.PLAIN, width / 75));
         valueAxis.setLabel("mean methylation");
-        valueAxis.setLabelFont(new Font("", Font.PLAIN, width / 100));
+        valueAxis.setLabelFont(new Font("", Font.PLAIN, width / 60));
 
         // renderer
         BarRenderer barRenderer = new BarRenderer();
@@ -308,7 +308,7 @@ public class MHapView {
         yAxis.setAxisLineVisible(false);
         yAxis.setVisible(true);
         yAxis.setLabel("read methylation status");
-        yAxis.setLabelFont(new Font("", Font.PLAIN, width / 100));
+        yAxis.setLabelFont(new Font("", Font.PLAIN, width / 60));
 
         LookupPaintScale paintScale = new LookupPaintScale(-1, 2, Color.black);
         paintScale.add(-1, Color.white);
@@ -365,7 +365,7 @@ public class MHapView {
         yAxis.setRange(new Range(1, bedInfoList.size() * 2 + 1));
         yAxis.setVisible(true);
         yAxis.setLabel("bed file");
-        yAxis.setLabelFont(new Font("", Font.PLAIN, width / 100));
+        yAxis.setLabelFont(new Font("", Font.PLAIN, width / 60));
 
         LookupPaintScale paintScale = new LookupPaintScale(0, 2, Color.WHITE);
         paintScale.add(0, Color.WHITE);
@@ -432,6 +432,7 @@ public class MHapView {
             }
             next += r2InfoList.size();
         }
+
         double pos[][] = {x , y , z};
         dataset.addSeries( "Series" , pos);
 
@@ -444,7 +445,7 @@ public class MHapView {
         yAxis.setAxisLineVisible(false);
         yAxis.setVisible(true);
         yAxis.setLabel("R2 HeatMap");
-        yAxis.setLabelFont(new Font("", Font.PLAIN, width / 100));
+        yAxis.setLabelFont(new Font("", Font.PLAIN, width / 60));
 
         // 颜色定义
         LookupPaintScale paintScale = new LookupPaintScale(-1, 1, Color.black);

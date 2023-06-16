@@ -15,7 +15,7 @@ public class StatArgs implements Serializable {
     @Annotation(Constants.REGION_DESCRIPTION)
     public String region = "";
     @Annotation(Constants.BEDPATH_DESCRIPTION)
-    public String bedPath;
+    public String bedPath = "";
     @Annotation(Constants.OUTPUTFILE_DESCRIPTION + "[stat.out.tsv]")
     public String outputFile = "";
     @Annotation(Constants.MINK_DESCRIPTION)

@@ -52,19 +52,13 @@ public class Stat {
         bufferedWriter.write(printHead(metricsList));
 
         // get the metric list
-        long totalCnt = regionList.size(); // get the total lines of file
-        long completeCnt= 0l;
         for (Region region : regionList) {
-            completeCnt++;
-            if (completeCnt % (totalCnt / 10) == 0) {
-                int percent = (int) Math.round(Double.valueOf(completeCnt) * 100 / totalCnt );
-                log.info("Complete " + percent + "%.");
-            }
             // parse the mhap file
             List<MHapInfo> mHapInfoListMerged = util.parseMhapFile(args.getMhapPath(), region, args.getStrand(), true);
             if (mHapInfoListMerged.size() < 1) {
                 continue;
             }
+
             // parse the cpg file
             List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
             if (cpgPosList.size() < 1) {
@@ -76,7 +70,7 @@ public class Stat {
                 log.error("getStat fail, please check the command.");
                 return;
             }
-            //log.info("Region: " + region.toHeadString() + " calculate end!");
+            log.info("Region: " + region.toHeadString() + " calculate end!");
         }
         bufferedWriter.close();
 

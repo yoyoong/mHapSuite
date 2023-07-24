@@ -392,6 +392,12 @@ public class Main {
                 if (commandLine.hasOption("r2Cov")) {
                     statArgs.setR2Cov(Integer.valueOf(commandLine.getOptionValue("r2Cov")));
                 }
+                if (commandLine.hasOption("cpgCov")) {
+                    statArgs.setCpgCov(Integer.valueOf(commandLine.getOptionValue("cpgCov")));
+                }
+                if (commandLine.hasOption("k4Plus")) {
+                    statArgs.setK4Plus(Integer.valueOf(commandLine.getOptionValue("k4Plus")));
+                }
             }
         } else {
             System.out.println("The paramter is null");

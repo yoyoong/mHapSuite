@@ -398,11 +398,13 @@ public class GenomeWide {
                 Integer nDR = nDRList[start + i];
                 Integer nMR = nMRList[start + i];
 
-                if (metric.equals("MM") && nReads < args.getCpgCov()) {
-                    continue;
+                if (metric.equals("MM") || metric.equals("MCR")) {
+                    if (nReads < args.getCpgCov()) {
+                        continue;
+                    }
                 }
-                if (metric.equals("PDR") || metric.equals("CHALM") || metric.equals("MHL") ||
-                        metric.equals("MCR") || metric.equals("MBS") || metric.equals("Entropy")) {
+                if (metric.equals("PDR") || metric.equals("CHALM") || metric.equals("MHL")
+                        || metric.equals("MBS") || metric.equals("Entropy")) {
                     if (K4plus < args.getK4Plus()) {
                         continue;
                     }

@@ -29,11 +29,11 @@ public class GenomeWideArgs implements Serializable {
     @Annotation(Constants.BEDPATH_DESCRIPTION)
     public String bedPath = "";
     @Annotation(Constants.CPGCOV_DESCRIPTION)
-    public Integer cpgCov = 5;
+    public Integer cpgCov = 10;
     @Annotation(Constants.R2COV_DESCRIPTION)
     public Integer r2Cov = 20;
     @Annotation(Constants.K4PLUS_DESCRIPTION)
-    public Integer k4Plus = 5;
+    public Integer k4Plus = 10;
 
     public String getTag() {
         return tag;

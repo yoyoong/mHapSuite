@@ -24,6 +24,10 @@ public class StatArgs implements Serializable {
     public Integer maxK = 10;
     @Annotation(Constants.K_DESCRIPTION)
     public Integer K = 4;
+    @Annotation(Constants.CPGCOV_DESCRIPTION)
+    public Integer cpgCov = 10;
+    @Annotation(Constants.K4PLUS_DESCRIPTION)
+    public Integer k4Plus = 10;
     @Annotation(Constants.STRAND_DESCRIPTION)
     public String strand = "both";
     @Annotation(Constants.CUTREADS_DESCRIPTION)
@@ -101,6 +105,22 @@ public class StatArgs implements Serializable {
 
     public void setK(Integer k) {
         K = k;
+    }
+
+    public Integer getCpgCov() {
+        return cpgCov;
+    }
+
+    public void setCpgCov(Integer cpgCov) {
+        this.cpgCov = cpgCov;
+    }
+
+    public Integer getK4Plus() {
+        return k4Plus;
+    }
+
+    public void setK4Plus(Integer k4Plus) {
+        this.k4Plus = k4Plus;
     }
 
     public String getStrand() {

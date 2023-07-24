@@ -190,19 +190,47 @@ public class Stat {
         statInfo.setnPairs(nPairsAndR2[0].intValue());
         for (int i = 0; i < metricsList.size(); i++) {
             if (metricsList.get(i).equals("MM")) {
-                statInfo.setMM(mBase.doubleValue() / tBase.doubleValue());
+                if (nReads < args.getCpgCov()) {
+                    statInfo.setMM(Double.NaN);
+                } else {
+                    statInfo.setMM(mBase.doubleValue() / tBase.doubleValue());
+                }
             } else if (metricsList.get(i).equals("CHALM")) {
-                statInfo.setCHALM(nMR.doubleValue() / K4plus.doubleValue());
+                if (K4plus < args.getK4Plus()) {
+                    statInfo.setCHALM(Double.NaN);
+                } else {
+                    statInfo.setCHALM(nMR.doubleValue() / K4plus.doubleValue());
+                }
             } else if (metricsList.get(i).equals("PDR")) {
-                statInfo.setPDR(nDR.doubleValue() / K4plus.doubleValue());
+                if (K4plus < args.getK4Plus()) {
+                    statInfo.setPDR(Double.NaN);
+                } else {
+                    statInfo.setPDR(nDR.doubleValue() / K4plus.doubleValue());
+                }
             } else if (metricsList.get(i).equals("MHL")) {
-                statInfo.setMHL(util.calculateMHL(mHapInfoListMerged, args.getMinK(), args.getMaxK()));
+                if (K4plus < args.getK4Plus()) {
+                    statInfo.setMHL(Double.NaN);
+                } else {
+                    statInfo.setMHL(util.calculateMHL(mHapInfoListMerged, args.getMinK(), args.getMaxK()));
+                }
             } else if (metricsList.get(i).equals("MBS")) {
-                statInfo.setMBS(util.calculateMBS(mHapInfoListMerged, args.getK()));
+                if (K4plus < args.getK4Plus()) {
+                    statInfo.setMBS(Double.NaN);
+                } else {
+                    statInfo.setMBS(util.calculateMBS(mHapInfoListMerged, args.getK()));
+                }
             } else if (metricsList.get(i).equals("MCR")) {
-                statInfo.setMCR(cBase.doubleValue() / tBase.doubleValue());
+                if (nReads < args.getCpgCov()) {
+                    statInfo.setMCR(Double.NaN);
+                } else {
+                    statInfo.setMCR(cBase.doubleValue() / tBase.doubleValue());
+                }
             } else if (metricsList.get(i).equals("Entropy")) {
-                statInfo.setEntropy(util.calculateEntropy(mHapInfoListMerged, args.getK()));
+                if (K4plus < args.getK4Plus()) {
+                    statInfo.setEntropy(Double.NaN);
+                } else {
+                    statInfo.setEntropy(util.calculateEntropy(mHapInfoListMerged, args.getK()));
+                }
             } else if (metricsList.get(i).equals("R2")) {
                 statInfo.setR2(nPairsAndR2[1]);
             }

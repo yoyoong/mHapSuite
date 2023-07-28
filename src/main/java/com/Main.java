@@ -23,6 +23,7 @@ public class Main {
     static HeatMapPlot heatMapPlot = new HeatMapPlot();
     static ProfilePlot profilePlot = new ProfilePlot();
     static EnrichmentPlot enrichmentPlot = new EnrichmentPlot();
+    static ComputeCpgCov computeCpgCov = new ComputeCpgCov();
 
     public static void main(String[] args) throws Exception {
         System.setProperty("java.awt.headless", "true");
@@ -90,7 +91,12 @@ public class Main {
                 if (enrichmentPlotArgs != null) {
                     enrichmentPlot.enrichmentPlot(enrichmentPlotArgs);
                 }
-            } else {
+            } else if (args[0].equals("computeCpgCov")) {
+                ComputeCpgCovArgs computeCpgCovArgs = parseComputeCpgCov(args);
+                if (computeCpgCovArgs != null) {
+                    computeCpgCov.computeCpgCov(computeCpgCovArgs);
+                }
+            } else{
                 System.out.println("unrecognized command:" + args[0]);
             }
         } else { // show the help message
@@ -698,5 +704,35 @@ public class Main {
         }
 
         return enrichmentPlotArgs;
+    }
+
+    private static ComputeCpgCovArgs parseComputeCpgCov(String[] args) throws ParseException {
+        Options options = getOptions(ComputeCpgCovArgs.class.getDeclaredFields());
+        BasicParser parser = new BasicParser();
+        ComputeCpgCovArgs computeCpgCovArgs = new ComputeCpgCovArgs();
+
+        CommandLine commandLine = parser.parse(options, args);
+        if (commandLine.getOptions().length > 0) {
+            if (commandLine.hasOption('h')) {
+                HelpFormatter helpFormatter = new HelpFormatter();
+                helpFormatter.setWidth(110);
+                helpFormatter.setSyntaxPrefix("");
+                helpFormatter.printHelp("Options:", options);
+                return null;
+            } else {
+                computeCpgCovArgs.setBigwig(commandLine.getOptionValue("bigwig"));
+                computeCpgCovArgs.setCpgPath(commandLine.getOptionValue("cpgPath"));
+                computeCpgCovArgs.setBedPath(commandLine.getOptionValue("bedPath"));
+                computeCpgCovArgs.setOpenChromatin(commandLine.getOptionValue("openChromatin"));
+                computeCpgCovArgs.setTag(commandLine.getOptionValue("tag"));
+                if (commandLine.hasOption("missingDataAsZero")) {
+                    computeCpgCovArgs.setMissingDataAsZero(true);
+                }
+            }
+        } else {
+            System.out.println("The paramter is null");
+        }
+
+        return computeCpgCovArgs;
     }
 }

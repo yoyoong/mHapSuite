@@ -409,4 +409,31 @@ public class MainTest extends TestCase {
 
         main.main(args);
     }
+
+    @Test
+    public void test_ComputeCpgCov() throws Exception {
+        Main main = new Main();
+        String arg0 = "computeCpgCov";
+        String arg1 = "-bigwig";
+        String arg2 = "colon_MM.bw";
+        String arg3 = "-cpgPath";
+        String arg4 = "hg19_CpG.gz";
+        String arg7 = "-bedPath";
+        String arg8 = "Colon_MHB.bed";
+        String arg5 = "-openChromatin";
+        String arg6 = "Colon_ATAC.bed";
+        String arg9 = "-tag";
+        String arg10 = "computeCpgCov.test";
+        String arg11 = "-missingDataAsZero";
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg9, arg10, arg7, arg8, arg11};
+
+        System.out.println("Work direqtory: " + System.getProperty("user.dir"));
+        String argsStr = "";
+        for (int i = 0; i < args.length; i++) {
+            argsStr += args[i] + " ";
+        }
+        System.out.println(argsStr);
+
+        main.main(args);
+    }
 }

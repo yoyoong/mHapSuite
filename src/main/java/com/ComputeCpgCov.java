@@ -61,14 +61,14 @@ public class ComputeCpgCov {
 
             // get the openChromatinRegion list of this chrom
             List<Region> openChromatinRegionOfChrom = openChromatinRegionMap.get(region.getChrom());
-            if (openChromatinRegionOfChrom.size() < 1) {
+            if (openChromatinRegionOfChrom == null || openChromatinRegionOfChrom.size() < 1) {
                 log.info("openChromatinRegion in " + region.getChrom() + " is null.");
                 continue;
             }
 
             for (Integer cpgPos : cpgPosListInRegion) {
                 Integer coverFlag = whetherRegionListCoverCpg(openChromatinRegionOfChrom, 0,
-                        openChromatinRegionOfChrom.size(), cpgPos - 1);
+                        openChromatinRegionOfChrom.size(), cpgPos);
 
                 BigWigIterator iter = reader.getBigWigIterator(region.getChrom(), cpgPos - 1, region.getChrom(), cpgPos, true);
                 Double value = 0.0;

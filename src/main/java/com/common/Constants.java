@@ -47,4 +47,5 @@ final public class Constants {
     public static final String GROUPCUTOFF_DESCRIPTION = "the minimum valid value number in the group [100]";
     public static final String MATRIXFLAG_DESCRIPTION = "whether generate matrix file";
     public static final String MISSINGDATAASZERO_DESCRIPTION = "whether missing data as zero";
+    public static final String CHIPSEQBIGWIG_DESCRIPTION = "chipseqBigwig";
 }

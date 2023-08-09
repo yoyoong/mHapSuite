@@ -219,14 +219,17 @@ public class Tanghulu {
         // 画布大小设置
         Integer width = (region.getEnd() - region.getStart()) * 15;
         width = width > 14400 ? 14400 : width;
-        Integer height = dataset.getSeriesCount() * 15;
+        Integer height = dataset.getSeriesCount() * 25;
         height = height > 14400 ? 14400 : height;
+
+        TextTitle textTitle = new TextTitle(title, new Font("", 0, width / 50));
+        jfreechart.setTitle(textTitle);
 
         CustomXYLineAndShapeRenderer xyLineAndShapeRenderer = new CustomXYLineAndShapeRenderer();
         xyLineAndShapeRenderer.setDefaultItemLabelsVisible(args.getMerge() ? true : false); // 是否显示合并个数
 
         // 普通糖葫芦格式设置
-        Double circleSize = 20.0;
+        Double circleSize = 25.0;
         Shape circle = new Ellipse2D.Double(-circleSize / 2, -circleSize / 2, circleSize, circleSize);
         for (int i = 0; i < dataset.getSeriesCount() - 1; i++) { // 糖葫芦样式设置
             if (i % 3 == 0) { // 全部节点画空心圆
@@ -280,7 +283,7 @@ public class Tanghulu {
         xyItemRenderer.setSeriesPositiveItemLabelPosition(dataset.getSeriesCount() - 1, itemLabelPosition);
         xyItemRenderer.setSeriesItemLabelPaint(dataset.getSeriesCount() - 1, Color.GRAY);
         // Double fontSize = circleSize < 10 ? 10 : (circleSize > 20 ? 20 : circleSize); // 字体大小
-        Double fontSize = 20.0;
+        Double fontSize = 25.0;
         xyItemRenderer.setSeriesItemLabelFont(dataset.getSeriesCount() - 1, new Font("", Font.PLAIN, fontSize.intValue()));
 
         xyPlot.setRenderer(xyItemRenderer);
@@ -294,6 +297,7 @@ public class Tanghulu {
         NumberAxis rangeAxis = (NumberAxis) xyPlot.getRangeAxis();
         NumberTickUnit numberTickUnit = new NumberTickUnit(1);
         rangeAxis.setTickUnit(numberTickUnit);
+        rangeAxis.setTickLabelFont(new Font("", Font.PLAIN, 25));
         Range range = new Range(-2, mHapInfoList.size() + 2);
         rangeAxis.setRange(range);
 

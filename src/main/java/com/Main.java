@@ -723,7 +723,12 @@ public class Main {
                 computeCpgCovArgs.setBigwig(commandLine.getOptionValue("bigwig"));
                 computeCpgCovArgs.setCpgPath(commandLine.getOptionValue("cpgPath"));
                 computeCpgCovArgs.setBedPath(commandLine.getOptionValue("bedPath"));
-                computeCpgCovArgs.setOpenChromatin(commandLine.getOptionValue("openChromatin"));
+                if (commandLine.hasOption("openChromatin")) {
+                    computeCpgCovArgs.setOpenChromatin(commandLine.getOptionValue("openChromatin"));
+                }
+                if (commandLine.hasOption("chipseqBigwig")) {
+                    computeCpgCovArgs.setChipseqBigwig(commandLine.getOptionValue("chipseqBigwig"));
+                }
                 computeCpgCovArgs.setTag(commandLine.getOptionValue("tag"));
                 if (commandLine.hasOption("missingDataAsZero")) {
                     computeCpgCovArgs.setMissingDataAsZero(true);

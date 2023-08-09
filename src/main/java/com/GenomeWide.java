@@ -255,12 +255,7 @@ public class GenomeWide {
                 if (cpgStr.charAt(i) == '1') {
                     mReadList[cpgPosIndex + i] += readCnt;
                 }
-                try {
-                    nReadsList[cpgPosIndex + i] += readCnt;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
+                nReadsList[cpgPosIndex + i] += readCnt;
                 tBaseList[cpgPosIndex + i] += cpgLen * readCnt;
                 if (cpgStr.contains("1")) {
                     long noMethCnt = cpgStr.chars().filter(ch -> ch == '0').count();

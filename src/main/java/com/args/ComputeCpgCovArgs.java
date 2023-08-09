@@ -14,6 +14,8 @@ public class ComputeCpgCovArgs implements Serializable {
     public String bedPath = "";
     @Annotation(Constants.OPENCHROMATIN_DESCRIPTION)
     public String openChromatin = "";
+    @Annotation(Constants.CHIPSEQBIGWIG_DESCRIPTION)
+    public String chipseqBigwig = "";
     @Annotation(Constants.TAG_DESCRIPTION)
     public String tag = "";
     @Annotation(Constants.MISSINGDATAASZERO_DESCRIPTION)
@@ -49,6 +51,14 @@ public class ComputeCpgCovArgs implements Serializable {
 
     public void setOpenChromatin(String openChromatin) {
         this.openChromatin = openChromatin;
+    }
+
+    public String getChipseqBigwig() {
+        return chipseqBigwig;
+    }
+
+    public void setChipseqBigwig(String chipseqBigwig) {
+        this.chipseqBigwig = chipseqBigwig;
     }
 
     public String getTag() {

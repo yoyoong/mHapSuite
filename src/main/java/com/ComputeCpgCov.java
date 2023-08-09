@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedWriter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -30,12 +31,15 @@ public class ComputeCpgCov {
             return;
         }
 
-        List<Region> openChromatinRegionList = util.getBedRegionList(args.getOpenChromatin());
-        if (openChromatinRegionList.size() < 1) {
-            log.info("The openChromatin is null, please check.");
-            return;
+        Map<String, List<Region>> openChromatinRegionMap = new HashMap<>();
+        if (args.getOpenChromatin() != null && !args.getOpenChromatin().equals("")) {
+            List<Region> openChromatinRegionList = util.getBedRegionList(args.getOpenChromatin());
+            if (openChromatinRegionList.size() < 1) {
+                log.info("The openChromatin is null, please check.");
+                return;
+            }
+            openChromatinRegionMap = openChromatinRegionList.stream().collect(Collectors.groupingBy(Region::getChrom));
         }
-        Map<String, List<Region>> openChromatinRegionMap = openChromatinRegionList.stream().collect(Collectors.groupingBy(Region::getChrom));
 
         List<Region> bedRegionList = util.getBedRegionList(args.getBedPath());
         if (bedRegionList.size() < 1) {
@@ -44,6 +48,10 @@ public class ComputeCpgCov {
         }
 
         BBFileReader reader = new BBFileReader(args.getBigwig());
+        BBFileReader reader2 = null;
+        if (args.getChipseqBigwig() != null && !args.getChipseqBigwig().equals("")) {
+            reader2 = new BBFileReader(args.getChipseqBigwig());
+        }
         BufferedWriter bufferedWriter = util.createOutputFile("", args.getTag() + ".txt");
         long totalCnt = bedRegionList.size(); // get the total lines of file
         long completeCnt= 0l;
@@ -59,30 +67,61 @@ public class ComputeCpgCov {
                 continue;
             }
 
-            // get the openChromatinRegion list of this chrom
-            List<Region> openChromatinRegionOfChrom = openChromatinRegionMap.get(region.getChrom());
-            if (openChromatinRegionOfChrom == null || openChromatinRegionOfChrom.size() < 1) {
-                log.info("openChromatinRegion in " + region.getChrom() + " is null.");
-                continue;
-            }
-
-            for (Integer cpgPos : cpgPosListInRegion) {
-                Integer coverFlag = whetherRegionListCoverCpg(openChromatinRegionOfChrom, 0,
-                        openChromatinRegionOfChrom.size(), cpgPos);
-
-                BigWigIterator iter = reader.getBigWigIterator(region.getChrom(), cpgPos - 1, region.getChrom(), cpgPos, true);
-                Double value = 0.0;
-                if (iter.hasNext()) {
-                    WigItem wigItem = iter.next();
-                    value = Double.valueOf(wigItem.getWigValue());
-                } else {
-                    if (!args.getMissingDataAsZero()) {
-                        value = Double.NaN;
-                    }
+            if (args.getOpenChromatin() != null && !args.getOpenChromatin().equals("")) {
+                // get the openChromatinRegion list of this chrom
+                List<Region> openChromatinRegionOfChrom = openChromatinRegionMap.get(region.getChrom());
+                if (openChromatinRegionOfChrom == null || openChromatinRegionOfChrom.size() < 1) {
+                    log.info("openChromatinRegion in " + region.getChrom() + " is null.");
+                    continue;
                 }
 
-                String regionStr = region.getChrom() + ":" + (cpgPos - 1) + "-" + cpgPos;
-                bufferedWriter.write(regionStr + "\t" + value + "\t" + coverFlag + "\n");
+                for (Integer cpgPos : cpgPosListInRegion) {
+                    Integer coverFlag = whetherRegionListCoverCpg(openChromatinRegionOfChrom, 0,
+                            openChromatinRegionOfChrom.size(), cpgPos);
+
+                    BigWigIterator iter = reader.getBigWigIterator(region.getChrom(), cpgPos - 1, region.getChrom(), cpgPos, true);
+                    Double value = 0.0;
+                    if (iter.hasNext()) {
+                        WigItem wigItem = iter.next();
+                        value = Double.valueOf(wigItem.getWigValue());
+                    } else {
+                        if (!args.getMissingDataAsZero()) {
+                            value = Double.NaN;
+                        }
+                    }
+
+                    String regionStr = region.getChrom() + ":" + (cpgPos - 1) + "-" + cpgPos;
+                    bufferedWriter.write(regionStr + "\t" + value + "\t" + coverFlag + "\n");
+                }
+            }
+
+            if (args.getChipseqBigwig() != null && !args.getChipseqBigwig().equals("")) {
+                for (Integer cpgPos : cpgPosListInRegion) {
+                    BigWigIterator iter1 = reader.getBigWigIterator(region.getChrom(), cpgPos - 1, region.getChrom(), cpgPos, true);
+                    Double value1 = 0.0;
+                    if (iter1.hasNext()) {
+                        WigItem wigItem = iter1.next();
+                        value1 = Double.valueOf(wigItem.getWigValue());
+                    } else {
+                        if (!args.getMissingDataAsZero()) {
+                            value1 = Double.NaN;
+                        }
+                    }
+
+                    BigWigIterator iter2 = reader2.getBigWigIterator(region.getChrom(), cpgPos - 1, region.getChrom(), cpgPos, true);
+                    Double value2 = 0.0;
+                    if (iter2.hasNext()) {
+                        WigItem wigItem = iter2.next();
+                        value2 = Double.valueOf(wigItem.getWigValue());
+                    } else {
+                        if (!args.getMissingDataAsZero()) {
+                            value2 = Double.NaN;
+                        }
+                    }
+
+                    String regionStr = region.getChrom() + ":" + (cpgPos - 1) + "-" + cpgPos;
+                    bufferedWriter.write(regionStr + "\t" + value1 + "\t" + value2 + "\n");
+                }
             }
         }
 
@@ -101,10 +140,6 @@ public class ComputeCpgCov {
         }
         if (args.getBedPath() == null || args.getBedPath().equals("")) {
             log.error("The bed file can not be null.");
-            return false;
-        }
-        if (args.getOpenChromatin() == null || args.getOpenChromatin().equals("")) {
-            log.error("The open chromatin file can not be null.");
             return false;
         }
         if (args.getTag() == null || args.getTag().equals("")) {

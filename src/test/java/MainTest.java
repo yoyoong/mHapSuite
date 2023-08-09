@@ -18,9 +18,9 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "convert";
         String arg1 = "-inputFile";
-        String arg2 = "/sibcb2/bioinformatics2/fengyan/WGBStools/wgbs_tools/GSM5652176_Adipocytes-Z000000T7.pat.gz";
+        String arg2 = "SRR9653791.bam";
         String arg3 = "-cpgPath";
-        String arg4 = "/sibcb2/bioinformatics2/zhangzhiqiang/genome/CpG/hg19/hg19_CpG.gz";
+        String arg4 = "hg19_CpG.gz";
         String arg5 = "-region";
         String arg6 = "chr1:1-240000";
         //        String arg5 = "-b";
@@ -32,7 +32,7 @@ public class MainTest extends TestCase {
 //        String arg11 = "BS";
         String arg10 = "-pat";
 
-        String[] args = {arg0, arg1, arg2, arg3, arg4, arg8, arg9, arg10};
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg8, arg9};
         // String[] args = {arg0, arg1, arg2, arg3, arg4, arg8, arg9, arg10, arg11};
         //String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg8, arg9, arg10, arg11};
         //String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11};
@@ -75,13 +75,13 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "tanghulu";
         String arg1 = "-mhapPath";
-        String arg2 = "esophagus_T.mhap.gz";
+        String arg2 = "B-cell.mhap.gz";
         String arg3 = "-cpgPath";
         String arg4 = "hg19_CpG.gz";
         String arg5 = "-region";
-        String arg6 = "chr1:2121159-2121449";
-        String arg7 = "-outputFile";
-        String arg8 = "SRX1635079";
+        String arg6 = "chr3:9975288-9975336";
+        String arg7 = "-tag";
+        String arg8 = "test";
         String arg9 = "-strand";
         String arg10 = "both";
         String arg11 = "-outFormat";
@@ -231,14 +231,14 @@ public class MainTest extends TestCase {
     public void test_MHBDiscovery() throws Exception {
         Main main = new Main();
         String arg0 = "MHBDiscovery";
-        String arg1 = "-mHapPath";
-        String arg2 = "esophagus_T.mhap.gz";
+        String arg1 = "-mhapPath";
+        String arg2 = "B-cell.mhap.gz";
         String arg3 = "-cpgPath";
         String arg4 = "hg19_CpG.gz";
-//        String arg5 = "-region";
-//        String arg6 = "chr12:1-100000000";
-        String arg5= "-bedPath";
-        String arg6 = "hg19_1000CpG.bed";
+        String arg5 = "-region";
+        String arg6 = "chr3:9975288-9975336";
+//        String arg5= "-bedPath";
+//        String arg6 = "hg19_1000CpG.bed";
         String arg7 = "-window";
         String arg8 = "5";
         String arg9 = "-r2";

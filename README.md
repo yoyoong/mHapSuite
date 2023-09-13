@@ -214,7 +214,6 @@ Options:
  -strand,--strand <arg>           plus,minus,both [both]
  -r2Cov,--r2Cov <arg>             minimal number of reads that cover two CpGs for R2 calculation [20]
 ```
-
 Example of usage:
 ```
 java -jar mHapSuite-2.0-jar-with-dependencies.jar stat -metrics MM PDR CHALM MHL MCR MBS Entropy R2 -mhapPath esophagus_T.mhap.gz -cpgPath hg19_CpG.gz -bedPath CRC_MHB_non_NC.bed -outputFile stat.out.tsv -minK 1 -maxK 10 -K 4 -strand both -r2Cov 10
@@ -240,6 +239,10 @@ Options:
  -r2Cov,--r2Cov <arg>           minimal number of reads that cover two CpGs for R2 calculation [20]
  -k4Plus,--k4Plus <arg>         minimal number of reads that cover 4 or more CpGs for PDR, CHALM, MHL, MCR, MBS and Entropy [5]
 ```
+Example of usage:
+```
+java -jar mHapSuite-2.0-jar-with-dependencies.jar genomeWide -tag test -mhapPath DRX119166.mhap.gz -cpgPath hg19_CpG.gz -metrics Cov MM PDR CHALM MHL MCR MBS R2 -outputDir outputDir -minK 1 -maxK 10 -K 4 -strand both -cpgCov 5 -r2Cov 20 -k4Plus 5
+```
 
 ### scatterPlot
 This function generates a scatter plot for two variables. It can be two DNA methylation metrics from the same sample or one metric from two samples. 
@@ -252,7 +255,7 @@ Options:
  -tag,--tag <arg>               prefix of the output file(s)
  -outFormat,--outFormat <arg>   output format,pdf or png [pdf]
 ```
-
+Example of usage:
 ```
 java -jar mHapSuite-2.0-jar-with-dependencies.jar scatterPlot -bedPath idx/hg19_cpgisland.bed -bigwig1 bw/T/esophagus_T_MM.bw -bigwig2 bw/T/esophagus_T_PDR.bw -tag MM_vs_PDR -outFormat png
 ```
@@ -268,7 +271,7 @@ Options:
  -tag,--tag <arg>               prefix of the output file(s)
  -outFormat,--outFormat <arg>   output format,pdf or png [pdf]
 ```
-
+Example of usage:
 ```
 java -jar mHapSuite-2.0-jar-with-dependencies.jar boxPlot -bedPath BED/ESCC_Hyper_Promoter.BED --bigwigs bw/T/esophagus_T_MM.bw bw/N/esophagus_N_MM.bw bw/T/esophagus_T_Entropy.bw bw/N/esophagus_N_Entropy.bw --tag MM_PDR --outFormat pdf
 ```
@@ -288,7 +291,7 @@ Options:
  -tag,--tag <arg>                 prefix of the output file(s)
  -outFormat,--outFormat <arg>     output format,pdf or png [pdf]
 ```
-
+Example of usage:
 ```
 java -jar mHapSuite-2.0-jar-with-dependencies.jar heatMapPlot -bedPaths BED/ESCC_Hyper_Promoter.BED BED/ESCC_Hypo_Promoter.BED -upLength 5000 -downLength 5000 -window 200 --sortRegions descend -bigwig bw/N/esophagus_N_MM.bw -tag heatMapPlot_N -outFormat png
 ```
@@ -316,7 +319,7 @@ Options:
  -tag,--tag <arg>                 prefix of the output file(s)
  -outFormat,--outFormat <arg>     output format,pdf or png [pdf]
 ```
-
+Example of usage:
 ```
 java -jar mHapSuite-2.0-jar-with-dependencies.jar profilePlot -bedPaths BED/ESCC_Hyper_Promoter.BED BED/ESCC_Hypo_Promoter.BED -upLength 20000 -downLength 20000 -windowNum 10 -bigwig bw/T/esophagus_T_MM.bw -tag profilePlot_T
 ```
@@ -341,11 +344,30 @@ Options:
  -tag,--tag <arg>                       prefix of the output file(s)
  -outFormat,--outFormat <arg>           output format,pdf or png [pdf]
 ```
-
+Example of usage:
 ```
 java -jar mHapSuite-2.0-jar-with-dependencies.jar enrichmentPlot --bedPaths out/esophagus_N_MHB.txt BED/esophagus_UMRs.bed BED/esophagus_LMRs.bed BED/esophagus_PMDs.bed BED/esophagus_HMRs.bed --openChromatin BED/esophagus_open.bed --bigwig bw/N/esophagus_N_MM.bw --tag esophagus_tissue --outFormat pdf
 ```
 <img src="images/esophagus_tissue.enrichmentPlot.png" width="500" />
+
+
+## computeCpgCov
+This function compute whether the cpg site in bedfile exist in another bedfile (such as openChromatin) and corresponding metric value.
+```
+usage: java -jar mHapSuite-2.0-jar-with-dependencies.jar computeCpgCov --bigwig <in.bw> --cpgPath <CpG.gz> --bedPath <in.bed> --openChromatin <openChromatin.bed> --tag <tag> [--chipseqBigwig <chipseq.bw>] [--missingDataAsZero]
+Options:
+ -bigwig,--bigwig <args>                the input bigwig file of a metrics from a sample
+ -cpgPath,--cpgPath <args>              genomic CpG file, gz format and indexed
+ -bedPath,--bedPath <args>              a bed file, one query region per line
+ -openChromatin,--openChromatin <args>  a open chromatin regions file, in BED format
+ -chipseqBigwig,--chipseqBigwig <args>  the input chip-seq bigwig file of a metrics from a sample
+ -tag,--outPutFile <args>               prefix of the output file(s)
+ -missingDataAsZero,--missingDataAsZero whether missing data as zero [false]
+```
+Example of usage:
+```
+java -jar mHapSuite-2.0-jar-with-dependencies.jar computeCpgCov -bigwig test.bw -cpgPath hg19_CpG.gz -openChromatin openChromatin.bed -tag test -bedPath MCBDiscovery.bed -missingDataAsZero 
+```
 
 # Citation
 If you use mHapSuite, please cite the following reference:

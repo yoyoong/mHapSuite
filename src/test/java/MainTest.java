@@ -18,7 +18,7 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "convert";
         String arg1 = "-inputFile";
-        String arg2 = "SRR9653791.bam";
+        String arg2 = "GSM5652223_Cortex-Neuron-Z000000TF.pat.gz";
         String arg3 = "-cpgPath";
         String arg4 = "hg19_CpG.gz";
         String arg5 = "-region";
@@ -32,7 +32,7 @@ public class MainTest extends TestCase {
 //        String arg11 = "BS";
         String arg10 = "-pat";
 
-        String[] args = {arg0, arg1, arg2, arg3, arg4, arg8, arg9};
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg8, arg9, arg10};
         // String[] args = {arg0, arg1, arg2, arg3, arg4, arg8, arg9, arg10, arg11};
         //String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg8, arg9, arg10, arg11};
         //String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11};
@@ -52,7 +52,7 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "merge";
         String arg1 = "-inputFile";
-        String arg2 = "SRX8472828.mhap.gz SRX8472827.mhap.gz";
+        String arg2 = "GSM5652261_Kidney-Glomerular-Podocytes-Z0000042W.mhap.gz GSM5652262_Kidney-Glomerular-Podocytes-Z00000441.mhap.gz GSM5652263_Kidney-Glomerular-Podocytes-Z00000442.mhap.gz";
         String arg3 = "-cpgPath";
         String arg4 = "hg19_CpG.gz";
         String arg5 = "-outPutFile";
@@ -75,13 +75,13 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "tanghulu";
         String arg1 = "-mhapPath";
-        String arg2 = "B-cell.mhap.gz";
+        String arg2 = "P1_LIHC.mhap.gz";
         String arg3 = "-cpgPath";
         String arg4 = "hg19_CpG.gz";
         String arg5 = "-region";
-        String arg6 = "chr3:9975288-9975336";
+        String arg6 = "chr22:27195698-27197698";
         String arg7 = "-tag";
-        String arg8 = "test";
+        String arg8 = "P1_LIHC";
         String arg9 = "-strand";
         String arg10 = "both";
         String arg11 = "-outFormat";
@@ -113,15 +113,15 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "mHapView";
         String arg1 = "-mhapPath";
-        String arg2 = "example-1.mhap.gz";
+        String arg2 = "SRX203011.mhap.gz";
         String arg3 = "-cpgPath";
         String arg4 = "hg19_CpG.gz";
         String arg5 = "-region";
-        String arg6 = "chr1:14435-14521";
+        String arg6 = "chr10:27195698-27196698";
         String arg7 = "-bedPath";
         String arg8 = "/sibcb2/bioinformatics2/fengyan/Plot/Process/figure6/MHB_Bulk/sperm_MHB.bed";
         String arg9 = "-tag";
-        String arg10 = "example-1";
+        String arg10 = "P1_LIHC";
         String arg11 = "-outFormat";
         String arg12 = "png";
         String arg13 = "-strand";
@@ -186,9 +186,9 @@ public class MainTest extends TestCase {
         String arg1 = "-tag";
         String arg2 = "test";
         String arg3 = "-mhapPath";
-        String arg4 = "/sibcb2/bioinformatics2/liuleiqin/project/20230228_mHapBrowser_fastq_Rat/REPORT/mHap/DRX119166.mhap.gz";
+        String arg4 = "DRX119166.mhap.gz";
         String arg5 = "-cpgPath";
-        String arg6 = "/sibcb2/bioinformatics2/liuleiqin/databases/CpG/rn6/rn6_CpG.gz";
+        String arg6 = "hg19_CpG.gz";
         String arg7 = "-metrics";
         String arg8 = "Cov MM PDR CHALM MHL MCR MBS R2";
         String arg9 = "-outputDir";
@@ -232,7 +232,7 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "MHBDiscovery";
         String arg1 = "-mhapPath";
-        String arg2 = "B-cell.mhap.gz";
+        String arg2 = "neuron.mhap.gz";
         String arg3 = "-cpgPath";
         String arg4 = "hg19_CpG.gz";
         String arg5 = "-region";
@@ -248,9 +248,9 @@ public class MainTest extends TestCase {
         String arg13 = "-outputDir";
         String arg14 = "outputDir";
         String arg15 = "-tag";
-        String arg16 = "CRC_hg19_MHB";
+        String arg16 = "neuron";
         String arg17 = "-qcFlag";
-        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16};
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16};
         //String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17};
         //String[] args = {arg0, arg1, arg2, arg3, arg4, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16};
 
@@ -415,13 +415,13 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "computeCpgCov";
         String arg1 = "-bigwig";
-        String arg2 = "colon_MM.bw";
+        String arg2 = "test4.bw";
         String arg3 = "-cpgPath";
         String arg4 = "hg19_CpG.gz";
         String arg7 = "-bedPath";
-        String arg8 = "Colon_MHB.bed";
+        String arg8 = "MCBDiscovery.output.txt";
         String arg5 = "-openChromatin";
-        String arg6 = "Colon_ATAC.bed";
+        String arg6 = "COAD_peakCalls.txt";
         String arg9 = "-tag";
         String arg10 = "computeCpgCov.test";
         String arg11 = "-missingDataAsZero";

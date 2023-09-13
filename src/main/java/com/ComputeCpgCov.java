@@ -79,7 +79,7 @@ public class ComputeCpgCov {
                     Integer coverFlag = whetherRegionListCoverCpg(openChromatinRegionOfChrom, 0,
                             openChromatinRegionOfChrom.size(), cpgPos);
 
-                    BigWigIterator iter = reader.getBigWigIterator(region.getChrom(), cpgPos - 1, region.getChrom(), cpgPos, true);
+                    BigWigIterator iter = reader.getBigWigIterator(region.getChrom(), cpgPos - 1, region.getChrom(), cpgPos, false);
                     Double value = 0.0;
                     if (iter.hasNext()) {
                         WigItem wigItem = iter.next();
@@ -97,7 +97,7 @@ public class ComputeCpgCov {
 
             if (args.getChipseqBigwig() != null && !args.getChipseqBigwig().equals("")) {
                 for (Integer cpgPos : cpgPosListInRegion) {
-                    BigWigIterator iter1 = reader.getBigWigIterator(region.getChrom(), cpgPos - 1, region.getChrom(), cpgPos, true);
+                    BigWigIterator iter1 = reader.getBigWigIterator(region.getChrom(), cpgPos - 1, region.getChrom(), cpgPos, false);
                     Double value1 = 0.0;
                     if (iter1.hasNext()) {
                         WigItem wigItem = iter1.next();
@@ -108,7 +108,7 @@ public class ComputeCpgCov {
                         }
                     }
 
-                    BigWigIterator iter2 = reader2.getBigWigIterator(region.getChrom(), cpgPos - 1, region.getChrom(), cpgPos, true);
+                    BigWigIterator iter2 = reader2.getBigWigIterator(region.getChrom(), cpgPos - 1, region.getChrom(), cpgPos, false);
                     Double value2 = 0.0;
                     if (iter2.hasNext()) {
                         WigItem wigItem = iter2.next();

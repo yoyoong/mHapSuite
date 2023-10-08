@@ -278,7 +278,7 @@ java -jar mHapSuite-2.0-jar-with-dependencies.jar boxPlot -bedPath BED/ESCC_Hype
 <img src="images/MM_PDR.boxPlot.png" width="400" />
 
 ### heatMapPlot
-This function plots signals around the center of given regions. The lower panel shows the signals in each interval as a heatmap, and the average signals across all regions in are shown in the upper panel. This function was inspired by [plotHeatmap](https://deeptools.readthedocs.io/en/develop/content/tools/plotHeatmap.html) in [deeTools](https://deeptools.readthedocs.io).
+This function plots signals around the center of given regions. The lower panel shows the signals in each interval as a heatmap, and the average signals across all regions in are shown in the upper panel. This function was inspired by [plotHeatmap](https://deeptools.readthedocs.io/en/develop/content/tools/plotHeatmap.html) in [deepTools](https://deeptools.readthedocs.io).
 
 ```
 usage: java -jar mHapSuite-2.0-jar-with-dependencies.jar heatMapPlot --bedPaths <first.bed second.bed> --bigwig <in.bw> [--upLength <upLength>] [--downLength <downLength>] [--window <window>] --tag <tag> --outFormat <outFormat> 
@@ -306,7 +306,7 @@ We can also generate this type of plot using deepTools. However, you might get s
 
 
 ### profilePlot
-This function plots the average profiles of signals in the predefined intervals as well as their flanking regions. Multiple BED files can be specified using the 'bedPaths' parameter. It was inspired by [plotProfile](https://deeptools.readthedocs.io/en/develop/content/tools/plotProfile.html) in in [deeTools](https://deeptools.readthedocs.io).
+This function plots the average profiles of signals in the predefined intervals as well as their flanking regions. Multiple BED files can be specified using the 'bedPaths' parameter. It was inspired by [plotProfile](https://deeptools.readthedocs.io/en/develop/content/tools/plotProfile.html) in in [deepTools](https://deeptools.readthedocs.io).
 
 ```
 usage: java -jar mHapSuite-2.0-jar-with-dependencies.jar profilePlot --bedPaths <first.bed second.bed> --bigwig <in.bw> [--upLength <upLength>] [--downLength <downLength>] [--windowNum <windowNum>] --tag <tag> --outFormat <outFormat> 

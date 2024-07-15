@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 import static htsjdk.samtools.SamFiles.findIndex;
 
@@ -86,7 +85,7 @@ public class Convert {
         }
         inputStream.close();
         outputStream.close();
-        new File(mhapFileName).delete();
+        // new File(mhapFileName).delete();
 
         log.info("command.Convert end! ");
     }
@@ -272,7 +271,7 @@ public class Convert {
         // get cpg position list
         List<Integer> cpgPosList = util.parseCpgFile(args.getCpgPath(), region);
         if (cpgPosList.size() < 1) {
-            log.info("remove chrome:" + region.getChrom() + " due to the size of cpg is 0.");
+            log.info("remove chromsome:" + region.getChrom() + " due to the size of cpg is 0.");
             return true;
         }
         Integer cpgStartIndex = 0;
@@ -293,23 +292,13 @@ public class Convert {
                 continue;
             }
 
-            // 获取sam的甲基化信息
-//            String samHaploInfo = "";
-//            List<SAMRecord.SAMTagAndValue> samTagAndValueList = samRecord.getAttributes();
-//            for (SAMRecord.SAMTagAndValue samTagAndValue : samTagAndValueList) {
-//                if (samTagAndValue.tag.equals("Z") || samTagAndValue.tag.equals("H")) {
-//                    samHaploInfo = (String) samTagAndValue.tag;
-//                }
-//            }
-//            if (samHaploInfo.equals("")) {
-//                //log.error("The XM string is null.");
-//                continue;
-//            }
-//            for (int i = 0; i < samHaploInfo.length(); i++) {
-//                if (samHaploInfo.charAt(i) == 'X' || samHaploInfo.charAt(i) == 'H' || samHaploInfo.charAt(i) == 'U') {
-//                    continue;
-//                }
-//            }
+            // 获取XM标签的值
+            String xmTag = samRecord.getStringAttribute("XM");
+            if (xmTag!= null && !xmTag.equals("")) {
+                if (xmTag.contains("X") || xmTag.contains("H") || xmTag.contains("U")) {
+                    continue;
+                }
+            }
 
             // 获取正负链信息
             StrandType strand = StrandType.UNKNOWN;
@@ -325,18 +314,19 @@ public class Convert {
                         }
                     } else if (samRecord.getSecondOfPairFlag()) { // 含128
                         if (samRecord.getReadNegativeStrandFlag()) { // 含16
-                            strand = StrandType.MINUS;
-                        } else if (samRecord.getMateNegativeStrandFlag()) { // 含32
                             strand = StrandType.PLUS;
+                        } else if (samRecord.getMateNegativeStrandFlag()) { // 含32
+                            strand = StrandType.MINUS;
                         }
                     }
-//                } else if (!samRecord.getReadPairedFlag() && !samRecord.getProperPairFlag()) { // 同时不含1和2
-                } else {
+                } else if ((samRecord.getFlags() & 1) == 0 && (samRecord.getFlags() & 2) == 0) { // 同时不含1和2
                     if (samRecord.getReadNegativeStrandFlag()) { // 含16
                         strand = StrandType.MINUS;
                     } else { // 其他
                         strand = StrandType.PLUS;
                     }
+                } else {
+                    continue;
                 }
             }
 
@@ -345,25 +335,33 @@ public class Convert {
                 cpgStartIndex++;
             }
             Integer cpgCnt = 0;
-            while (cpgStartIndex + cpgCnt < cpgPosList.size() &&
-                    cpgPosList.get(cpgStartIndex + cpgCnt) < samRecord.getEnd()) {
+            while (cpgStartIndex + cpgCnt < cpgPosList.size() - 1 &&
+                    cpgPosList.get(cpgStartIndex + cpgCnt) <= samRecord.getEnd()) {
                 cpgPosListInRegion.add(cpgPosList.get(cpgStartIndex + cpgCnt));
                 cpgCnt++;
             }
             if (cpgCnt == 0) {
-                log.error("remove read:" + samRecord.getReadName() + " due to the size of cpg is 0.");
+                // log.error("remove read:" + samRecord.getReadName() + " due to the size of cpg is 0.");
                 continue;
             }
 
-            // 获取甲基化位点信息
             String haplotype = getHaplotype(samRecord, cpgPosListInRegion, cpgCnt, strand);
-            if (haplotype.matches(".*[a-zA-z].*")) {
+            if (haplotype.matches(".*[a-zA-z].*") || haplotype.equals("")) {
                 continue;
+            }
+
+            if (haplotype.length() < cpgCnt) {
+                cpgCnt = haplotype.length();
             }
 
             // mHap数据赋值
             MHapInfo mHapLine = new MHapInfo(region.getChrom(), cpgPosListInRegion.get(0),
-                    cpgPosListInRegion.get(cpgPosListInRegion.size() -1), haplotype, 1, strand.getStrandFlag());
+                    cpgPosListInRegion.get(cpgCnt -1), haplotype, 1, strand.getStrandFlag());
+
+//            if (mHapLine.getStart() == 859924 && mHapLine.getStrand().equals("-")) {
+//                log.info(mHapLine.print());
+//                log.info(mHapLine.indexByReadAndStrand());
+//            }
 
             // 合并索引相同的行
             if (mHapMap.containsKey(mHapLine.indexByReadAndStrand())) {
@@ -394,30 +392,48 @@ public class Convert {
         // 获取read甲基化位点的碱基序列
         String haploString = ""; // read甲基化位点的碱基序列
         String readString = samRecord.getReadString();
+        Integer read_start = samRecord.getStart();
+        Integer read_end = samRecord.getStart() + samRecord.getReadLength();
         for (int i = 0; i < cpgCnt; i++) {
             Integer pos = 0; // 偏移量
             if (strand == StrandType.UNKNOWN || strand == StrandType.PLUS) {
-                if (cpgPosList.get(i) < samRecord.getStart()) {
+                if (cpgPosList.get(i) < read_start) {
+//                    haploString = "continue";
+//                    return haploString;
                     continue;
-                } else if (cpgPosList.get(i) > samRecord.getEnd()) {
+                } else if (cpgPosList.get(i) > read_end) {
+//                    haploString = "break";
+//                    return haploString;
                     break;
                 }
-                pos = cpgPosList.get(i) - samRecord.getStart();
+                pos = cpgPosList.get(i) - read_start;
             } else {
-                if (cpgPosList.get(i) < samRecord.getStart() - 1) {
+                if (cpgPosList.get(i) < read_start - 1) {
+//                    haploString = "continue";
+//                    return haploString;
                     continue;
-                } else if (cpgPosList.get(i) > samRecord.getEnd() - 1) {
+                } else if (cpgPosList.get(i) > read_end - 1) {
+//                    haploString = "break";
+//                    return haploString;
                     break;
                 }
-                pos = cpgPosList.get(i) - samRecord.getStart() + 1;
+                pos = cpgPosList.get(i) - read_start + 1;
             }
 
             if (pos >= samRecord.getReadLength() || pos < 0) {
+//                haploString = "continue";
+//                return haploString;
                 continue;
             }
 
-            haploString += String.valueOf(readString.charAt(pos));
+            try {
+                haploString += String.valueOf(readString.charAt(pos));
+            } catch (Exception e) {
+                log.info(e.toString());
+            }
+
         }
+
 
         // 获取甲基化状态信息
         String haplotype = ""; // 甲基化状态信息
@@ -437,8 +453,8 @@ public class Convert {
                     }
                 } else {
                     haplotype += haploString.charAt(i);
-                    log.info("Direction + or * : beg: " + samRecord.getStart() + ", end:" + samRecord.getEnd()
-                            + " nucleobases error:" + haplotype);
+//                    log.info("Direction + or * : beg: " + samRecord.getStart() + ", end:" + samRecord.getEnd()
+//                             + " nucleobases error:" + haplotype);
                 }
             } else {
                 if (haploString.charAt(i) == 'G') {
@@ -455,8 +471,8 @@ public class Convert {
                     }
                 } else {
                     haplotype += haploString.charAt(i);
-                    log.info("Direction - : beg: " + samRecord.getStart() + ", end:" + samRecord.getEnd()
-                            + " nucleobases error:" + haplotype);
+//                    log.info("Direction - : beg: " + samRecord.getStart() + ", end:" + samRecord.getEnd()
+//                             + " nucleobases error:" + haplotype);
                 }
             }
         }

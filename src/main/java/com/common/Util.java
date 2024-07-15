@@ -38,7 +38,11 @@ public class Util {
     public List<Integer> parseCpgFile(String cpgPath, Region region) throws Exception {
         List<Integer> cpgPosList = new ArrayList<>();
         TabixReader tabixReader = new TabixReader(cpgPath);
-        TabixReader.Iterator cpgIterator = tabixReader.query(region.getChrom(), region.getStart(), region.getEnd());
+        String chrom = region.getChrom();
+        if (!chrom.startsWith("chr")) {
+            chrom = "chr" + region.getChrom();
+        }
+        TabixReader.Iterator cpgIterator = tabixReader.query(chrom, region.getStart(), region.getEnd());
         String cpgLine = "";
         while((cpgLine = cpgIterator.next()) != null) {
             if (cpgLine.split("\t").length < 3) {

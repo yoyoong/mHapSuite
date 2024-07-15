@@ -18,24 +18,23 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "convert";
         String arg1 = "-inputFile";
-        String arg2 = "GSM5652223_Cortex-Neuron-Z000000TF.pat.gz";
+        String arg2 = "HCT116_BSMAP_SRX999983.bam";
         String arg3 = "-cpgPath";
-        String arg4 = "hg19_CpG.gz";
+        String arg4 = "hg38_CpG.gz";
         String arg5 = "-region";
-        String arg6 = "chr1:1-240000";
+        String arg6 = "chr1:1-24000000";
         //        String arg5 = "-b";
 //        String arg6 = "hg19_cpgisland.bed";
         String arg7 = "-nonDirectional";
         String arg8 = "-outPutFile";
-        String arg9 = "test.mhap.gz";
-//        String arg10 = "-mode";
-//        String arg11 = "BS";
-        String arg10 = "-pat";
+        String arg9 = "HCT116_BSMAP_SRX999983.mhap.gz";
+        String arg10 = "-mode";
+        String arg11 = "BS";
+        String arg12 = "-pat";
 
-        String[] args = {arg0, arg1, arg2, arg3, arg4, arg8, arg9, arg10};
-        // String[] args = {arg0, arg1, arg2, arg3, arg4, arg8, arg9, arg10, arg11};
-        //String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg8, arg9, arg10, arg11};
-        //String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11};
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg8, arg9, arg10, arg11};
+        // String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg8, arg9, arg10, arg11};
+        // String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11};
 
         System.out.println("Work direqtory: " + System.getProperty("user.dir"));
         String argsStr = "";
@@ -186,11 +185,11 @@ public class MainTest extends TestCase {
         String arg1 = "-tag";
         String arg2 = "test";
         String arg3 = "-mhapPath";
-        String arg4 = "DRX119166.mhap.gz";
+        String arg4 = "esophagus_T.mhap.gz";
         String arg5 = "-cpgPath";
         String arg6 = "hg19_CpG.gz";
         String arg7 = "-metrics";
-        String arg8 = "Cov MM PDR CHALM MHL MCR MBS R2";
+        String arg8 = "Cov MM PDR CHALM MHL MCR MBS Entropy";
         String arg9 = "-outputDir";
         String arg10 = "outputDir";
         String arg11 = "-minK";
@@ -202,7 +201,7 @@ public class MainTest extends TestCase {
         String arg17 = "-strand";
         String arg18 = "both";
         String arg19 = "-region";
-        String arg20 = "chr1:10469-10903";
+        String arg20 = "chr1:10469-100903";
 //        String arg19 = "-bedPath";
 //        String arg20 = "CRC_MHB_non_NC.bed";
         String arg21 = "-cpgCov";
@@ -212,10 +211,10 @@ public class MainTest extends TestCase {
         String arg25 = "-k4Plus";
         String arg26 = "5";
 
-//        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14,
-//                arg15, arg16, arg17, arg18, arg19, arg20, arg21, arg22, arg23, arg24, arg25, arg26};
         String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14,
-                arg15, arg16, arg17, arg18, arg21, arg22, arg23, arg24, arg25, arg26};
+                arg15, arg16, arg17, arg18, arg19, arg20, arg21, arg22, arg23, arg24, arg25, arg26};
+//        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14,
+//                arg15, arg16, arg17, arg18, arg21, arg22, arg23, arg24, arg25, arg26};
 
         System.out.println("Work direqtory: " + System.getProperty("user.dir"));
         String argsStr = "";
@@ -297,7 +296,7 @@ public class MainTest extends TestCase {
         String arg1 = "-bedPath";
         String arg2 = "MHB_cervix_normal.bed";
         String arg7 = "-bigwigs";
-        String arg8 = "P1_BRCA_MM.bw P1_CESC_MM.bw P1_CRC_MM.bw P1_ESCC_MM.bw P1_HNSC_MM.bw";
+        String arg8 = "colon_MM.bw";
         String arg11 = "-tag";
         String arg12 = "boxPlot.output";
         String arg13 = "-outFormat";
@@ -415,15 +414,15 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "computeCpgCov";
         String arg1 = "-bigwig";
-        String arg2 = "test4.bw";
+        String arg2 = "breast_T_Merged_CpG.bw";
         String arg3 = "-cpgPath";
         String arg4 = "hg19_CpG.gz";
         String arg7 = "-bedPath";
-        String arg8 = "MCBDiscovery.output.txt";
+        String arg8 = "MHB_BRCA.bed";
         String arg5 = "-openChromatin";
-        String arg6 = "COAD_peakCalls.txt";
+        String arg6 = "BRCA_hg19_peak.bed";
         String arg9 = "-tag";
-        String arg10 = "computeCpgCov.test";
+        String arg10 = "test2";
         String arg11 = "-missingDataAsZero";
         String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg9, arg10, arg7, arg8, arg11};
 

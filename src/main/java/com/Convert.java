@@ -330,13 +330,15 @@ public class Convert {
                 }
             }
 
+            Integer read_start = samRecord.getStart();
+            Integer read_end = samRecord.getStart() + samRecord.getReadLength() - 1;
             List<Integer> cpgPosListInRegion = new ArrayList<>();
-            while (cpgStartIndex < cpgPosList.size() - 1 && cpgPosList.get(cpgStartIndex) < samRecord.getStart()) {
+            while (cpgStartIndex < cpgPosList.size() - 1 && cpgPosList.get(cpgStartIndex) < read_start) {
                 cpgStartIndex++;
             }
             Integer cpgCnt = 0;
             while (cpgStartIndex + cpgCnt < cpgPosList.size() - 1 &&
-                    cpgPosList.get(cpgStartIndex + cpgCnt) <= samRecord.getEnd()) {
+                    cpgPosList.get(cpgStartIndex + cpgCnt) <= read_end) {
                 cpgPosListInRegion.add(cpgPosList.get(cpgStartIndex + cpgCnt));
                 cpgCnt++;
             }
@@ -345,23 +347,19 @@ public class Convert {
                 continue;
             }
 
-            String haplotype = getHaplotype(samRecord, cpgPosListInRegion, cpgCnt, strand);
-            if (haplotype.matches(".*[a-zA-z].*") || haplotype.equals("")) {
-                continue;
+            if (strand == StrandType.MINUS && cpgPosListInRegion.get(cpgCnt -1).equals(read_end)) { // 负链最后一个位点是cpg位点时不能算
+                cpgPosListInRegion.remove(cpgCnt -1);
+                cpgCnt--;
             }
 
-            if (haplotype.length() < cpgCnt) {
-                cpgCnt = haplotype.length();
+            String haplotype = getHaplotype(samRecord, cpgPosListInRegion, cpgCnt, strand);
+            if (haplotype.matches(".*[a-zA-z].*") || haplotype.equals("") || haplotype.length() < cpgCnt) {
+                continue;
             }
 
             // mHap数据赋值
             MHapInfo mHapLine = new MHapInfo(region.getChrom(), cpgPosListInRegion.get(0),
                     cpgPosListInRegion.get(cpgCnt -1), haplotype, 1, strand.getStrandFlag());
-
-//            if (mHapLine.getStart() == 859924 && mHapLine.getStrand().equals("-")) {
-//                log.info(mHapLine.print());
-//                log.info(mHapLine.indexByReadAndStrand());
-//            }
 
             // 合并索引相同的行
             if (mHapMap.containsKey(mHapLine.indexByReadAndStrand())) {
@@ -390,53 +388,38 @@ public class Convert {
 
     private String getHaplotype(SAMRecord samRecord, List<Integer> cpgPosList, Integer cpgCnt, StrandType strand) {
         // 获取read甲基化位点的碱基序列
-        String haploString = ""; // read甲基化位点的碱基序列
-        String readString = samRecord.getReadString();
+        String haploString = ""; // 甲基化位点的碱基序列
         Integer read_start = samRecord.getStart();
-        Integer read_end = samRecord.getStart() + samRecord.getReadLength();
+        Integer read_end = samRecord.getStart() + samRecord.getReadLength() - 1;
+        String readString = samRecord.getReadString();
         for (int i = 0; i < cpgCnt; i++) {
             Integer pos = 0; // 偏移量
             if (strand == StrandType.UNKNOWN || strand == StrandType.PLUS) {
                 if (cpgPosList.get(i) < read_start) {
-//                    haploString = "continue";
-//                    return haploString;
                     continue;
                 } else if (cpgPosList.get(i) > read_end) {
-//                    haploString = "break";
-//                    return haploString;
                     break;
                 }
                 pos = cpgPosList.get(i) - read_start;
             } else {
                 if (cpgPosList.get(i) < read_start - 1) {
-//                    haploString = "continue";
-//                    return haploString;
                     continue;
                 } else if (cpgPosList.get(i) > read_end - 1) {
-//                    haploString = "break";
-//                    return haploString;
                     break;
                 }
                 pos = cpgPosList.get(i) - read_start + 1;
             }
 
             if (pos >= samRecord.getReadLength() || pos < 0) {
-//                haploString = "continue";
-//                return haploString;
                 continue;
             }
 
-            try {
-                haploString += String.valueOf(readString.charAt(pos));
-            } catch (Exception e) {
-                log.info(e.toString());
-            }
-
+            haploString += String.valueOf(readString.charAt(pos));
         }
 
 
         // 获取甲基化状态信息
-        String haplotype = ""; // 甲基化状态信息
+        String haplotype = ""; // 甲基化位点的甲基化状态序列 0-未甲基化 1-甲基化
         for (int i = 0; i < haploString.length(); i++) {
             if (strand == StrandType.UNKNOWN || strand == StrandType.PLUS) {
                 if (haploString.charAt(i) == 'C') {

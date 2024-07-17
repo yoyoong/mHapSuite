@@ -2,6 +2,8 @@ package com.bean;
 
 import java.io.Serializable;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MHapInfo implements Serializable {
     public String chrom;
@@ -10,6 +12,9 @@ public class MHapInfo implements Serializable {
     public String cpg;
     public Integer cnt;
     public String strand;
+    public List<Integer> cpgPosList;
+    public String haploString;
+    public List<Integer> qualityList;
 
     public MHapInfo(String chrom, Integer start, Integer end, String cpg, Integer cnt, String strand) {
         this.chrom = chrom;
@@ -18,6 +23,19 @@ public class MHapInfo implements Serializable {
         this.cpg = cpg;
         this.cnt = cnt;
         this.strand = strand;
+    }
+
+    public MHapInfo(String chrom, Integer start, Integer end, String cpg, Integer cnt, String strand,
+                    List<Integer> cpgPosList, String haploString, List<Integer> qualityList) {
+        this.chrom = chrom;
+        this.start = start;
+        this.end = end;
+        this.cpg = cpg;
+        this.cnt = cnt;
+        this.strand = strand;
+        this.cpgPosList = cpgPosList;
+        this.haploString = haploString;
+        this.qualityList = qualityList;
     }
 
     public String getChrom() {
@@ -44,6 +62,14 @@ public class MHapInfo implements Serializable {
         this.end = end;
     }
 
+    public String getHaploString() {
+        return haploString;
+    }
+
+    public void setHaploString(String haploString) {
+        this.haploString = haploString;
+    }
+
     public String getCpg() {
         return cpg;
     }
@@ -68,6 +94,22 @@ public class MHapInfo implements Serializable {
         this.strand = strand;
     }
 
+    public List<Integer> getCpgPosList() {
+        return cpgPosList;
+    }
+
+    public void setCpgPosList(List<Integer> cpgPosList) {
+        this.cpgPosList = cpgPosList;
+    }
+
+    public List<Integer> getQualityList() {
+        return qualityList;
+    }
+
+    public void setQualityList(List<Integer> qualityList) {
+        this.qualityList = qualityList;
+    }
+
     public String indexByPos() {
         return this.chrom + this.start;
     }
@@ -77,7 +119,7 @@ public class MHapInfo implements Serializable {
     }
 
     public String indexByReadAndStrand() {
-        return this.chrom + this.start+ this.end + this.cpg + this.strand;
+        return this.chrom + "_" + this.start + "_" + this.end + "_" + this.cpg + "_" + this.strand;
     }
 
     public String index() {

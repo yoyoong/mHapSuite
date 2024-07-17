@@ -22,9 +22,9 @@ public class MainTest extends TestCase {
         String arg3 = "-cpgPath";
         String arg4 = "hg19_CpG.gz";
         String arg5 = "-region";
-        String arg6 = "chr1:1-24000000";
-        //        String arg5 = "-b";
-//        String arg6 = "hg19_cpgisland.bed";
+        String arg6 = "chrM:1-133020";
+//        String arg5 = "-bedPath";
+//        String arg6 = "colon_MHB.bed";
         String arg7 = "-nonDirectional";
         String arg8 = "-outPutFile";
         String arg9 = "HCT116_BISMARK_SRX999983.mhap.gz";
@@ -32,8 +32,8 @@ public class MainTest extends TestCase {
         String arg11 = "BS";
         String arg12 = "-pat";
 
-        String[] args = {arg0, arg1, arg2, arg3, arg4, arg8, arg9, arg10, arg11};
-        // String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg8, arg9, arg10, arg11};
+        // String[] args = {arg0, arg1, arg2, arg3, arg4, arg8, arg9, arg10, arg11};
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg8, arg9, arg10, arg11};
         // String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11};
 
         System.out.println("Work direqtory: " + System.getProperty("user.dir"));

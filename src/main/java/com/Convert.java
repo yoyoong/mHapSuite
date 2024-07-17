@@ -234,34 +234,27 @@ public class Convert {
             region.setStart(samSequenceRecord.getStart());
             region.setEnd(samSequenceRecord.getEnd());
 
+            log.info("Convert " + region.getChrom() + " start!");
             boolean getSingleRegionDataResult = getSingleRegionData(region, bufferedWriter);
             if (!getSingleRegionDataResult) {
                 log.error("getSingleRegionData fail, please check the command.");
                 return false;
             }
-            log.info("Convert " + region.getChrom() + " completed!");
+            log.info("Convert " + region.toHeadString() + " completed!");
         }
 
         return true;
     }
 
     private boolean getMultiRegionData(BufferedWriter bufferedWriter) throws Exception {
-        File bedFile = new File(args.getBedPath()); // 打开bed文件
-        InputStream inputStream = new FileInputStream(bedFile);  // 文件流
-        AsciiLineReader asciiLineReader = new AsciiLineReader(inputStream); // 行阅读器
-        LineIteratorImpl lineIterator = new LineIteratorImpl(asciiLineReader);
-        BEDCodec bedCodec = new BEDCodec(); // bed行解析器
-        while (!bedCodec.isDone(lineIterator)) {
-            BEDFeature bedFeature = bedCodec.decode(lineIterator);
-            Region region = new Region();
-            region.setChrom(bedFeature.getContig());
-            region.setStart(bedFeature.getStart());
-            region.setEnd(bedFeature.getEnd());
+        List<Region> regionList = util.getBedRegionList(args.getBedPath());
+        for (Region region : regionList) {
             boolean getSingleRegionDataResult = getSingleRegionData(region, bufferedWriter);
             if (!getSingleRegionDataResult) {
                 log.info("getSingleRegionData fail, please check the command.");
                 return false;
             }
+            log.info("Convert " + region.toHeadString() + " completed!");
         }
         return true;
     }
@@ -277,7 +270,7 @@ public class Convert {
         Integer cpgStartIndex = 0;
         SamReader samReader = SamReaderFactory.makeDefault().open(inputFile);
         SAMRecordIterator samRecordIterator = samReader.query(region.getChrom(), region.getStart(), region.getEnd(),true);
-        Map<String, MHapInfo> mHapMap = new HashMap<>();
+        Map<String, List<MHapInfo>> mHapMap = new HashMap<>();
         long samCnt = 0l; // 处理的sam数量
         while (samRecordIterator.hasNext()) {
             samCnt++;
@@ -292,12 +285,21 @@ public class Convert {
                 continue;
             }
 
+            // 过滤比对质量
+            if (samRecord.getReadUnmappedFlag() || samRecord.isSecondaryAlignment() ||
+                    samRecord.getReadFailsVendorQualityCheckFlag() || samRecord.getDuplicateReadFlag() ||
+                    samRecord.getSupplementaryAlignmentFlag() ) {
+                continue;
+            }
+
             // 获取XM标签的值
             String xmTag = samRecord.getStringAttribute("XM");
             if (xmTag!= null && !xmTag.equals("")) {
                 if (xmTag.contains("X") || xmTag.contains("H") || xmTag.contains("U")) {
                     continue;
                 }
+            } else {
+                continue;
             }
 
             // 获取正负链信息
@@ -330,15 +332,22 @@ public class Convert {
                 }
             }
 
+            // 获取经过该read的CpG位点位置
             Integer read_start = samRecord.getStart();
             Integer read_end = samRecord.getStart() + samRecord.getReadLength() - 1;
+            if (strand == StrandType.MINUS) { // 负链往前移动一位
+                read_start--;
+                read_end--;
+            }
             List<Integer> cpgPosListInRegion = new ArrayList<>();
-            while (cpgStartIndex < cpgPosList.size() - 1 && cpgPosList.get(cpgStartIndex) < read_start) {
+            while (cpgStartIndex > 0 && cpgPosList.get(cpgStartIndex) >= read_start) { // 先移动到start前面
+                cpgStartIndex--;
+            }
+            while (cpgStartIndex < cpgPosList.size() - 1 && cpgPosList.get(cpgStartIndex) < read_start) { // 获取read经过的第一个cpg位点
                 cpgStartIndex++;
             }
-            Integer cpgCnt = 0;
-            while (cpgStartIndex + cpgCnt < cpgPosList.size() - 1 &&
-                    cpgPosList.get(cpgStartIndex + cpgCnt) <= read_end) {
+            Integer cpgCnt = 0; // read经过的cpg位点个数
+            while (cpgStartIndex + cpgCnt < cpgPosList.size() && cpgPosList.get(cpgStartIndex + cpgCnt) <= read_end) {
                 cpgPosListInRegion.add(cpgPosList.get(cpgStartIndex + cpgCnt));
                 cpgCnt++;
             }
@@ -347,51 +356,99 @@ public class Convert {
                 continue;
             }
 
-            if (strand == StrandType.MINUS && cpgPosListInRegion.get(cpgCnt -1).equals(read_end)) { // 负链最后一个位点是cpg位点时不能算
-                cpgPosListInRegion.remove(cpgCnt -1);
-                cpgCnt--;
-            }
+//            if (samRecord.getStart() == 12657) {
+//                log.info("ddd");
+//            }
 
-            String haplotype = getHaplotype(samRecord, cpgPosListInRegion, cpgCnt, strand);
+            // 获取CpG位点甲基化信息
+            Object[] getHaploStringOutput = getHaploString(samRecord, cpgPosListInRegion, cpgCnt, strand);
+            String haploString = (String) getHaploStringOutput[0];
+            List<Integer> qualityList = (List<Integer>) getHaploStringOutput[1];
+            if (haploString.equals("")) {
+                continue;
+            }
+            String haplotype = getHaplotype(haploString, strand);
             if (haplotype.matches(".*[a-zA-z].*") || haplotype.equals("") || haplotype.length() < cpgCnt) {
                 continue;
             }
 
             // mHap数据赋值
-            MHapInfo mHapLine = new MHapInfo(region.getChrom(), cpgPosListInRegion.get(0),
-                    cpgPosListInRegion.get(cpgCnt -1), haplotype, 1, strand.getStrandFlag());
+            MHapInfo mHapInfo = new MHapInfo(region.getChrom(), cpgPosListInRegion.get(0), cpgPosListInRegion.get(cpgCnt -1),
+                    haplotype, 1, strand.getStrandFlag(), cpgPosListInRegion, haploString, qualityList);
 
             // 合并索引相同的行
-            if (mHapMap.containsKey(mHapLine.indexByReadAndStrand())) {
-                mHapMap.get(mHapLine.indexByReadAndStrand()).setCnt(mHapMap.get(mHapLine.indexByReadAndStrand()).getCnt() + 1);
+            String readName = samRecord.getReadName();
+            if (mHapMap.containsKey(readName)) {
+                mHapMap.get(readName).add(mHapInfo);
             } else {
-                mHapMap.put(mHapLine.indexByReadAndStrand(), mHapLine);
+                List<MHapInfo> mHapInfoList = new ArrayList<>();
+                mHapInfoList.add(mHapInfo);
+                mHapMap.put(readName, mHapInfoList);
+            }
+        }
+
+        Map<String, MHapInfo> outputMHapMap = new HashMap<>();
+        for (String readName : mHapMap.keySet()) {
+            List<MHapInfo> mHapInfoList = mHapMap.get(readName);
+            if (mHapInfoList.size() == 2) {
+                MHapInfo mHapInfoF = mHapInfoList.get(0);
+                MHapInfo mHapInfoR = mHapInfoList.get(1);
+                if (pairedEndCheck(mHapInfoF, mHapInfoR)) {
+                    MHapInfo mHapInfoMerged = pairedEndMerge(mHapInfoF, mHapInfoR);
+                    if (outputMHapMap.containsKey(mHapInfoMerged.indexByReadAndStrand())) {
+                        outputMHapMap.get(mHapInfoMerged.indexByReadAndStrand()).setCnt(
+                                outputMHapMap.get(mHapInfoMerged.indexByReadAndStrand()).getCnt() + 1);
+                    } else {
+                        outputMHapMap.put(mHapInfoMerged.indexByReadAndStrand(), mHapInfoMerged);
+                    }
+                } else {
+                    for (MHapInfo mHapInfo : mHapInfoList) {
+                        if (outputMHapMap.containsKey(mHapInfo.indexByReadAndStrand())) {
+                            outputMHapMap.get(mHapInfo.indexByReadAndStrand()).setCnt(
+                                    outputMHapMap.get(mHapInfo.indexByReadAndStrand()).getCnt() + 1);
+                        } else {
+                            outputMHapMap.put(mHapInfo.indexByReadAndStrand(), mHapInfo);
+                        }
+                    }
+                }
+            } else {
+                MHapInfo mHapInfo = mHapInfoList.get(0);
+                if (outputMHapMap.containsKey(mHapInfo.indexByReadAndStrand())) {
+                    outputMHapMap.get(mHapInfo.indexByReadAndStrand()).setCnt(
+                            outputMHapMap.get(mHapInfo.indexByReadAndStrand()).getCnt() + 1);
+                } else {
+                    outputMHapMap.put(mHapInfo.indexByReadAndStrand(), mHapInfo);
+                }
             }
         }
 
         // 对mHap数据进行排序
-        List<Map.Entry<String, MHapInfo>> mHapList = new ArrayList<Map.Entry<String, MHapInfo>>(mHapMap.entrySet());
-        Collections.sort(mHapList, new Comparator<Map.Entry<String, MHapInfo>>() { //升序排序
+        List<Map.Entry<String, MHapInfo>> outputMHapList = new ArrayList<Map.Entry<String, MHapInfo>>(outputMHapMap.entrySet());
+        Collections.sort(outputMHapList, new Comparator<Map.Entry<String, MHapInfo>>() { //升序排序
             public int compare(Map.Entry<String, MHapInfo> o1, Map.Entry<String, MHapInfo> o2) {
-                return o1.getValue().getChrom().compareTo(o2.getValue().getChrom())
-                        + o1.getValue().getStart().compareTo(o2.getValue().getStart())
-                        + o1.getValue().getEnd().compareTo(o2.getValue().getEnd());
+                return o1.getValue().getChrom().compareTo(o2.getValue().getChrom()) * 10000
+                        + o1.getValue().getStart().compareTo(o2.getValue().getStart()) * 1000
+                        + o1.getValue().getEnd().compareTo(o2.getValue().getEnd()) * 100
+                        + o1.getValue().getCpg().compareTo(o2.getValue().getCpg()) * 10
+                        + o1.getValue().getStrand().compareTo(o2.getValue().getStrand());
             }
         });
 
-        for(Map.Entry<String, MHapInfo> mHapInfo : mHapList) {
+        for(Map.Entry<String, MHapInfo> mHapInfo : outputMHapList) {
             bufferedWriter.write(mHapInfo.getValue().print() + "\n");
         }
 
         return true;
     }
 
-    private String getHaplotype(SAMRecord samRecord, List<Integer> cpgPosList, Integer cpgCnt, StrandType strand) {
+    private Object[] getHaploString(SAMRecord samRecord, List<Integer> cpgPosList, Integer cpgCnt, StrandType strand) {
         // 获取read甲基化位点的碱基序列
         String haploString = ""; // 甲基化位点的碱基序列
+        List<Integer> qualityList = new ArrayList<>(); // 甲基化位点的质量值列表
         Integer read_start = samRecord.getStart();
         Integer read_end = samRecord.getStart() + samRecord.getReadLength() - 1;
         String readString = samRecord.getReadString();
+        byte[] baseQualities = samRecord.getBaseQualities();
         for (int i = 0; i < cpgCnt; i++) {
             Integer pos = 0; // 偏移量
             if (strand == StrandType.UNKNOWN || strand == StrandType.PLUS) {
@@ -415,9 +472,13 @@ public class Convert {
             }
 
             haploString += String.valueOf(readString.charAt(pos));
+            qualityList.add(Integer.valueOf(baseQualities[pos]));
         }
 
+        return new Object[]{haploString, qualityList};
+    }
 
+    private String getHaplotype(String haploString, StrandType strand) {
         // 获取甲基化状态信息
         String haplotype = ""; // 甲基化位点的甲基化状态序列 0-未甲基化 1-甲基化
         for (int i = 0; i < haploString.length(); i++) {
@@ -462,6 +523,60 @@ public class Convert {
 
         return haplotype;
     }
-    
+
+    private boolean pairedEndCheck(MHapInfo mHapInfoF, MHapInfo mHapInfoR) {
+        if (mHapInfoF.getChrom() != mHapInfoR.getChrom()) {
+            return false;
+        }
+        boolean checkF = mHapInfoF.getCpgPosList().get(mHapInfoF.getCpgPosList().size() - 1)
+                >= mHapInfoR.getCpgPosList().get(0);
+        boolean checkR = mHapInfoR.getCpgPosList().get(mHapInfoR.getCpgPosList().size() - 1)
+                >= mHapInfoF.getCpgPosList().get(0);
+        return (checkF && checkR) || (!checkF && !checkR);
+    }
+
+    private MHapInfo pairedEndMerge(MHapInfo mHapInfoF, MHapInfo mHapInfoR) {
+        Map<Integer, String> mergedSEQ = new HashMap<>();
+        Map<Integer, Integer> mergedQUL = new HashMap<>();
+        Map<Integer, String> mergedMet = new HashMap<>();
+
+        List<Integer> cpgPosListF = mHapInfoF.getCpgPosList();
+        String cpgStringF = mHapInfoF.getCpg();
+        String haploStringF = mHapInfoF.getHaploString();
+        for (int i = 0; i < cpgPosListF.size(); i++) {
+            Integer pos = cpgPosListF.get(i);
+            List<Integer> qualityList = mHapInfoF.getQualityList();
+            mergedSEQ.put(pos, String.valueOf(haploStringF.charAt(i)));
+            mergedQUL.put(pos, qualityList.get(i));
+            mergedMet.put(pos, String.valueOf(cpgStringF.charAt(i)));
+        }
+
+        List<Integer> cpgPosListR = mHapInfoR.getCpgPosList();
+        String cpgStringR = mHapInfoR.getCpg();
+        String haploStringR = mHapInfoR.getHaploString();
+        for (int i = 0; i < cpgPosListR.size(); i++) {
+            Integer pos = cpgPosListR.get(i);
+            List<Integer> qualityList = mHapInfoR.getQualityList();
+            if (!mergedMet.containsKey(pos) || (qualityList.get(i) > mergedQUL.get(pos))) {
+                mergedSEQ.put(pos, String.valueOf(haploStringR.charAt(i)));
+                mergedQUL.put(pos, qualityList.get(i));
+                mergedMet.put(pos, String.valueOf(cpgStringR.charAt(i)));
+            }
+        }
+
+        // 合并后的cpg位置列表排序
+        List<Integer> cpgPosListMerged = new ArrayList<>(mergedMet.keySet());
+        Collections.sort(cpgPosListMerged);
+
+        // 输出排序后的键值对
+        String cpgString = "";
+        for (Integer pos : cpgPosListMerged) {
+            cpgString += mergedMet.get(pos);
+        }
+
+        MHapInfo mHapInfoMerged = new MHapInfo(mHapInfoF.getChrom(), cpgPosListMerged.get(0),
+                cpgPosListMerged.get(cpgPosListMerged.size() - 1), cpgString, 1, mHapInfoF.getStrand());
+        return mHapInfoMerged;
+    }
 
 }

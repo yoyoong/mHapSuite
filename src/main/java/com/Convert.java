@@ -188,7 +188,7 @@ public class Convert {
             log.error("-c opt should be followed by a .gz file.");
             return false;
         }
-        if (!args.getOutPutFile().isEmpty() && !args.getOutPutFile().endsWith(".mhap.gz")) {
+        if (!args.getOutPutFile().isEmpty() && !args.getOutPutFile().endsWith(".mhap.gz") && !args.getOutPutFile().endsWith(".mhapsuite.gz")) {
             log.error("-o opt should be followed by a .mhap.gz file.");
             return false;
         }
@@ -370,6 +370,10 @@ public class Convert {
             MHapInfo mHapInfo = new MHapInfo(region.getChrom(), cpgPosListInRegion.get(0), cpgPosListInRegion.get(cpgCnt -1),
                     haplotype, 1, strand.getStrandFlag(), cpgPosListInRegion, haploString, qualityList, readName);
 
+//            if (cpgPosListInRegion.get(0) == 3127 && cpgPosListInRegion.get(cpgCnt -1) == 3173 && haplotype.equals("001")) {
+//                log.info(mHapInfo.getReadName());
+//            }
+
             // 合并索引相同的行
             if (tempMHapMap.containsKey(readName)) {
                 tempMHapMap.get(readName).add(mHapInfo);
@@ -380,37 +384,39 @@ public class Convert {
             }
         }
 
-        List<MHapInfo> outputMHapList = new ArrayList<>();
+        Map<String, MHapInfo> outputMHapMap = new HashMap<>();
         for (String readName : tempMHapMap.keySet()) {
-//            if (readName.equals("A00151:224:HKGN2DSXY:1:2561:30590:23876")) {
-//                log.info(readName);
-//            }
             List<MHapInfo> mHapInfoList = tempMHapMap.get(readName);
             if (mHapInfoList.size() == 2) {
                 MHapInfo mHapInfoF = mHapInfoList.get(0);
                 MHapInfo mHapInfoR = mHapInfoList.get(1);
                 if (pairedEndCheck(mHapInfoF, mHapInfoR)) {
                     MHapInfo mHapInfoMerged = pairedEndMerge(mHapInfoF, mHapInfoR);
-                    outputMHapList.add(mHapInfoMerged);
+                    if (outputMHapMap.containsKey(mHapInfoMerged.indexByReadAndStrand())) {
+                        outputMHapMap.get(mHapInfoMerged.indexByReadAndStrand()).setCnt(
+                                outputMHapMap.get(mHapInfoMerged.indexByReadAndStrand()).getCnt() + 1);
+                    } else {
+                        outputMHapMap.put(mHapInfoMerged.indexByReadAndStrand(), mHapInfoMerged);
+                    }
                 } else {
                     for (MHapInfo mHapInfo : mHapInfoList) {
-                        outputMHapList.add(mHapInfo);
+                        if (outputMHapMap.containsKey(mHapInfo.indexByReadAndStrand())) {
+                            outputMHapMap.get(mHapInfo.indexByReadAndStrand()).setCnt(
+                                    outputMHapMap.get(mHapInfo.indexByReadAndStrand()).getCnt() + 1);
+                        } else {
+                            outputMHapMap.put(mHapInfo.indexByReadAndStrand(), mHapInfo);
+                        }
                     }
                 }
             } else {
                 for (MHapInfo mHapInfo : mHapInfoList) {
-                    outputMHapList.add(mHapInfo);
+                    if (outputMHapMap.containsKey(mHapInfo.indexByReadAndStrand())) {
+                        outputMHapMap.get(mHapInfo.indexByReadAndStrand()).setCnt(
+                                outputMHapMap.get(mHapInfo.indexByReadAndStrand()).getCnt() + 1);
+                    } else {
+                        outputMHapMap.put(mHapInfo.indexByReadAndStrand(), mHapInfo);
+                    }
                 }
-            }
-        }
-
-        Map<String, MHapInfo> outputMHapMap = new HashMap<>();
-        for (MHapInfo mHapInfo : outputMHapList) {
-            if (outputMHapMap.containsKey(mHapInfo.indexByReadAndStrand())) {
-                outputMHapMap.get(mHapInfo.indexByReadAndStrand()).setCnt(
-                        outputMHapMap.get(mHapInfo.indexByReadAndStrand()).getCnt() + 1);
-            } else {
-                outputMHapMap.put(mHapInfo.indexByReadAndStrand(), mHapInfo);
             }
         }
 
@@ -561,13 +567,18 @@ public class Convert {
         Collections.sort(cpgPosListMerged);
 
         // 输出排序后的键值对
-        String cpgString = "";
+        String haploString = "";
+        String haplotype = "";
+        List<Integer> qualityList = new ArrayList<>();
         for (Integer pos : cpgPosListMerged) {
-            cpgString += mergedMet.get(pos);
+            haplotype += mergedMet.get(pos);
+            haploString += mergedSEQ.get(pos);
+            qualityList.add(mergedQUL.get(pos));
         }
 
         MHapInfo mHapInfoMerged = new MHapInfo(mHapInfoF.getChrom(), cpgPosListMerged.get(0),
-                cpgPosListMerged.get(cpgPosListMerged.size() - 1), cpgString, 1, mHapInfoF.getStrand());
+                cpgPosListMerged.get(cpgPosListMerged.size() - 1), haplotype, 1, mHapInfoF.getStrand(),
+                cpgPosListMerged, haploString, qualityList, mHapInfoF.getReadName());
         return mHapInfoMerged;
     }
 

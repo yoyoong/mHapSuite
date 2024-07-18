@@ -36,6 +36,7 @@ target/maven-archiver/
 *.tbi
 *.bam
 *.mhap
+*.mhapsuite
 *.bai
 *.bed
 *.bedGraph

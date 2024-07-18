@@ -85,7 +85,7 @@ public class Convert {
         }
         inputStream.close();
         outputStream.close();
-        // new File(mhapFileName).delete();
+        new File(mhapFileName).delete();
 
         log.info("command.Convert end! ");
     }

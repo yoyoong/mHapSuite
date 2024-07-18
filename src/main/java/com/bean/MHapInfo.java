@@ -15,6 +15,7 @@ public class MHapInfo implements Serializable {
     public List<Integer> cpgPosList;
     public String haploString;
     public List<Integer> qualityList;
+    public String readName;
 
     public MHapInfo(String chrom, Integer start, Integer end, String cpg, Integer cnt, String strand) {
         this.chrom = chrom;
@@ -26,7 +27,7 @@ public class MHapInfo implements Serializable {
     }
 
     public MHapInfo(String chrom, Integer start, Integer end, String cpg, Integer cnt, String strand,
-                    List<Integer> cpgPosList, String haploString, List<Integer> qualityList) {
+                    List<Integer> cpgPosList, String haploString, List<Integer> qualityList, String readName) {
         this.chrom = chrom;
         this.start = start;
         this.end = end;
@@ -36,6 +37,7 @@ public class MHapInfo implements Serializable {
         this.cpgPosList = cpgPosList;
         this.haploString = haploString;
         this.qualityList = qualityList;
+        this.readName = readName;
     }
 
     public String getChrom() {
@@ -108,6 +110,14 @@ public class MHapInfo implements Serializable {
 
     public void setQualityList(List<Integer> qualityList) {
         this.qualityList = qualityList;
+    }
+
+    public String getReadName() {
+        return readName;
+    }
+
+    public void setReadName(String readName) {
+        this.readName = readName;
     }
 
     public String indexByPos() {

@@ -260,7 +260,6 @@ public class Convert {
     }
 
     private boolean getSingleRegionData(Region region, BufferedWriter bufferedWriter) throws Exception {
-
         // get cpg position list
         List<Integer> cpgPosList = util.parseCpgFile(args.getCpgPath(), region);
         if (cpgPosList.size() < 1) {
@@ -270,7 +269,7 @@ public class Convert {
         Integer cpgStartIndex = 0;
         SamReader samReader = SamReaderFactory.makeDefault().open(inputFile);
         SAMRecordIterator samRecordIterator = samReader.query(region.getChrom(), region.getStart(), region.getEnd(),true);
-        Map<String, List<MHapInfo>> mHapMap = new HashMap<>();
+        Map<String, List<MHapInfo>> tempMHapMap = new HashMap<>();
         long samCnt = 0l; // 处理的sam数量
         while (samRecordIterator.hasNext()) {
             samCnt++;
@@ -298,8 +297,6 @@ public class Convert {
                 if (xmTag.contains("X") || xmTag.contains("H") || xmTag.contains("U")) {
                     continue;
                 }
-            } else {
-                continue;
             }
 
             // 获取正负链信息
@@ -356,10 +353,6 @@ public class Convert {
                 continue;
             }
 
-//            if (samRecord.getStart() == 12657) {
-//                log.info("ddd");
-//            }
-
             // 获取CpG位点甲基化信息
             Object[] getHaploStringOutput = getHaploString(samRecord, cpgPosListInRegion, cpgCnt, strand);
             String haploString = (String) getHaploStringOutput[0];
@@ -373,58 +366,57 @@ public class Convert {
             }
 
             // mHap数据赋值
+            String readName = samRecord.getReadName();
             MHapInfo mHapInfo = new MHapInfo(region.getChrom(), cpgPosListInRegion.get(0), cpgPosListInRegion.get(cpgCnt -1),
-                    haplotype, 1, strand.getStrandFlag(), cpgPosListInRegion, haploString, qualityList);
+                    haplotype, 1, strand.getStrandFlag(), cpgPosListInRegion, haploString, qualityList, readName);
 
             // 合并索引相同的行
-            String readName = samRecord.getReadName();
-            if (mHapMap.containsKey(readName)) {
-                mHapMap.get(readName).add(mHapInfo);
+            if (tempMHapMap.containsKey(readName)) {
+                tempMHapMap.get(readName).add(mHapInfo);
             } else {
                 List<MHapInfo> mHapInfoList = new ArrayList<>();
                 mHapInfoList.add(mHapInfo);
-                mHapMap.put(readName, mHapInfoList);
+                tempMHapMap.put(readName, mHapInfoList);
             }
         }
 
-        Map<String, MHapInfo> outputMHapMap = new HashMap<>();
-        for (String readName : mHapMap.keySet()) {
-            List<MHapInfo> mHapInfoList = mHapMap.get(readName);
+        List<MHapInfo> outputMHapList = new ArrayList<>();
+        for (String readName : tempMHapMap.keySet()) {
+//            if (readName.equals("A00151:224:HKGN2DSXY:1:2561:30590:23876")) {
+//                log.info(readName);
+//            }
+            List<MHapInfo> mHapInfoList = tempMHapMap.get(readName);
             if (mHapInfoList.size() == 2) {
                 MHapInfo mHapInfoF = mHapInfoList.get(0);
                 MHapInfo mHapInfoR = mHapInfoList.get(1);
                 if (pairedEndCheck(mHapInfoF, mHapInfoR)) {
                     MHapInfo mHapInfoMerged = pairedEndMerge(mHapInfoF, mHapInfoR);
-                    if (outputMHapMap.containsKey(mHapInfoMerged.indexByReadAndStrand())) {
-                        outputMHapMap.get(mHapInfoMerged.indexByReadAndStrand()).setCnt(
-                                outputMHapMap.get(mHapInfoMerged.indexByReadAndStrand()).getCnt() + 1);
-                    } else {
-                        outputMHapMap.put(mHapInfoMerged.indexByReadAndStrand(), mHapInfoMerged);
-                    }
+                    outputMHapList.add(mHapInfoMerged);
                 } else {
                     for (MHapInfo mHapInfo : mHapInfoList) {
-                        if (outputMHapMap.containsKey(mHapInfo.indexByReadAndStrand())) {
-                            outputMHapMap.get(mHapInfo.indexByReadAndStrand()).setCnt(
-                                    outputMHapMap.get(mHapInfo.indexByReadAndStrand()).getCnt() + 1);
-                        } else {
-                            outputMHapMap.put(mHapInfo.indexByReadAndStrand(), mHapInfo);
-                        }
+                        outputMHapList.add(mHapInfo);
                     }
                 }
             } else {
-                MHapInfo mHapInfo = mHapInfoList.get(0);
-                if (outputMHapMap.containsKey(mHapInfo.indexByReadAndStrand())) {
-                    outputMHapMap.get(mHapInfo.indexByReadAndStrand()).setCnt(
-                            outputMHapMap.get(mHapInfo.indexByReadAndStrand()).getCnt() + 1);
-                } else {
-                    outputMHapMap.put(mHapInfo.indexByReadAndStrand(), mHapInfo);
+                for (MHapInfo mHapInfo : mHapInfoList) {
+                    outputMHapList.add(mHapInfo);
                 }
             }
         }
 
+        Map<String, MHapInfo> outputMHapMap = new HashMap<>();
+        for (MHapInfo mHapInfo : outputMHapList) {
+            if (outputMHapMap.containsKey(mHapInfo.indexByReadAndStrand())) {
+                outputMHapMap.get(mHapInfo.indexByReadAndStrand()).setCnt(
+                        outputMHapMap.get(mHapInfo.indexByReadAndStrand()).getCnt() + 1);
+            } else {
+                outputMHapMap.put(mHapInfo.indexByReadAndStrand(), mHapInfo);
+            }
+        }
+
         // 对mHap数据进行排序
-        List<Map.Entry<String, MHapInfo>> outputMHapList = new ArrayList<Map.Entry<String, MHapInfo>>(outputMHapMap.entrySet());
-        Collections.sort(outputMHapList, new Comparator<Map.Entry<String, MHapInfo>>() { //升序排序
+        List<Map.Entry<String, MHapInfo>> outputMHapMapSorted = new ArrayList<Map.Entry<String, MHapInfo>>(outputMHapMap.entrySet());
+        Collections.sort(outputMHapMapSorted, new Comparator<Map.Entry<String, MHapInfo>>() { //升序排序
             public int compare(Map.Entry<String, MHapInfo> o1, Map.Entry<String, MHapInfo> o2) {
                 return o1.getValue().getChrom().compareTo(o2.getValue().getChrom()) * 10000
                         + o1.getValue().getStart().compareTo(o2.getValue().getStart()) * 1000
@@ -434,7 +426,7 @@ public class Convert {
             }
         });
 
-        for(Map.Entry<String, MHapInfo> mHapInfo : outputMHapList) {
+        for(Map.Entry<String, MHapInfo> mHapInfo : outputMHapMapSorted) {
             bufferedWriter.write(mHapInfo.getValue().print() + "\n");
         }
 
@@ -525,7 +517,7 @@ public class Convert {
     }
 
     private boolean pairedEndCheck(MHapInfo mHapInfoF, MHapInfo mHapInfoR) {
-        if (mHapInfoF.getChrom() != mHapInfoR.getChrom()) {
+        if (!mHapInfoF.getChrom().equals(mHapInfoR.getChrom())) {
             return false;
         }
         boolean checkF = mHapInfoF.getCpgPosList().get(mHapInfoF.getCpgPosList().size() - 1)
@@ -543,23 +535,23 @@ public class Convert {
         List<Integer> cpgPosListF = mHapInfoF.getCpgPosList();
         String cpgStringF = mHapInfoF.getCpg();
         String haploStringF = mHapInfoF.getHaploString();
+        List<Integer> qualityListF = mHapInfoF.getQualityList();
         for (int i = 0; i < cpgPosListF.size(); i++) {
             Integer pos = cpgPosListF.get(i);
-            List<Integer> qualityList = mHapInfoF.getQualityList();
             mergedSEQ.put(pos, String.valueOf(haploStringF.charAt(i)));
-            mergedQUL.put(pos, qualityList.get(i));
+            mergedQUL.put(pos, qualityListF.get(i));
             mergedMet.put(pos, String.valueOf(cpgStringF.charAt(i)));
         }
 
         List<Integer> cpgPosListR = mHapInfoR.getCpgPosList();
         String cpgStringR = mHapInfoR.getCpg();
         String haploStringR = mHapInfoR.getHaploString();
+        List<Integer> qualityListR = mHapInfoR.getQualityList();
         for (int i = 0; i < cpgPosListR.size(); i++) {
             Integer pos = cpgPosListR.get(i);
-            List<Integer> qualityList = mHapInfoR.getQualityList();
-            if (!mergedMet.containsKey(pos) || (qualityList.get(i) > mergedQUL.get(pos))) {
+            if (!mergedMet.containsKey(pos) || (qualityListR.get(i) > mergedQUL.get(pos))) {
                 mergedSEQ.put(pos, String.valueOf(haploStringR.charAt(i)));
-                mergedQUL.put(pos, qualityList.get(i));
+                mergedQUL.put(pos, qualityListR.get(i));
                 mergedMet.put(pos, String.valueOf(cpgStringR.charAt(i)));
             }
         }

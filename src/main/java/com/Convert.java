@@ -7,31 +7,14 @@ import com.bean.RegionType;
 import com.bean.StrandType;
 import com.common.Util;
 import htsjdk.samtools.*;
-import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.samtools.util.BlockCompressedOutputStream;
-import htsjdk.samtools.util.BlockGunzipper;
-import htsjdk.samtools.util.Interval;
-import htsjdk.tribble.AbstractFeatureReader;
-import htsjdk.tribble.Feature;
-import htsjdk.tribble.FeatureCodec;
-import htsjdk.tribble.bed.BEDCodec;
-import htsjdk.tribble.bed.BEDFeature;
-import htsjdk.tribble.index.Index;
-import htsjdk.tribble.index.IndexCreator;
-import htsjdk.tribble.index.IndexFactory;
-import htsjdk.tribble.readers.AsciiLineReader;
-import htsjdk.tribble.readers.LineIterator;
-import htsjdk.tribble.readers.LineIteratorImpl;
 import htsjdk.tribble.readers.TabixReader;
-import htsjdk.variant.vcf.VCFCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
-
-import static htsjdk.samtools.SamFiles.findIndex;
 
 public class Convert {
     public static final Logger log = LoggerFactory.getLogger(Convert.class);
@@ -96,7 +79,7 @@ public class Convert {
         }
         inputStream.close();
         outputStream.close();
-        // new File(mhapFileName).delete();
+        new File(mhapFileName).delete();
 
         log.info("command.Convert end! ");
     }

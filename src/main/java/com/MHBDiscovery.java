@@ -163,6 +163,7 @@ public class MHBDiscovery {
                         List<Integer> cpgPosList = cpgPosListMap.get(thisRegion.getChrom());
                         List<Integer> cpgPosListInThisRegion = util.getCpgPosListInRegion(cpgPosList, thisRegion);
                         List<Integer> cpgPosListInNextRegion = util.getCpgPosListInRegion(cpgPosList, nextRegion);
+
                         Integer thisRegionEndCpgIndex = util.indexOfList(cpgPosList, 0, cpgPosList.size() - 1,
                                 cpgPosListInThisRegion.get(cpgPosListInThisRegion.size() - 1));
                         Integer nextRegionStartCpgIndex = util.indexOfList(cpgPosList, 0, cpgPosList.size() - 1,
@@ -197,8 +198,10 @@ public class MHBDiscovery {
                             regionListMerged.add(thisRegion);
                         }
                     }
-                } else {
+                } else if (regionListInChrom.size() == 1){
                     regionListMerged.add(regionListInChrom.get(0));
+                } else {
+                    continue;
                 }
             }
             for (Region region : regionListMerged) {

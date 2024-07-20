@@ -33,8 +33,8 @@ public class MainTest extends TestCase {
         String arg12 = "-pat";
 
         // String[] args = {arg0, arg1, arg2, arg3, arg4, arg8, arg9, arg10, arg11};
-        String[] args = {arg0, arg1, arg2, arg3, arg4, arg8, arg9, arg10, arg11};
-        // String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg8, arg9, arg10, arg11};
+        // String[] args = {arg0, arg1, arg2, arg3, arg4, arg8, arg9, arg10, arg11};
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg8, arg9, arg10, arg11};
         // String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11};
 
         System.out.println("Work direqtory: " + System.getProperty("user.dir"));
@@ -232,13 +232,13 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "MHBDiscovery";
         String arg1 = "-mhapPath";
-        String arg2 = "neuron.mhap.gz";
+        String arg2 = "testcase1.mhap.gz";
         String arg3 = "-cpgPath";
-        String arg4 = "hg19_CpG.gz";
-        String arg5 = "-region";
-        String arg6 = "chr3:9975288-9975336";
-//        String arg5= "-bedPath";
-//        String arg6 = "hg19_1000CpG.bed";
+        String arg4 = "hg38_CpG.bed.gz";
+//        String arg5 = "-region";
+//        String arg6 = "chr3:9975288-9975336";
+        String arg5= "-bedPath";
+        String arg6 = "target.bed";
         String arg7 = "-window";
         String arg8 = "5";
         String arg9 = "-r2";
@@ -250,8 +250,8 @@ public class MainTest extends TestCase {
         String arg15 = "-tag";
         String arg16 = "neuron";
         String arg17 = "-qcFlag";
-        String[] args = {arg0, arg1, arg2, arg3, arg4, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16};
-        //String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17};
+        //String[] args = {arg0, arg1, arg2, arg3, arg4, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16};
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16};
         //String[] args = {arg0, arg1, arg2, arg3, arg4, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16};
 
         System.out.println("Work direqtory: " + System.getProperty("user.dir"));

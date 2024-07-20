@@ -27,8 +27,8 @@ final public class Constants {
     public static final String R2COV_DESCRIPTION = "minimal number of reads that cover two CpGs for R2 calculation [20]";
     public static final String METRICS_DESCRIPTION = "mHap-level metrics, including Cov,MM,PDR,CHALM,MHL,MCR,MBS,Entropy,and R2";
     public static final String OUTPUTDIR_DESCRIPTION = "output directory, created in advance";
-    public static final String CPGCOV_DESCRIPTION = "minimal number of CpG coverage for MM and MCR calculation [5]";
-    public static final String K4PLUS_DESCRIPTION = "minimal number of reads that cover 4 or more CpGs for PDR, CHALM, MHL, MBS and Entropy [5]";
+    public static final String CPGCOV_DESCRIPTION = "minimal number of CpG coverage for MM and MCR calculation [10]";
+    public static final String K4PLUS_DESCRIPTION = "minimal number of reads that cover 4 or more CpGs for PDR, CHALM, MHL, MBS and Entropy [10]";
     public static final String WINDOW_DESCRIPTION = "Size of core window";
     public static final String R2_DESCRIPTION = "R square cutoff";
     public static final String PVALUE_DESCRIPTION = "P value cutoff";

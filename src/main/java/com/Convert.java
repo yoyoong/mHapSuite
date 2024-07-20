@@ -7,12 +7,23 @@ import com.bean.RegionType;
 import com.bean.StrandType;
 import com.common.Util;
 import htsjdk.samtools.*;
+import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.samtools.util.BlockCompressedOutputStream;
+import htsjdk.samtools.util.BlockGunzipper;
+import htsjdk.samtools.util.Interval;
+import htsjdk.tribble.AbstractFeatureReader;
+import htsjdk.tribble.Feature;
+import htsjdk.tribble.FeatureCodec;
 import htsjdk.tribble.bed.BEDCodec;
 import htsjdk.tribble.bed.BEDFeature;
+import htsjdk.tribble.index.Index;
+import htsjdk.tribble.index.IndexCreator;
+import htsjdk.tribble.index.IndexFactory;
 import htsjdk.tribble.readers.AsciiLineReader;
+import htsjdk.tribble.readers.LineIterator;
 import htsjdk.tribble.readers.LineIteratorImpl;
 import htsjdk.tribble.readers.TabixReader;
+import htsjdk.variant.vcf.VCFCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,7 +96,7 @@ public class Convert {
         }
         inputStream.close();
         outputStream.close();
-        new File(mhapFileName).delete();
+        // new File(mhapFileName).delete();
 
         log.info("command.Convert end! ");
     }
@@ -117,27 +128,56 @@ public class Convert {
     }
 
     private boolean convertPat(BufferedWriter bufferedWriter) throws Exception {
+        // 先获取pat文件染色体的顺序列表
+        List<String> sortedChrList = new ArrayList<>();
+        FileInputStream fileInputStream = new FileInputStream(args.getInputFile());
+        GZIPInputStream gzipInputStream = new GZIPInputStream(fileInputStream);
+        InputStreamReader inputStreamReader = new InputStreamReader(gzipInputStream);
+        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+        String patLine = "";
+        while ((patLine = bufferedReader.readLine()) != null && !patLine.equals("")) {
+            String chrom = patLine.split("\t")[0];
+            if (!sortedChrList.contains(chrom)) {
+                sortedChrList.add(chrom);
+            }
+        }
+        log.info("Get chrom order end.");
+        List<String> chrList = Collections.unmodifiableList(sortedChrList); // 列表顺序不会改变
 
-        // get whole cpg position list
-        List<Integer> cpgPosList = new ArrayList<>();
+        // get whole cpg position list map
+        Map<String, List<Integer>> cpgPosListMap = new HashMap<>();
         TabixReader tabixReader = new TabixReader(args.getCpgPath());
         String cpgLine = tabixReader.readLine();
         while(cpgLine != null && !cpgLine.equals("")) {
             if (cpgLine.split("\t").length < 3) {
                 continue;
             } else {
-                cpgPosList.add(Integer.valueOf(cpgLine.split("\t")[1]));
+                String chrom = cpgLine.split("\t")[0];
+                if (cpgPosListMap.containsKey(chrom)) {
+                    cpgPosListMap.get(chrom).add(Integer.valueOf(cpgLine.split("\t")[1]));
+                } else {
+                    List<Integer> chromCpgPosList = new ArrayList<>();
+                    chromCpgPosList.add(Integer.valueOf(cpgLine.split("\t")[1]));
+                    cpgPosListMap.put(chrom, chromCpgPosList);
+                }
                 cpgLine = tabixReader.readLine();
             }
         }
-        log.info("Read cpg reference file: " + args.getCpgPath() + " end.");
+        log.info("Read cpg reference file end.");
 
-        FileInputStream fileInputStream = new FileInputStream(args.getInputFile());
-        GZIPInputStream gzipInputStream = new GZIPInputStream(fileInputStream);
-        InputStreamReader inputStreamReader = new InputStreamReader(gzipInputStream);
-        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-        String patLine = "";
+        // 按pat文件染色体的顺序重新排列cpg参考文件的顺序
+        List<Integer> cpgPosList = new ArrayList<>();
+        for (int i = 0; i < chrList.size(); i++) {
+            String chrom = chrList.get(i);
+            List<Integer> chromCpgPosList = cpgPosListMap.get(chrom);
+            cpgPosList.addAll(chromCpgPosList);
+        }
+
         long completeLine = 0l;
+        fileInputStream = new FileInputStream(args.getInputFile());
+        gzipInputStream = new GZIPInputStream(fileInputStream);
+        inputStreamReader = new InputStreamReader(gzipInputStream);
+        bufferedReader = new BufferedReader(inputStreamReader);
         while ((patLine = bufferedReader.readLine()) != null && !patLine.equals("")) {
             completeLine++;
             if (completeLine % 1000000 == 0) { // 每一百万条打印进度
@@ -180,8 +220,19 @@ public class Convert {
             log.error("Please specify -i and -c options.");
             return false;
         }
+        if (args.isPat()) {
+            if (!args.getInputFile().endsWith(".pat.gz")) {
+                log.error("-pat opt should be input .pat.gz file.");
+                return false;
+            }
+        } else {
+            if (!args.getInputFile().endsWith(".bam") && !args.getInputFile().endsWith(".sam")) {
+                log.error("-pat opt should be input bam/sam file.");
+                return false;
+            }
+        }
         if (args.getMode() != "BS" && args.getMode() != "TAPS") {
-            log.error("opt error: -m should be specified as BS or TAPS.");
+            log.error("-m opt should be specified as BS or TAPS.");
             return false;
         }
         if (!args.getCpgPath().isEmpty() && !args.getCpgPath().endsWith(".gz")) {
@@ -215,7 +266,7 @@ public class Convert {
         // 打开sam/bam文件
         inputFile = new File(args.getInputFile());
         if (inputFile == null || !inputFile.exists()) {
-            log.error("The sam/bam file do not exist.");
+            log.error("The input file do not exist.");
             return false;
         }
 

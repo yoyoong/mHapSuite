@@ -18,7 +18,7 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "convert";
         String arg1 = "-inputFile";
-        String arg2 = "HCT116_BISMARK_SRX999983.bam";
+        String arg2 = "M17A020338-MF_val.bam";
         String arg3 = "-cpgPath";
         String arg4 = "hg19_CpG.gz";
         String arg5 = "-region";
@@ -27,13 +27,14 @@ public class MainTest extends TestCase {
 //        String arg6 = "colon_MHB.bed";
         String arg7 = "-nonDirectional";
         String arg8 = "-outPutFile";
-        String arg9 = "HCT116_BISMARK_SRX999983.mhapsuite.gz";
+        String arg9 = "M17A020338-MF_val.mhap.gz";
         String arg10 = "-mode";
         String arg11 = "BS";
         String arg12 = "-pat";
 
         // String[] args = {arg0, arg1, arg2, arg3, arg4, arg8, arg9, arg10, arg11};
-        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg8, arg9, arg10, arg11};
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg8, arg9, arg10, arg11};
+        // String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg8, arg9, arg10, arg11};
         // String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11};
 
         System.out.println("Work direqtory: " + System.getProperty("user.dir"));
@@ -142,17 +143,17 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "stat";
         String arg1 = "-metrics";
-        String arg2 = "CHALM PDR";
+        String arg2 = "MM PDR CHALM MHL MCR MBS Entropy R2";
         String arg3 = "-mhapPath";
-        String arg4 = "post_KO.mhap.gz";
+        String arg4 = "ENCFF285ZGH.pat.mhap.gz";
         String arg5 = "-cpgPath";
-        String arg6 = "mm10_CpG.gz";
+        String arg6 = "hg19_CpG.gz";
 //        String arg7 = "-region";
 //        String arg8 = "chr1:566520-566816";
         String arg7 = "-bedPath";
-        String arg8 = "mm10_genes_TSS_2.2k.bed";
+        String arg8 = "ESCC_DMR.bed";
         String arg9 = "-outputFile";
-        String arg10 = "outStat.tsv";
+        String arg10 = "outStatENCFF285ZGH.pat.tsv";
         String arg11 = "-minK";
         String arg12 = "1";
         String arg13 = "-maxK";
@@ -162,7 +163,7 @@ public class MainTest extends TestCase {
         String arg17 = "-strand";
         String arg18 = "both";
         String arg19 = "-cutReads";
-        String arg20 = "-k4plusNum";
+        String arg20 = "-k4Plus";
         String arg21 = "10";
         //String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18};
         //String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19};

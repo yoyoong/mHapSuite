@@ -211,6 +211,8 @@ Options:
  -maxK,--maxK <arg>               maximum k-mer length for MHL [10]
  -K,--K <arg>                     k-mer length for entropy, PDR, and CHALM, can be 3, 4, or 5 [4]
  -cutReads,--cutReads             indicates whether only keep CpGs in the defined region
+ -cpgCov,--cpgCov <arg>           minimal number of CpG coverage for MM calculation [10]
+ -k4Plus,--k4Plus <arg>           minimal number of reads that cover 4 or more CpGs for PDR, CHALM, MHL, MCR, MBS and Entropy [10]
  -strand,--strand <arg>           plus,minus,both [both]
  -r2Cov,--r2Cov <arg>             minimal number of reads that cover two CpGs for R2 calculation [20]
 ```
@@ -235,9 +237,9 @@ Options:
  -maxK,--maxK <arg>             maximum k-mer length for MHL [10]
  -K,--K <arg>                   k-mer length for entropy, PDR, and CHALM, can be 3, 4, or 5 [4]
  -strand,--strand <arg>         plus,minus,both [both]
- -cpgCov,--cpgCov <arg>         minimal number of CpG coverage for MM calculation [5]
+ -cpgCov,--cpgCov <arg>         minimal number of CpG coverage for MM calculation [10]
  -r2Cov,--r2Cov <arg>           minimal number of reads that cover two CpGs for R2 calculation [20]
- -k4Plus,--k4Plus <arg>         minimal number of reads that cover 4 or more CpGs for PDR, CHALM, MHL, MCR, MBS and Entropy [5]
+ -k4Plus,--k4Plus <arg>         minimal number of reads that cover 4 or more CpGs for PDR, CHALM, MHL, MCR, MBS and Entropy [10]
 ```
 Example of usage:
 ```

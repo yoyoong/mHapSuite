@@ -16,14 +16,14 @@ public class StatInfo implements Serializable {
     public Integer nMR = 0; // 长度大于等于K个位点且含有甲基化位点的read个数
     public Integer nCPG = 0; // 甲基化位点个数
     public Integer nPairs = 0; // 可计算r2的pair个数
-    public Double MM = 0.0; // MM=mBase\tBase
-    public Double CHALM = 0.0; // CHALM=nMR/K4plus
-    public Double PDR = 0.0; // PDR=nDR/K4plus
-    public Double MHL = 0.0; // Guo et al.,2017
-    public Double MBS = 0.0; //
-    public Double MCR = 0.0; // MCR=cBase\tBase
-    public Double Entropy = 0.0; //
-    public Double R2 = 0.0; //
+    public Double MM = Double.NaN; // MM=mBase\tBase
+    public Double CHALM = Double.NaN; // CHALM=nMR/K4plus
+    public Double PDR = Double.NaN; // PDR=nDR/K4plus
+    public Double MHL = Double.NaN; // Guo et al.,2017
+    public Double MBS = Double.NaN; //
+    public Double MCR = Double.NaN; // MCR=cBase\tBase
+    public Double Entropy = Double.NaN; //
+    public Double R2 = Double.NaN; //
 
     public String getChr() {
         return chr;

@@ -53,19 +53,26 @@ public class Stat {
 
         // get the metric list
         for (Region region : regionList) {
+            StatInfo statInfo = new StatInfo();
+            statInfo.setChr(region.getChrom());
+            statInfo.setStart(region.getStart());
+            statInfo.setEnd(region.getEnd());
+
             // parse the mhap file
             List<MHapInfo> mHapInfoListMerged = util.parseMhapFile(args.getMhapPath(), region, args.getStrand(), true);
             if (mHapInfoListMerged.size() < 1) {
+                bufferedWriter.write(statInfo.print(metricsList));
                 continue;
             }
 
             // parse the cpg file
             List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
             if (cpgPosList.size() < 1) {
+                bufferedWriter.write(statInfo.print(metricsList));
                 continue;
             }
 
-            boolean getStatResult = getStat(mHapInfoListMerged, cpgPosList, region, metricsList, bufferedWriter);
+            boolean getStatResult = getStat(mHapInfoListMerged, cpgPosList, region, metricsList, statInfo, bufferedWriter);
             if (!getStatResult) {
                 log.error("getStat fail, please check the command.");
                 return;
@@ -123,8 +130,8 @@ public class Stat {
         return line;
     }
 
-    private boolean getStat(List<MHapInfo> mHapInfoListMerged, List<Integer> cpgPosList, Region region,
-                            List<String> metricsList, BufferedWriter bufferedWriter) throws Exception {
+    private boolean getStat(List<MHapInfo> mHapInfoListMerged, List<Integer> cpgPosList, Region region, List<String> metricsList,
+                            StatInfo statInfo, BufferedWriter bufferedWriter) throws Exception {
 
         // get cpg site list in region
         List<Integer> cpgPosListInRegion = util.getCpgPosListInRegion(cpgPosList, region);
@@ -174,10 +181,6 @@ public class Stat {
             }
         }
 
-        StatInfo statInfo = new StatInfo();
-        statInfo.setChr(region.getChrom());
-        statInfo.setStart(region.getStart());
-        statInfo.setEnd(region.getEnd());
         statInfo.setnReads(nReads);
         statInfo.setmBase(mBase);
         statInfo.setcBase(cBase);

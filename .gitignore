@@ -33,6 +33,7 @@ target/maven-archiver/
 *.tar
 *.txt
 *.tsv
+*.csi
 *.tbi
 *.bam
 *.mhap

@@ -18,7 +18,7 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "convert";
         String arg1 = "-inputFile";
-        String arg2 = "M17A020338-MF_val.bam";
+        String arg2 = "ENCFF285ZGH.pat.gz";
         String arg3 = "-cpgPath";
         String arg4 = "hg19_CpG.gz";
         String arg5 = "-region";
@@ -27,14 +27,13 @@ public class MainTest extends TestCase {
 //        String arg6 = "colon_MHB.bed";
         String arg7 = "-nonDirectional";
         String arg8 = "-outPutFile";
-        String arg9 = "M17A020338-MF_val.mhap.gz";
+        String arg9 = "ENCFF285ZGH.mhap.gz";
         String arg10 = "-mode";
         String arg11 = "BS";
         String arg12 = "-pat";
 
-        // String[] args = {arg0, arg1, arg2, arg3, arg4, arg8, arg9, arg10, arg11};
-        // String[] args = {arg0, arg1, arg2, arg3, arg4, arg8, arg9, arg10, arg11};
-        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg8, arg9, arg10, arg11};
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg8, arg9, arg10, arg11, arg12};
+        // String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg8, arg9, arg10, arg11};
         // String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11};
 
         System.out.println("Work direqtory: " + System.getProperty("user.dir"));
@@ -143,17 +142,17 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "stat";
         String arg1 = "-metrics";
-        String arg2 = "MM PDR CHALM MHL MCR MBS Entropy R2";
+        String arg2 = "MM";
         String arg3 = "-mhapPath";
-        String arg4 = "testcase1.mhap.gz";
+        String arg4 = "ENCFF285ZGH_frompat.mhap.gz";
         String arg5 = "-cpgPath";
-        String arg6 = "hg38_CpG.gz";
+        String arg6 = "hg19_CpG.gz";
 //        String arg7 = "-region";
 //        String arg8 = "chr1:566520-566816";
         String arg7 = "-bedPath";
-        String arg8 = "MHB.bed";
+        String arg8 = "chr1.bed";
         String arg9 = "-outputFile";
-        String arg10 = "testcase1.stat.tsv";
+        String arg10 = "mm_frommhap.tsv";
         String arg11 = "-minK";
         String arg12 = "1";
         String arg13 = "-maxK";
@@ -186,11 +185,11 @@ public class MainTest extends TestCase {
         String arg1 = "-tag";
         String arg2 = "test";
         String arg3 = "-mhapPath";
-        String arg4 = "esophagus_T.mhap.gz";
+        String arg4 = "ENCFF285ZGH.mhap.gz";
         String arg5 = "-cpgPath";
         String arg6 = "hg19_CpG.gz";
         String arg7 = "-metrics";
-        String arg8 = "Cov MM PDR CHALM MHL MCR MBS Entropy";
+        String arg8 = "MM";
         String arg9 = "-outputDir";
         String arg10 = "outputDir";
         String arg11 = "-minK";
@@ -201,19 +200,19 @@ public class MainTest extends TestCase {
         String arg16 = "4";
         String arg17 = "-strand";
         String arg18 = "both";
-        String arg19 = "-region";
-        String arg20 = "chr1:10469-100903";
-//        String arg19 = "-bedPath";
-//        String arg20 = "CRC_MHB_non_NC.bed";
+//        String arg19 = "-region";
+//        String arg20 = "chr1:10469-100903";
+        String arg19 = "-bedPath";
+        String arg20 = "chr1.bed";
         String arg21 = "-cpgCov";
-        String arg22 = "5";
+        String arg22 = "0";
         String arg23 = "-r2Cov";
         String arg24 = "20";
         String arg25 = "-k4Plus";
         String arg26 = "5";
 
         String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14,
-                arg15, arg16, arg17, arg18, arg19, arg20, arg21, arg22, arg23, arg24, arg25, arg26};
+                arg15, arg16, arg17, arg18, arg21, arg22, arg23, arg24, arg25, arg26};
 //        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14,
 //                arg15, arg16, arg17, arg18, arg21, arg22, arg23, arg24, arg25, arg26};
 

@@ -70,6 +70,10 @@ public class GenomeWide {
         if (args.getRegion() != null && !args.getRegion().equals("")) {
             Region region = util.parseRegion(args.getRegion());
             List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
+            if (cpgPosList.size() < 1) {
+                log.error("Cpg position in  " + region.toHeadString() + " is null!");
+                return;
+            }
             Boolean calculateRegionResult = calculateRegion(cpgPosList, region);
             if (!calculateRegionResult) {
                 log.error("Calculate " + region.toHeadString() + " fail!");
@@ -80,6 +84,11 @@ public class GenomeWide {
             List<Region> regionList = util.getBedRegionList(args.getBedPath());
             for (Region region : regionList) {
                 List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 500);
+                if (cpgPosList.size() < 1) {
+                    log.error("Cpg position in  " + region.toHeadString() + " is null!");
+                    continue;
+                }
+
                 Boolean calculateRegionResult = calculateRegion(cpgPosList, region);
                 if (!calculateRegionResult) {
                     log.error("Calculate " + region.toHeadString() + " fail!");
@@ -416,7 +425,7 @@ public class GenomeWide {
                 if (metric.equals("MM")) {
                     Double MM = mRead.doubleValue() / nReads.doubleValue();
                     if (MM.isNaN() || MM.isInfinite()) {
-                        continue;
+                        MM = Double.NaN;
                     }
                     bedGraphInfo.setMM(MM.floatValue());
                     bufferedWriterMM.write(bedGraphInfo.printMM());
@@ -424,7 +433,7 @@ public class GenomeWide {
                 if (metric.equals("PDR")) {
                     Double PDR = nDR.doubleValue() / K4plus.doubleValue();
                     if (PDR.isNaN() || PDR.isInfinite()) {
-                        continue;
+                        PDR = Double.NaN;
                     }
                     bedGraphInfo.setPDR(PDR.floatValue());
                     bufferedWriterPDR.write(bedGraphInfo.printPDR());
@@ -432,7 +441,7 @@ public class GenomeWide {
                 if (metric.equals("CHALM")) {
                     Double CHALM = nMR.doubleValue() / K4plus.doubleValue();
                     if (CHALM.isNaN() || CHALM.isInfinite()) {
-                        continue;
+                        CHALM = Double.NaN;
                     }
                     bedGraphInfo.setCHALM(CHALM.floatValue());
                     bufferedWriterCHALM.write(bedGraphInfo.printCHALM());
@@ -452,7 +461,7 @@ public class GenomeWide {
                     }
                     Double MHL = temp / w;
                     if (MHL.isNaN() || MHL.isInfinite()) {
-                        continue;
+                        MHL = Double.NaN;
                     }
                     bedGraphInfo.setMHL(MHL.floatValue());
                     bufferedWriterMHL.write(bedGraphInfo.printMHL());
@@ -460,7 +469,7 @@ public class GenomeWide {
                 if (metric.equals("MCR")) {
                     Double MCR = cBase.doubleValue() / tBase.doubleValue();
                     if (MCR.isNaN() || MCR.isInfinite()) {
-                        continue;
+                        MCR = Double.NaN;
                     }
                     bedGraphInfo.setMCR(MCR.floatValue());
                     bufferedWriterMCR.write(bedGraphInfo.printMCR());
@@ -469,7 +478,7 @@ public class GenomeWide {
                     Double mbsNum = mbsNumList[start + i];
                     Double MBS = mbsNum / K4plus;
                     if (MBS.isNaN() || MBS.isInfinite()) {
-                        continue;
+                        MBS = Double.NaN;
                     }
                     bedGraphInfo.setMBS(MBS.floatValue());
                     bufferedWriterMBS.write(bedGraphInfo.printMBS());
@@ -489,7 +498,7 @@ public class GenomeWide {
 
                     Double entropy = - 1 / args.getK().doubleValue() * temp;
                     if (entropy.isNaN() || entropy.isInfinite()) {
-                        continue;
+                        entropy = Double.NaN;
                     }
                     bedGraphInfo.setEntropy(entropy.floatValue());
                     bufferedWriterEntropy.write(bedGraphInfo.printEntropy());
@@ -541,7 +550,7 @@ public class GenomeWide {
 
                     Double meanR2 = r2Sum / r2Num;
                     if (meanR2.isNaN() || meanR2.isInfinite()) {
-                        continue;
+                        meanR2 = Double.NaN;
                     }
                     bedGraphInfo.setR2(meanR2.floatValue());
                     bufferedWriterR2.write(bedGraphInfo.printR2());

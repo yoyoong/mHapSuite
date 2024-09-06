@@ -161,13 +161,11 @@ public class Convert {
         gzipInputStream = new GZIPInputStream(fileInputStream);
         inputStreamReader = new InputStreamReader(gzipInputStream);
         bufferedReader = new BufferedReader(inputStreamReader);
-        String lastChrom = "";
-        Map<String, MHapInfo> mHapInfoMap = new HashMap<>();
         while ((patLine = bufferedReader.readLine()) != null && !patLine.equals("")) {
             completeLine++;
-//            if (completeLine % 1000000 == 0) { // 每一百万条打印进度
-//                log.info("Complete convert pat file "  + completeLine + " lines.");
-//            }
+            if (completeLine % 1000000 == 0) { // 每一百万条打印进度
+                log.info("Complete convert pat file "  + completeLine + " lines.");
+            }
 
             if(patLine == null || patLine.split("\t").length < 4) {
                 continue;
@@ -175,64 +173,26 @@ public class Convert {
 
             String thisChrom = patLine.split("\t")[0];
             Integer startLine = Integer.valueOf(patLine.split("\t")[1]);
-            String cpgInfoStr = patLine.split("\t")[2];
+            String cpgInfo = patLine.split("\t")[2];
             Integer readNum = Integer.valueOf(patLine.split("\t")[3]);
 
-            if (!lastChrom.equals("") && !lastChrom.equals(thisChrom)) {
-                // 对mHap数据进行排序
-                List<Map.Entry<String, MHapInfo>> mHapInfoMapSorted = new ArrayList<Map.Entry<String, MHapInfo>>(mHapInfoMap.entrySet());
-                Collections.sort(mHapInfoMapSorted, new Comparator<Map.Entry<String, MHapInfo>>() { //升序排序
-                    public int compare(Map.Entry<String, MHapInfo> o1, Map.Entry<String, MHapInfo> o2) {
-                        return o1.getValue().getChrom().compareTo(o2.getValue().getChrom()) * 10000
-                                + o1.getValue().getStart().compareTo(o2.getValue().getStart()) * 1000
-                                + o1.getValue().getEnd().compareTo(o2.getValue().getEnd()) * 100
-                                + o1.getValue().getCpg().compareTo(o2.getValue().getCpg()) * 10
-                                + o1.getValue().getStrand().compareTo(o2.getValue().getStrand());
-                    }
-                });
-
-                // 写入文件
-                for(Map.Entry<String, MHapInfo> mHapInfo : mHapInfoMapSorted) {
-                    bufferedWriter.write(mHapInfo.getValue().print() + "\n");
-                }
-
-                log.info("Convert " + lastChrom + " end.");
-                mHapInfoMap = new HashMap<>();
+            if (cpgInfo.contains(".")) {
+                continue;
             }
 
-            // split the
-            int currentPos = 0;
-            String[] cpgInfoArray = cpgInfoStr.toUpperCase().split("\\.+");
-            List<String> tmpList = new ArrayList<>();
-            List<Integer> positionList = new ArrayList<>();
-            for (String cpgInfo : cpgInfoArray) {
-                if (cpgInfo.contains("C") || cpgInfo.contains("T")) {
-                    int startIndex = cpgInfoStr.indexOf(cpgInfo, currentPos);
-                    tmpList.add(cpgInfo);
-                    positionList.add(startIndex);
-                    currentPos = startIndex + cpgInfo.length();
+            Integer startPos = cpgPosList.get(startLine - 1);
+            Integer endPos = cpgPosList.get(startLine + cpgInfo.length() - 2);
 
-                    Integer startCpgPos = cpgPosList.get(startLine + startIndex - 1);
-                    Integer endCpgPos = cpgPosList.get(startLine + startIndex + cpgInfo.length() - 2);
-                    String cpgStr = ""; // cpg string in format of 0/1
-                    for (char cpg : cpgInfo.toCharArray()) {
-                        if (cpg == 'C') {
-                            cpgStr += "1";
-                        } else if (cpg == 'T') {
-                            cpgStr += "0";
-                        }
-                    }
-                    MHapInfo mHapInfo = new MHapInfo(thisChrom, startCpgPos, endCpgPos, cpgStr, readNum, "+");
-                    if (mHapInfoMap.containsKey(mHapInfo.indexByReadAndStrand())) {
-                        mHapInfoMap.get(mHapInfo.indexByReadAndStrand()).setCnt(
-                                mHapInfoMap.get(mHapInfo.indexByReadAndStrand()).getCnt() + readNum);
-                    } else {
-                        mHapInfoMap.put(mHapInfo.indexByReadAndStrand(), mHapInfo);
-                    }
+            String cpgStr = ""; // cpg string in format of 0/1
+            for (char cpg : cpgInfo.toCharArray()) {
+                if (cpg == 'C') {
+                    cpgStr += "1";
+                } else if (cpg == 'T') {
+                    cpgStr += "0";
                 }
             }
 
-            lastChrom = thisChrom;
+            bufferedWriter.write(thisChrom + "\t" + startPos + "\t" + endPos + "\t" + cpgStr + "\t" + readNum + "\t" + "+" + "\n");
         }
 
         return true;

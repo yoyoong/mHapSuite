@@ -200,6 +200,9 @@ public class Main {
                 if (commandLine.hasOption("pat")) {
                     convertArgs.setPat(true);
                 }
+                if (commandLine.hasOption("filterFlag")) {
+                    convertArgs.setFilterFlag(true);
+                }
             }
         } else {
             System.out.println("The paramter is null");

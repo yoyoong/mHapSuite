@@ -18,7 +18,7 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "convert";
         String arg1 = "-inputFile";
-        String arg2 = "ENCFF285ZGH.pat.gz";
+        String arg2 = "20A042628.pat.gz";
         String arg3 = "-cpgPath";
         String arg4 = "hg19_CpG.gz";
         String arg5 = "-region";
@@ -27,12 +27,13 @@ public class MainTest extends TestCase {
 //        String arg6 = "colon_MHB.bed";
         String arg7 = "-nonDirectional";
         String arg8 = "-outPutFile";
-        String arg9 = "ENCFF285ZGH.mhap.gz";
+        String arg9 = "20A042628_filter.mhap.gz";
         String arg10 = "-mode";
         String arg11 = "BS";
         String arg12 = "-pat";
+        String arg13 = "-filterFlag";
 
-        String[] args = {arg0, arg1, arg2, arg3, arg4, arg8, arg9, arg10, arg11, arg12};
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg8, arg9, arg10, arg11, arg12, arg13};
         // String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg8, arg9, arg10, arg11};
         // String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11};
 
@@ -231,9 +232,9 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "MHBDiscovery";
         String arg1 = "-mhapPath";
-        String arg2 = "testcase1.mhap.gz";
+        String arg2 = "20A042628_bam.mhap.gz";
         String arg3 = "-cpgPath";
-        String arg4 = "hg38_CpG.gz";
+        String arg4 = "hg19_CpG.gz";
 //        String arg5 = "-region";
 //        String arg6 = "chr14:100327345-100327370";
         String arg5= "-bedPath";
@@ -247,10 +248,10 @@ public class MainTest extends TestCase {
 //        String arg13 = "-outputDir";
 //        String arg14 = "outputDir";
         String arg15 = "-tag";
-        String arg16 = "testcase1";
+        String arg16 = "20A042628_bam.MHB";
         String arg17 = "-qcFlag";
         //String[] args = {arg0, arg1, arg2, arg3, arg4, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16};
-        String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg15, arg16};
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg7, arg8, arg9, arg10, arg11, arg12, arg15, arg16};
         //String[] args = {arg0, arg1, arg2, arg3, arg4, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16};
 
         System.out.println("Work direqtory: " + System.getProperty("user.dir"));

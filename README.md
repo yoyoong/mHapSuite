@@ -93,6 +93,7 @@ Options:
  -nonDirectional,--nonDirectional   do not group results by the direction of reads.
  -mode,--mode <args>                sequencing mode, TAPS | BS (default)
  -pat,--pat                         whether inputPath is pat file
+ -filterFlag,--filterFlag           whether filter the reads contain missing value, only works in enter -pat
 ```
 
 Example of usage:

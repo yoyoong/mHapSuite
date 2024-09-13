@@ -18,7 +18,7 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "convert";
         String arg1 = "-inputFile";
-        String arg2 = "20A042628.pat.gz";
+        String arg2 = "GSM5652186_Kidney-Glomerular-Endothel-Z0000045J.pat.gz";
         String arg3 = "-cpgPath";
         String arg4 = "hg19_CpG.gz";
         String arg5 = "-region";
@@ -27,13 +27,13 @@ public class MainTest extends TestCase {
 //        String arg6 = "colon_MHB.bed";
         String arg7 = "-nonDirectional";
         String arg8 = "-outputFile";
-        String arg9 = "20A042628_filter.mhap.gz";
+        String arg9 = "Z0000045J.mhap.gz";
         String arg10 = "-mode";
         String arg11 = "BS";
         String arg12 = "-pat";
         String arg13 = "-filterFlag";
 
-        String[] args = {arg0, arg1, arg2, arg3, arg4, arg8, arg9, arg10, arg11, arg12, arg13};
+        String[] args = {arg0, arg1, arg2, arg3, arg4, arg8, arg9, arg10, arg11, arg12};
         // String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg8, arg9, arg10, arg11};
         // String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11};
 

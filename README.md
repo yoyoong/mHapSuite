@@ -89,7 +89,7 @@ Options:
  -cpgPath,--cpgPath <args>          genomic CpG file, gz format and indexed
  -region,--region <args>            one region, in the format of chr:start-end
  -bedPath,--bedPath <args>          a bed file, one query region per line
- -outPutFile,--outPutFile <args>    output filename, default: out.mhap.gz
+ -outputFile,--outputFile <args>    output filename, default: out.mhap.gz
  -nonDirectional,--nonDirectional   do not group results by the direction of reads.
  -mode,--mode <args>                sequencing mode, TAPS | BS (default)
  -pat,--pat                         whether inputPath is pat file
@@ -98,7 +98,7 @@ Options:
 
 Example of usage:
 ```
-java -jar mHapSuite-2.0-jar-with-dependencies.jar convert -inputFile SRX8472828.bam -cpgPath hg19_CpG.gz -outPutFile test.mhap.gz
+java -jar mHapSuite-2.0-jar-with-dependencies.jar convert -inputFile SRX8472828.bam -cpgPath hg19_CpG.gz -outputFile test.mhap.gz
 ```
 
 ## merge
@@ -108,12 +108,12 @@ usage: java -jar mHapSuite-2.0-jar-with-dependencies.jar merge --inputFile <1.mh
 Options:
  -inputFile,--inputFile <args>     multiple mHap files, gz format, should be indexed
  -cpgPath,--cpgPath <args>         genomic CpG file, gz format and indexed
- -outPutFile,--outPutFile <args>   output filename, default: out.mhap.gz
+ -outputFile,--outputFile <args>   output filename, default: out.mhap.gz
 ```
 
 Example of usage:
 ```
-java -jar mHapSuite-2.0-jar-with-dependencies.jar merge -inputFile SRX8208800.mhap.gz SRX8208801.mhap.gz -cpgPath hg19_CpG.gz -outPutFile out.mhap.gz 
+java -jar mHapSuite-2.0-jar-with-dependencies.jar merge -inputFile SRX8208800.mhap.gz SRX8208801.mhap.gz -cpgPath hg19_CpG.gz -outputFile out.mhap.gz 
 ```
 
 ## tanghulu
@@ -364,7 +364,7 @@ Options:
  -bedPath,--bedPath <args>              a bed file, one query region per line
  -openChromatin,--openChromatin <args>  a open chromatin regions file, in BED format
  -chipseqBigwig,--chipseqBigwig <args>  the input chip-seq bigwig file of a metrics from a sample
- -tag,--outPutFile <args>               prefix of the output file(s)
+ -tag,--outputFile <args>               prefix of the output file(s)
  -missingDataAsZero,--missingDataAsZero whether missing data as zero [false]
 ```
 Example of usage:

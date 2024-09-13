@@ -43,10 +43,10 @@ public class Convert {
         }
 
         String mhapFileName = "";
-        if (args.getOutPutFile() == null || args.getOutPutFile().equals("")) {
+        if (args.getOutputFile() == null || args.getOutputFile().equals("")) {
             mhapFileName = "out.mhap";
         } else {
-            mhapFileName = args.getOutPutFile().substring(0, args.getOutPutFile().length() - 3);
+            mhapFileName = args.getOutputFile().substring(0, args.getOutputFile().length() - 3);
         }
         BufferedWriter bufferedWriter = util.createOutputFile("", mhapFileName);
 
@@ -222,7 +222,7 @@ public class Convert {
             log.error("-c opt should be followed by a .gz file.");
             return false;
         }
-        if (!args.getOutPutFile().isEmpty() && !args.getOutPutFile().endsWith(".mhap.gz") && !args.getOutPutFile().endsWith(".mhapsuite.gz")) {
+        if (!args.getOutputFile().isEmpty() && !args.getOutputFile().endsWith(".mhap.gz") && !args.getOutputFile().endsWith(".mhapsuite.gz")) {
             log.error("-o opt should be followed by a .mhap.gz file.");
             return false;
         }

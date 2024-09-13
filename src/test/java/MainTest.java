@@ -26,7 +26,7 @@ public class MainTest extends TestCase {
 //        String arg5 = "-bedPath";
 //        String arg6 = "colon_MHB.bed";
         String arg7 = "-nonDirectional";
-        String arg8 = "-outPutFile";
+        String arg8 = "-outputFile";
         String arg9 = "20A042628_filter.mhap.gz";
         String arg10 = "-mode";
         String arg11 = "BS";
@@ -55,7 +55,7 @@ public class MainTest extends TestCase {
         String arg2 = "GSM5652261_Kidney-Glomerular-Podocytes-Z0000042W.mhap.gz GSM5652262_Kidney-Glomerular-Podocytes-Z00000441.mhap.gz GSM5652263_Kidney-Glomerular-Podocytes-Z00000442.mhap.gz";
         String arg3 = "-cpgPath";
         String arg4 = "hg19_CpG.gz";
-        String arg5 = "-outPutFile";
+        String arg5 = "-outputFile";
         String arg6 = "test.mhap.gz";
 
         String[] args = {arg0, arg1, arg2, arg3, arg4, arg5, arg6};

@@ -191,8 +191,8 @@ public class Main {
                 if (commandLine.hasOption("nonDirectional")) {
                     convertArgs.setNonDirectional(true);
                 }
-                if (commandLine.hasOption("outPutFile")) {
-                    convertArgs.setOutPutFile(commandLine.getOptionValue("outPutFile"));
+                if (commandLine.hasOption("outputFile")) {
+                    convertArgs.setOutputFile(commandLine.getOptionValue("outputFile"));
                 }
                 if (commandLine.hasOption("mode")) {
                     convertArgs.setMode(commandLine.getOptionValue("mode"));
@@ -246,8 +246,8 @@ public class Main {
                     mergeArgs.setInputFile(realInputFile);
                 }
                 mergeArgs.setCpgPath(commandLine.getOptionValue("cpgPath"));
-                if (commandLine.hasOption("outPutFile")) {
-                    mergeArgs.setOutPutFile(commandLine.getOptionValue("outPutFile"));
+                if (commandLine.hasOption("outputFile")) {
+                    mergeArgs.setOutputFile(commandLine.getOptionValue("outputFile"));
                 }
             }
         } else {

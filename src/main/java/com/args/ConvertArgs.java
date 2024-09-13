@@ -17,7 +17,7 @@ public class ConvertArgs implements Serializable {
     @Annotation(Constants.NONDIRECTIONAL_DESCRIPTION)
     public boolean nonDirectional = false;
     @Annotation(Constants.OUTPUTFILE_DESCRIPTION + "[out.mhap.gz]")
-    public String outPutFile = "";
+    public String outputFile = "";
     @Annotation(Constants.MODE_DESCRIPTION)
     public String mode = "BS";
     @Annotation(Constants.PAT_DESCRIPTION)
@@ -65,12 +65,12 @@ public class ConvertArgs implements Serializable {
         this.nonDirectional = nonDirectional;
     }
 
-    public String getOutPutFile() {
-        return outPutFile;
+    public String getOutputFile() {
+        return outputFile;
     }
 
-    public void setOutPutFile(String outPutFile) {
-        this.outPutFile = outPutFile;
+    public void setOutputFile(String outputFile) {
+        this.outputFile = outputFile;
     }
 
     public String getMode() {

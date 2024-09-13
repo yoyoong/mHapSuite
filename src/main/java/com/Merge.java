@@ -36,10 +36,10 @@ public class Merge {
 
         // create the output file bufferWriter
         String mhapFileName = "";
-        if (args.getOutPutFile() == null || args.getOutPutFile().equals("")) {
+        if (args.getOutputFile() == null || args.getOutputFile().equals("")) {
             mhapFileName = "out.mhap";
         } else {
-            mhapFileName = args.getOutPutFile().substring(0, args.getOutPutFile().length() - 3);
+            mhapFileName = args.getOutputFile().substring(0, args.getOutputFile().length() - 3);
         }
         BufferedWriter outputWriter = util.createOutputFile("", mhapFileName);
 

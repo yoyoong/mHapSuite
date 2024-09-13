@@ -11,7 +11,7 @@ public class MergeArgs implements Serializable {
     @Annotation(Constants.CPGPATH_DESCRIPTION)
     public String cpgPath = "";
     @Annotation(Constants.OUTPUTFILE_DESCRIPTION + "[out.mhap.gz]")
-    public String outPutFile = "";
+    public String outputFile = "";
 
     public String getInputFile() {
         return inputFile;
@@ -29,11 +29,11 @@ public class MergeArgs implements Serializable {
         this.cpgPath = cpgPath;
     }
 
-    public String getOutPutFile() {
-        return outPutFile;
+    public String getOutputFile() {
+        return outputFile;
     }
 
-    public void setOutPutFile(String outPutFile) {
-        this.outPutFile = outPutFile;
+    public void setOutputFile(String outputFile) {
+        this.outputFile = outputFile;
     }
 }

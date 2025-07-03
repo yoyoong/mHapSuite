@@ -203,6 +203,9 @@ public class Main {
                 if (commandLine.hasOption("filterFlag")) {
                     convertArgs.setFilterFlag(true);
                 }
+                if (commandLine.hasOption("cutFlag")) {
+                    convertArgs.setCutFlag(true);
+                }
             }
         } else {
             System.out.println("The paramter is null");

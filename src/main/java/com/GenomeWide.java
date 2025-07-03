@@ -244,6 +244,9 @@ public class GenomeWide {
                     (args.getStrand().equals("minus") && mHapLine.split("\t")[5].equals("+"))) {
                 continue;
             }
+            if (mHapLine.split("\t")[3].contains(".")) { // include missing site(.), filter
+                continue;
+            }
 
             mHapLineCnt++;
             if (mHapLineCnt % 1000000 == 0) {

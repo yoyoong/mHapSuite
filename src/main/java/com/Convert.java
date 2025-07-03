@@ -124,6 +124,7 @@ public class Convert {
                 sortedChrList.add(chrom);
             }
         }
+
         log.info("Get chrom order end.");
         List<String> chrList = Collections.unmodifiableList(sortedChrList); // 列表顺序不会改变
 
@@ -220,26 +221,46 @@ public class Convert {
                     mHapInfoMap = new HashMap<>();
                 }
 
-                // split the
-                int currentPos = 0;
-                String[] cpgInfoArray = cpgInfoStr.toUpperCase().split("\\.+");
-                List<String> tmpList = new ArrayList<>();
-                List<Integer> positionList = new ArrayList<>();
-                for (String cpgInfo : cpgInfoArray) {
-                    if (cpgInfo.contains("C") || cpgInfo.contains("T")) {
-                        int startIndex = cpgInfoStr.indexOf(cpgInfo, currentPos);
-                        tmpList.add(cpgInfo);
-                        positionList.add(startIndex);
-                        currentPos = startIndex + cpgInfo.length();
+                if (args.isCutFlag()) {
+                    int currentPos = 0;
+                    String[] cpgInfoArray = cpgInfoStr.toUpperCase().split("\\.+");
+                    for (String cpgInfo : cpgInfoArray) {
+                        if (cpgInfo.contains("C") || cpgInfo.contains("T")) {
+                            int startIndex = cpgInfoStr.indexOf(cpgInfo, currentPos);
+                            currentPos = startIndex + cpgInfo.length();
 
-                        Integer startCpgPos = cpgPosList.get(startLine + startIndex - 1);
-                        Integer endCpgPos = cpgPosList.get(startLine + startIndex + cpgInfo.length() - 2);
+                            Integer startCpgPos = cpgPosList.get(startLine + startIndex - 1);
+                            Integer endCpgPos = cpgPosList.get(startLine + startIndex + cpgInfo.length() - 2);
+                            String cpgStr = ""; // cpg string in format of 0/1
+                            for (char cpg : cpgInfo.toCharArray()) {
+                                if (cpg == 'C') {
+                                    cpgStr += "1";
+                                } else if (cpg == 'T') {
+                                    cpgStr += "0";
+                                }
+                            }
+                            MHapInfo mHapInfo = new MHapInfo(thisChrom, startCpgPos, endCpgPos, cpgStr, readNum, "+");
+                            if (mHapInfoMap.containsKey(mHapInfo.indexByReadAndStrand())) {
+                                mHapInfoMap.get(mHapInfo.indexByReadAndStrand()).setCnt(
+                                        mHapInfoMap.get(mHapInfo.indexByReadAndStrand()).getCnt() + readNum);
+                            } else {
+                                mHapInfoMap.put(mHapInfo.indexByReadAndStrand(), mHapInfo);
+                            }
+                        }
+                    }
+                } else { // 20250702 pat convert support include missing site
+                    String cpgInfo = cpgInfoStr;
+                    if (cpgInfo.contains("C") || cpgInfo.contains("T") || cpgInfo.contains(".")) {
+                        Integer startCpgPos = cpgPosList.get(startLine - 1);
+                        Integer endCpgPos = cpgPosList.get(startLine + cpgInfo.length() - 2);
                         String cpgStr = ""; // cpg string in format of 0/1
                         for (char cpg : cpgInfo.toCharArray()) {
                             if (cpg == 'C') {
                                 cpgStr += "1";
                             } else if (cpg == 'T') {
                                 cpgStr += "0";
+                            } else if (cpg == '.') {
+                                cpgStr += ".";
                             }
                         }
                         MHapInfo mHapInfo = new MHapInfo(thisChrom, startCpgPos, endCpgPos, cpgStr, readNum, "+");

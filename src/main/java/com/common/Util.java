@@ -216,6 +216,9 @@ public class Util {
                     (strand.equals("minus") && mHapLine.split("\t")[5].equals("+"))) {
                 continue;
             }
+            if (mHapLine.split("\t")[3].contains(".")) { // include missing site(.), filter
+                continue;
+            }
             MHapInfo mHapInfo = new MHapInfo(mHapLine.split("\t")[0], Integer.valueOf(mHapLine.split("\t")[1]),
                     Integer.valueOf(mHapLine.split("\t")[2]), mHapLine.split("\t")[3],
                     Integer.valueOf(mHapLine.split("\t")[4]), mHapLine.split("\t")[5]);

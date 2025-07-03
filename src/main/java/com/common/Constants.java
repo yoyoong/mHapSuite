@@ -49,4 +49,5 @@ final public class Constants {
     public static final String MISSINGDATAASZERO_DESCRIPTION = "whether missing data as zero";
     public static final String CHIPSEQBIGWIG_DESCRIPTION = "the input chip-seq bigwig file of a metrics from a sample";
     public static final String FILTERFLAG_DESCRIPTION = "whether filter the reads contain missing value, only works in enter -pat";
+    public static final String CUTFLAG_DESCRIPTION = "whether cut the reads contain missing value, only works in enter -pat and not enter -filterFlag";
 }

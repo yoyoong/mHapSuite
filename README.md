@@ -83,7 +83,7 @@ Commands:
 ## convert
 This function converts SAM/BAM format file to mHap format file. It takes an indexed Bisulfite-seq BAM and CpGs position files as inputs to extract DNA methylation haplotypes.
 ```
-usage: java -jar mHapSuite-2.0-jar-with-dependencies.jar convert --inputFile <in.bam> --cpgPath <CpG.gz> [--region chr:start-end] [--bedPath <in.bed>] --outputFile <out> [--nonDirectional] [--mode mode] [--pat pat]
+usage: java -jar mHapSuite-2.0-jar-with-dependencies.jar convert --inputFile <in.bam> --cpgPath <CpG.gz> [--region chr:start-end] [--bedPath <in.bed>] --outputFile <out> [--nonDirectional] [--mode mode] [--pat pat] [--filterFlag] [--cutFlag]
 Options:
  -inputFile,--inputFile <args>      input file, SAM/BAM format, should be sorted by samtools
  -cpgPath,--cpgPath <args>          genomic CpG file, gz format and indexed
@@ -94,6 +94,7 @@ Options:
  -mode,--mode <args>                sequencing mode, TAPS | BS (default)
  -pat,--pat                         whether inputPath is pat file
  -filterFlag,--filterFlag           whether filter the reads contain missing value, only works in enter -pat
+ -cutFlag,--cutFlag                 whether cut the reads contain missing value, only works in enter -pat and not enter -filterFlag
 ```
 
 Example of usage:

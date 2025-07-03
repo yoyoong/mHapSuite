@@ -24,6 +24,8 @@ public class ConvertArgs implements Serializable {
     public boolean pat = false;
     @Annotation(Constants.FILTERFLAG_DESCRIPTION)
     public boolean filterFlag = false;
+    @Annotation(Constants.CUTFLAG_DESCRIPTION)
+    public boolean cutFlag = false;
 
     public String getInputFile() {
         return inputFile;
@@ -95,5 +97,13 @@ public class ConvertArgs implements Serializable {
 
     public void setFilterFlag(boolean filterFlag) {
         this.filterFlag = filterFlag;
+    }
+
+    public boolean isCutFlag() {
+        return cutFlag;
+    }
+
+    public void setCutFlag(boolean cutFlag) {
+        this.cutFlag = cutFlag;
     }
 }

@@ -277,6 +277,25 @@ public class Convert {
             }
         }
 
+        // 对mHap数据进行排序
+        List<Map.Entry<String, MHapInfo>> mHapInfoMapSorted = new ArrayList<Map.Entry<String, MHapInfo>>(mHapInfoMap.entrySet());
+        Collections.sort(mHapInfoMapSorted, new Comparator<Map.Entry<String, MHapInfo>>() { //升序排序
+            public int compare(Map.Entry<String, MHapInfo> o1, Map.Entry<String, MHapInfo> o2) {
+                return o1.getValue().getChrom().compareTo(o2.getValue().getChrom()) * 10000
+                        + o1.getValue().getStart().compareTo(o2.getValue().getStart()) * 1000
+                        + o1.getValue().getEnd().compareTo(o2.getValue().getEnd()) * 100
+                        + o1.getValue().getCpg().compareTo(o2.getValue().getCpg()) * 10
+                        + o1.getValue().getStrand().compareTo(o2.getValue().getStrand());
+            }
+        });
+
+        // 写入文件
+        for(Map.Entry<String, MHapInfo> mHapInfo : mHapInfoMapSorted) {
+            bufferedWriter.write(mHapInfo.getValue().print() + "\n");
+        }
+
+        log.info("Convert " + lastChrom + " end.");
+
         return true;
     }
 
